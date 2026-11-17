@@ -4,8 +4,12 @@
   "private": true,
   "description": "ניהול תקציב משפחתי למאמנת - קישור אישי לכל זוג",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "better-sqlite3": "^11.5.0",
     "express": "^4.21.0"
