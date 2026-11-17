@@ -6,12 +6,13 @@ var dirty=false,busy=false,timer=null;
 var app=document.getElementById('app'),nav=document.getElementById('nav');
 function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
 function tabs(){var t=[['home','בית'],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
+function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},S.L||{});
-  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();S.fam=d.name||'';STAGE=d.stage||1;INBOX=d.msgs||[];
+  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<3;INBOX=d.msgs||[];
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
@@ -24,7 +25,7 @@ function flush(){
   clearTimeout(timer);timer=null;
   if(busy){timer=setTimeout(flush,400);return}
   busy=true;dirty=false;
-  fetch(API+'/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:payload()})})
+  fetch(API+'/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:payload(),budget:budgetBody()})})
     .then(function(r){if(!r.ok)throw 0;return r.json()})
     .then(function(){busy=false;if(dirty)flush();else status('✓ נשמר')})
     .catch(function(){busy=false;dirty=true;status('השמירה נכשלה, מנסה שוב...');timer=setTimeout(flush,5000)});
@@ -36,7 +37,7 @@ function refresh(){
 }
 document.addEventListener('change',function(e){
   var t=e.target,d=t.dataset;
-  if(d.s==='bud')return;
+  if(d.s==='bud'&&RO)return;
   if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
@@ -45,6 +46,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='act'){var k=ym();S.act[k]=S.act[k]||{};S.act[k][d.k]=n(t.value)}
   else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value}
   else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
+  else if(d.s==='bud'){S.bud[d.k]=n(t.value)}
   else if(d.s==='fc'){S.fc=S.fc||{};S.fc[d.k]=t.value}
   else if(d.s==='rt'){var rr=S.rt[d.k]=S.rt[d.k]||{};rr[d.w]=t.value}
   else if(d.s==='bal')S.bal[d.k]=n(t.value);
@@ -61,6 +63,7 @@ document.addEventListener('click',function(e){
   var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a;
   if(a==='tab')S.tab=b.dataset.id;
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
+  else if(a==='fill'){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='la'){S.L[b.dataset.l].push({});save()}
   else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}

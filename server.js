@@ -119,6 +119,26 @@ function coupleFromToken(req, res) {
   if (!row) { hit('bad:' + ip, 10 * 60 * 1000); res.status(404).json({ error: 'not_found' }); return null; }
   return row;
 }
+/* בדיקה ומיזוג של חלקי התקציב: bud, cs, sc */
+function budgetFrom(b, cur) {
+  let bud = cur.bud || {}, cs = cur.cs || {}, sc = cur.sc || [];
+  const okNum = o => isObj(o) && Object.values(o).every(v => typeof v === 'number' && isFinite(v));
+  if ('sc' in b) {
+    if (!Array.isArray(b.sc) || b.sc.length > 20 || b.sc.some(z => !isObj(z) || typeof z.id !== 'string' || z.id.length > 40 || typeof z.n !== 'string' || !z.n.trim() || z.n.length > 60 || typeof z.d !== 'string' || z.d.length > 7 || !okNum(z.bud))) return { error: 'bad_sc' };
+    sc = b.sc.map(z => ({ id: z.id, n: z.n, d: z.d, bud: z.bud }));
+  }
+  if ('bud' in b) {
+    if (!okNum(b.bud)) return { error: 'bad_bud' };
+    bud = b.bud;
+  }
+  if ('cs' in b) {
+    const c = b.cs, strs = a => Array.isArray(a) && a.length <= 2000 && a.every(x => typeof x === 'string' && x.length <= 130 && x.trim());
+    if (!isObj(c) || !strs(c.hid || []) || !strs(c.hg || []) || !Array.isArray(c.ng || []) || (c.ng || []).length > 100 || (c.ng || []).some(x => !isObj(x) || !['i', 'f', 'v'].includes(x.t) || typeof x.n !== 'string' || !x.n.trim() || x.n.length > 60 || x.n.includes('|')) || !isObj(c.ni || {}) || Object.values(c.ni || {}).some(a => !strs(a))) return { error: 'bad_cs' };
+    cs = { hid: c.hid || [], hg: c.hg || [], ng: (c.ng || []).map(x => ({ t: x.t, n: x.n })), ni: c.ni || {} };
+  }
+  return { value: { bud, cs, sc } };
+}
+
 const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n' };
 
 app.get('/api/c/:token', (req, res) => {
@@ -150,6 +170,11 @@ app.put('/api/c/:token/state', (req, res) => {
     clean[k] = incoming[k];
   }
   const now = Date.now();
+  if (row.stage === 3 && isObj(req.body.budget)) {
+    const r2 = budgetFrom(req.body.budget, parse(row.budget, {}));
+    if (r2.error) return res.status(400).json({ error: r2.error });
+    db.prepare('UPDATE couples SET budget = ? WHERE id = ?').run(JSON.stringify(r2.value), row.id);
+  }
   q.saveState.run(JSON.stringify(clean), now, row.id);
   res.json({ ok: true, updated_at: now });
 });
@@ -167,7 +192,12 @@ app.post('/api/admin/login', (req, res) => {
 app.post('/api/admin/logout', (req, res) => { setCookie(res, '', 0); res.json({ ok: true }); });
 app.get('/api/admin/me', (req, res) => res.json({ auth: validSession(cookie(req, 'sid')) }));
 
-const shape = r => ({
+/* זוג ששוחרר (שלב 3): המאמנת לא רואה יותר את הנתונים שלו */
+const shape = r => r.stage === 3 ? ({
+  id: r.id, token: '', name: r.name, stage: 3, released: true,
+  state: {}, budget: {}, notes: r.notes, tasks: parse(r.tasks, []), msgs: [],
+  created_at: r.created_at, updated_at: 0, seen_at: 0
+}) : ({
   id: r.id, token: r.token, name: r.name, stage: r.stage,
   state: parse(r.state, {}), budget: parse(r.budget, {}),
   notes: r.notes, tasks: parse(r.tasks, []), msgs: parse(r.msgs, []),
@@ -192,6 +222,7 @@ app.post('/api/admin/couples', requireAdmin, (req, res) => {
 app.put('/api/admin/couples/:id/state', requireAdmin, (req, res) => {
   const row = q.byId.get(Number(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
+  if (row.stage === 3) return res.status(403).json({ error: 'released' });
   const b = req.body || {}, cur = parse(row.state, {}), num = v => typeof v === 'number' && isFinite(v);
   for (const k of ['bal', 'mo', 'rt']) if (k in b) { if (!isObj(b[k])) return res.status(400).json({ error: 'bad_' + k }); cur[k] = b[k]; }
   if ('L' in b) {
@@ -207,8 +238,9 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   const row = q.byId.get(Number(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
   const b = req.body || {}, sets = [], vals = [];
+  if (row.stage === 3 && ['stage', 'bud', 'cs', 'sc', 'msgs'].some(k => k in b)) return res.status(403).json({ error: 'released' });
   if ('name' in b) { if (typeof b.name !== 'string' || !b.name.trim() || b.name.length > 80) return res.status(400).json({ error: 'bad_name' }); sets.push('name = ?'); vals.push(b.name.trim()); }
-  if ('stage' in b) { if (![1, 2].includes(b.stage)) return res.status(400).json({ error: 'bad_stage' }); sets.push('stage = ?'); vals.push(b.stage); }
+  if ('stage' in b) { if (![1, 2, 3].includes(b.stage)) return res.status(400).json({ error: 'bad_stage' }); sets.push('stage = ?'); vals.push(b.stage); }
   if ('notes' in b) { if (typeof b.notes !== 'string' || b.notes.length > 20000) return res.status(400).json({ error: 'bad_notes' }); sets.push('notes = ?'); vals.push(b.notes); }
   if ('tasks' in b) {
     if (!Array.isArray(b.tasks) || b.tasks.length > 200 || b.tasks.some(t => !isObj(t) || typeof t.t !== 'string' || t.t.length > 500)) return res.status(400).json({ error: 'bad_tasks' });
@@ -219,23 +251,9 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
     sets.push('msgs = ?'); vals.push(JSON.stringify(b.msgs.map(m => ({ id: String(m.id), k: m.k, x: m.x, ts: Number(m.ts) || Date.now() }))));
   }
   if ('bud' in b || 'cs' in b || 'sc' in b) {
-    const cur = parse(row.budget, {});
-    let bud = cur.bud || {}, cs = cur.cs || {}, sc = cur.sc || [];
-    if ('sc' in b) {
-      const okNum = o => isObj(o) && Object.values(o).every(v => typeof v === 'number' && isFinite(v));
-      if (!Array.isArray(b.sc) || b.sc.length > 20 || b.sc.some(z => !isObj(z) || typeof z.id !== 'string' || z.id.length > 40 || typeof z.n !== 'string' || !z.n.trim() || z.n.length > 60 || typeof z.d !== 'string' || z.d.length > 7 || !okNum(z.bud))) return res.status(400).json({ error: 'bad_sc' });
-      sc = b.sc.map(z => ({ id: z.id, n: z.n, d: z.d, bud: z.bud }));
-    }
-    if ('bud' in b) {
-      if (!isObj(b.bud) || Object.values(b.bud).some(v => typeof v !== 'number' || !isFinite(v))) return res.status(400).json({ error: 'bad_bud' });
-      bud = b.bud;
-    }
-    if ('cs' in b) {
-      const c = b.cs, strs = a => Array.isArray(a) && a.length <= 2000 && a.every(x => typeof x === 'string' && x.length <= 130 && x.trim());
-      if (!isObj(c) || !strs(c.hid || []) || !strs(c.hg || []) || !Array.isArray(c.ng || []) || (c.ng || []).length > 100 || (c.ng || []).some(x => !isObj(x) || !['i', 'f', 'v'].includes(x.t) || typeof x.n !== 'string' || !x.n.trim() || x.n.length > 60 || x.n.includes('|')) || !isObj(c.ni || {}) || Object.values(c.ni || {}).some(a => !strs(a))) return res.status(400).json({ error: 'bad_cs' });
-      cs = { hid: c.hid || [], hg: c.hg || [], ng: (c.ng || []).map(x => ({ t: x.t, n: x.n })), ni: c.ni || {} };
-    }
-    sets.push('budget = ?'); vals.push(JSON.stringify({ bud, cs, sc }));
+    const r2 = budgetFrom(b, parse(row.budget, {}));
+    if (r2.error) return res.status(400).json({ error: r2.error });
+    sets.push('budget = ?'); vals.push(JSON.stringify(r2.value));
   }
   if (!sets.length) return res.json(shape(row));
   db.prepare(`UPDATE couples SET ${sets.join(', ')} WHERE id = ?`).run(...vals, row.id);
@@ -245,6 +263,7 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
 app.post('/api/admin/couples/:id/regenerate', requireAdmin, (req, res) => {
   const row = q.byId.get(Number(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
+  if (row.stage === 3) return res.status(403).json({ error: 'released' });
   q.setToken.run(newToken(), row.id);
   res.json(shape(q.byId.get(row.id)));
 });

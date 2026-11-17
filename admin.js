@@ -48,6 +48,7 @@ function listView(){
   S=newState();S.y=A.y;S.m=A.m;bG();
   var wait=0,ov=0;
   var rows=A.list.map(function(c){
+    if(c.stage===3)return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span><span class="bdg mut">שוחרר</span></div><small class="hint" style="margin:4px 0 0;display:block">הזוג עצמאי. הנתונים שלו לא גלויים לך.</small></button>';
     var s=sumC(c);
     if(c.stage<2){if(!(s.be>0))wait++}else if(s.over.length)ov++;
     var sub=c.stage<2?'שלב 1 · '+ago(c.updated_at):(s.ok?'הוצאות '+fm(s.ae)+' מתוך '+fm(s.pe)+' · ':'')+ago(c.updated_at);
@@ -61,6 +62,7 @@ function listView(){
 }
 function detailView(c){
   S=cs(c);bG();
+  if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+t[1]+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
@@ -113,17 +115,19 @@ function mgView(c){
   var tasks=c.tasks.map(function(t,i){return '<div class="r"><input type="checkbox" style="width:auto" data-a="tt" data-i="'+i+'"'+(t.d?' checked':'')+'><label'+(t.d?' style="text-decoration:line-through;color:var(--mu)"':'')+'>'+esc(t.t)+'</label><button class="gh" style="width:30px;color:var(--bd)" data-a="td" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'}).join('');
   var sent=c.msgs.slice().sort(function(a,b){return b.ts-a.ts}).map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+(m.k==='ch'?'אתגר':'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="md" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('');
   var wa='https://wa.me/?text='+encodeURIComponent(invText(c));
-  return '<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
+  var out='<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
     '<textarea id="itx" rows="5" readonly style="width:100%">'+esc(invText(c))+'</textarea>'+
     '<div class="f" style="margin-top:8px"><button class="btn" data-a="cp">העתקה</button><a class="btn" style="text-decoration:none;text-align:center" href="'+wa+'" target="_blank" rel="noopener noreferrer">שליחה בוואטסאפ</a></div>'+
     '<div class="f" style="margin-top:8px"><button class="btn sec" data-a="rg">קישור חדש (מבטל את הישן)</button></div></div>'+
-    '<div class="c"><b>שלב</b><div class="f" style="margin-top:8px"><select id="stg"><option value="1"'+(c.stage===1?' selected':'')+'>שלב 1: מאזן בלבד</option><option value="2"'+(c.stage===2?' selected':'')+'>שלב 2: תקציב ומעקב חודשי</option></select></div><p class="hint" style="margin:6px 0 0">בשלב 1 הזוג ממלא רק מאזן. אחרי שבנית עבורו תקציב בלשונית "תקציב", עברי לשלב 2 והוא יראה את התקציב ויתחיל לדווח.</p></div>'+
+    '<div class="c"><b>שלב</b><div class="f" style="margin-top:8px"><select id="stg"><option value="1"'+(c.stage===1?' selected':'')+'>שלב 1: מאזן בלבד</option><option value="2"'+(c.stage===2?' selected':'')+'>שלב 2: תקציב ומעקב חודשי</option><option value="3">שלב 3: שחרור הזוג (לא ניתן לביטול)</option></select></div><p class="hint" style="margin:6px 0 0">בשלב 1 הזוג ממלא רק מאזן. אחרי שבנית עבורו תקציב בלשונית "תקציב", עברי לשלב 2 והוא יראה את התקציב ויתחיל לדווח.</p></div>'+
     '<div class="c"><b>שם המשפחה</b><div class="f" style="margin-top:8px"><input id="rn" value="'+esc(c.name)+'"></div></div>'+
     '<div class="c"><b>הערות פרטיות שלי</b><textarea id="nt1" rows="4" style="width:100%;margin-top:6px">'+esc(c.notes)+'</textarea><p class="hint" style="margin:4px 0 0">לא גלוי לזוג.</p></div>'+
     '<div class="c"><b>משימות לפגישה הבאה</b>'+tasks+'<div class="f" style="margin-top:8px"><input id="tn" placeholder="משימה חדשה"><button class="btn" data-a="ta">הוספה</button></div></div>'+
     '<div class="c"><b>הודעה או אתגר לזוג</b><div class="f" style="margin:8px 0"><select id="mt"><option value="msg">הודעה</option><option value="ch">אתגר</option></select></div><textarea id="mx" rows="3" style="width:100%" placeholder="לדוגמה: החודש מנסים להוריד 10% ממזון"></textarea><button class="btn" data-a="sm" style="margin-top:8px">שליחה</button>'+sent+'</div>'+
     '<div class="c"><button class="btn sec" data-a="dl" style="color:var(--bd)">מחיקת הזוג וכל הנתונים שלו</button></div>';
-}
+  if(c.stage===3)out=out.split('<div class="c">').filter(function(p){return !/^<b>(הקישור האישי|שלב<|הודעה או אתגר)/.test(p)}).join('<div class="c">');
+  return out}
+
 /* במסכי הצפייה הערכים של הזוג נעולים, רק התקציב והניהול ניתנים לעריכה */
 function lock(){
   if(A.tab==='bud'||A.tab==='sc'||A.tab==='mg'||A.tab==='sum')return;
@@ -181,7 +185,7 @@ document.addEventListener('change',function(e){
   if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
   if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
   if(t.id==='nt1'){c.notes=t.value;put(c,{notes:c.notes})}
-  else if(t.id==='stg')put(c,{stage:+t.value}).then(render);
+  else if(t.id==='stg'){if(+t.value===3&&!confirm('לשחרר את הזוג? אחרי השחרור לא תוכלי לראות מה הם מילאו, לעדכן להם תקציב או לשלוח הודעות, והפעולה אינה ניתנת לביטול.')){render();return}put(c,{stage:+t.value}).then(function(){if(+t.value===3){c.state={};c.budget={};c.msgs=[]}render()})}
   else if(t.id==='rn'){var v=t.value.trim();if(v)put(c,{name:v}).then(render)}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='pw')doLogin()});
