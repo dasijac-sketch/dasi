@@ -31,14 +31,15 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 function ym(){return S.y+'-'+S.m}
 function rc(k){var m=(S.mo[k]||[]).filter(function(v){return v!==''&&v!=null});if(m.length)S.bal[k]=m.reduce(function(a,b){return a+b},0)/m.length;else delete S.bal[k]}
 function its(g){var c=ecs();return g.i.concat(c.ni[g.n]||[],S.cx[g.n]||[]).filter(function(i,x,a){return c.hid.indexOf(g.n+'|'+i)<0&&a.indexOf(i)===x})}
-function st(sn,k){return sn==='act'?(S.act[k||ym()]||{}):S[sn]}
+function st(sn,k){return sn==='act'?(S.act[k||ym()]||{}):(S[sn]||{})}
+function tot(b){var o=S.scb;S.scb=b||{};var r={i:ts('scb','i'),f:ts('scb','f'),v:ts('scb','v')};r.e=r.f+r.v;r.b=r.i-r.e;S.scb=o;return r}
 function gs(sn,g,k){var s=st(sn,k);return its(g).reduce(function(a,i){return a+n(s[g.n+'|'+i])},0)}
 function ts(sn,t,k){return G.filter(function(g){return g.t===t}).reduce(function(a,g){return a+gs(sn,g,k)},0)}
 function ex(sn,k){return ts(sn,'f',k)+ts(sn,'v',k)}
 function cls(g,p){return g.t==='i'?(p>=1?'ok':p>=.8?'wn':'bd'):(p>1?'bd':p>=.85?'wn':'ok')}
 function grp(g,mode){
   var sn=mode==='mon'?'act':mode,s=st(sn),sub=gs(sn,g),bs=gs('bud',g),inc=ts('bal','i'),o=S.open[g.n];
-  var meta=mode==='bal'?fm(sub)+(inc&&g.t!=='i'?' · '+Math.round(sub/inc*100)+'%':''):mode==='bud'?fm(sub):fm(sub)+' / '+fm(bs);
+  var meta=mode==='bal'?fm(sub)+(inc&&g.t!=='i'?' · '+Math.round(sub/inc*100)+'%':''):mode==='bud'||mode==='scb'?fm(sub):fm(sub)+' / '+fm(bs);
   var bar=mode==='mon'&&bs?'<div class="bar"><i class="'+cls(g,sub/bs)+'" style="width:'+Math.min(100,sub/bs*100)+'%"></i></div>':'';
   var rows=o?its(g).map(function(i){
     var k=g.n+'|'+i,inp='<input type="number" inputmode="decimal" min="0"'+(RO&&mode==='bud'?' disabled':'')+' data-s="'+sn+'" data-k="'+esc(k)+'" value="'+(s[k]||'')+'" placeholder="0">';
@@ -51,7 +52,7 @@ function grp(g,mode){
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
       '<small>'+(fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
       (ex2?'<div class="dt"><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
-    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':'')+'</label>'+inp+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
+    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
   return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+(ADM&&mode==='bud'&&o?'<div class="r"><button class="btn sec" style="color:var(--bd)" data-a="xg" data-g="'+esc(g.n)+'">הסרת הקטגוריה "'+esc(g.n)+'"</button></div>':'')+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
 function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return '<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}

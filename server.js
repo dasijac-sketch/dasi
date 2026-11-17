@@ -203,9 +203,14 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
     if (!Array.isArray(b.msgs) || b.msgs.length > 200 || b.msgs.some(m => !isObj(m) || !['msg', 'ch'].includes(m.k) || typeof m.x !== 'string' || m.x.length > 2000)) return res.status(400).json({ error: 'bad_msgs' });
     sets.push('msgs = ?'); vals.push(JSON.stringify(b.msgs.map(m => ({ id: String(m.id), k: m.k, x: m.x, ts: Number(m.ts) || Date.now() }))));
   }
-  if ('bud' in b || 'cs' in b) {
+  if ('bud' in b || 'cs' in b || 'sc' in b) {
     const cur = parse(row.budget, {});
-    let bud = cur.bud || {}, cs = cur.cs || {};
+    let bud = cur.bud || {}, cs = cur.cs || {}, sc = cur.sc || [];
+    if ('sc' in b) {
+      const okNum = o => isObj(o) && Object.values(o).every(v => typeof v === 'number' && isFinite(v));
+      if (!Array.isArray(b.sc) || b.sc.length > 20 || b.sc.some(z => !isObj(z) || typeof z.id !== 'string' || z.id.length > 40 || typeof z.n !== 'string' || !z.n.trim() || z.n.length > 60 || typeof z.d !== 'string' || z.d.length > 7 || !okNum(z.bud))) return res.status(400).json({ error: 'bad_sc' });
+      sc = b.sc.map(z => ({ id: z.id, n: z.n, d: z.d, bud: z.bud }));
+    }
     if ('bud' in b) {
       if (!isObj(b.bud) || Object.values(b.bud).some(v => typeof v !== 'number' || !isFinite(v))) return res.status(400).json({ error: 'bad_bud' });
       bud = b.bud;
@@ -215,7 +220,7 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
       if (!isObj(c) || !strs(c.hid || []) || !strs(c.hg || []) || !Array.isArray(c.ng || []) || (c.ng || []).length > 100 || (c.ng || []).some(x => !isObj(x) || !['i', 'f', 'v'].includes(x.t) || typeof x.n !== 'string' || !x.n.trim() || x.n.length > 60 || x.n.includes('|')) || !isObj(c.ni || {}) || Object.values(c.ni || {}).some(a => !strs(a))) return res.status(400).json({ error: 'bad_cs' });
       cs = { hid: c.hid || [], hg: c.hg || [], ng: (c.ng || []).map(x => ({ t: x.t, n: x.n })), ni: c.ni || {} };
     }
-    sets.push('budget = ?'); vals.push(JSON.stringify({ bud, cs }));
+    sets.push('budget = ?'); vals.push(JSON.stringify({ bud, cs, sc }));
   }
   if (!sets.length) return res.json(shape(row));
   db.prepare(`UPDATE couples SET ${sets.join(', ')} WHERE id = ?`).run(...vals, row.id);

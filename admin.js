@@ -21,6 +21,7 @@ function cs(c){
   c.budget=c.budget||{};c.budget.bud=c.budget.bud||{};
   var s=Object.assign(newState(),c.state||{});
   s.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},(c.state&&c.state.L)||{});
+  s.sc=(c.budget.sc||[]);var cc=s.sc.filter(function(z){return z.id===A.sc})[0]||s.sc[0];s.scb=cc?cc.bud:{};
   s.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});s.bud=c.budget.bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
   return s;
 }
@@ -60,11 +61,29 @@ function listView(){
 }
 function detailView(c){
   S=cs(c);bG();
-  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
+  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
-  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
+  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
   return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+f();
 }
+function scView(c){
+  var sc=c.budget.sc=c.budget.sc||[],cur=sc.filter(function(z){return z.id===A.sc})[0]||sc[0],b0=tot(S.bud);
+  var rowT=function(nm,t,base){var d=t.b-base.b;return '<tr><td>'+esc(nm)+'</td><td>'+fm(t.i)+'</td><td>'+fm(t.e)+'</td><td class="'+(t.b<0?'neg':'')+'">'+fm(t.b)+'</td><td class="'+(t.b<0?'neg':'')+'">'+fm(t.b*12)+'</td><td class="'+(d<0?'neg':'')+'">'+(base===t?'—':fm(d))+'</td></tr>'};
+  var h='<p class="hint">תסריטים הם תקציבים חלופיים לשנים הקרובות, למשל מעבר דירה או ילד נוסף. כל תסריט מתחיל מעותק של התקציב הנוכחי, ואפשר לשנות בו סכומים. התסריטים מוצגים רק לך.</p>'+
+  '<div class="c"><b>תסריט חדש</b><div class="f" style="margin-top:8px"><input id="scn" placeholder="שם, למשל: מעבר לדירה גדולה"><input id="scd" type="month" aria-label="תאריך התחלה"><button class="btn" data-a="sa">הוספה</button></div></div>';
+  if(!sc.length)return h+'<div class="c"><p class="hint" style="margin:0">עדיין אין תסריטים.</p></div>';
+  h+='<div class="c ov"><b>השוואה (בחודש)</b><table><tr><th>תקציב</th><th>הכנסות</th><th>הוצאות</th><th>יתרה חודשית</th><th>יתרה שנתית</th><th>פער מהנוכחי</th></tr>'+rowT('התקציב הנוכחי',b0,b0)+sc.map(function(z){return rowT(z.n,tot(z.bud),b0)}).join('')+'</table></div>';
+  var now=new Date(),y0=now.getFullYear(),m0=now.getMonth(),ys={},mn=Math.max(0,0);
+  var act=function(ym2){var a=null;sc.forEach(function(z){if(z.d&&z.d<=ym2&&(!a||z.d>=a.d))a=z});return a};
+  var cum=0,Y=[];for(var q=0;q<60;q++){var yy=y0+Math.floor((m0+q)/12),mm=(m0+q)%12+1,key=yy+'-'+(mm<10?'0':'')+mm,a=act(key),t=a?tot(a.bud):b0;
+    var o=ys[yy]=ys[yy]||{i:0,e:0,nm:{},mths:0};o.i+=t.i;o.e+=t.e;o.mths++;o.nm[a?a.n:'התקציב הנוכחי']=1}
+  h+='<div class="c ov"><b>סיכום שנתי לפי התסריטים</b><p class="hint">מחושב מהחודש הנוכחי קדימה. בכל חודש נלקח התסריט האחרון שהתאריך שלו הגיע, ואם אין כזה, התקציב הנוכחי.</p><table><tr><th>שנה</th><th>תקציב פעיל</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>מצטבר</th></tr>'+
+  Object.keys(ys).map(function(k){var o=ys[k];cum+=o.i-o.e;return '<tr><td>'+k+(o.mths<12?' ('+o.mths+' חודשים)':'')+'</td><td style="white-space:normal">'+esc(Object.keys(o.nm).join(', '))+'</td><td>'+fm(o.i)+'</td><td>'+fm(o.e)+'</td><td class="'+(o.i-o.e<0?'neg':'')+'">'+fm(o.i-o.e)+'</td><td class="'+(cum<0?'neg':'')+'">'+fm(cum)+'</td></tr>'}).join('')+'</table></div>';
+  h+='<div class="c"><b>עריכת תסריט</b><div class="f" style="margin:8px 0">'+sc.map(function(z){return '<button class="btn'+(z===cur?'':' sec')+'" data-a="ss" data-id="'+esc(z.id)+'">'+esc(z.n)+'</button>'}).join('')+'</div>'+
+  '<div class="f"><input id="scn2" value="'+esc(cur.n)+'" aria-label="שם התסריט"><input id="scd2" type="month" value="'+esc(cur.d||'')+'" aria-label="תאריך התחלה"></div>'+
+  '<div class="f" style="margin-top:8px"><button class="btn sec" data-a="sr">אפס לתקציב הנוכחי</button><button class="btn sec" style="color:var(--bd)" data-a="sd">מחיקת התסריט</button></div></div>'+
+  secs('scb')+bottom('scb');
+  return h}
 function sumView(c){
   var s=sumC(c),st2=c.stage>=2;
   var rows=G.filter(function(g){return g.t!=='i'}).map(function(g){
@@ -100,7 +119,7 @@ function mgView(c){
 }
 /* במסכי הצפייה הערכים של הזוג נעולים, רק התקציב והניהול ניתנים לעריכה */
 function lock(){
-  if(A.tab==='bud'||A.tab==='mg'||A.tab==='sum')return;
+  if(A.tab==='bud'||A.tab==='sc'||A.tab==='mg'||A.tab==='sum')return;
   app.querySelectorAll('input,select,textarea').forEach(function(e){if(e.id!=='ms'&&e.id!=='yr'&&!e.classList.contains('fcin'))e.disabled=true});
   app.querySelectorAll('button[data-a=mo],button[data-a=la],button[data-a=ld],button[data-a=add]').forEach(function(b){b.disabled=true});
 }
@@ -128,7 +147,7 @@ function put(c,body){
 function saveBud(c){
   status('שומרת...');clearTimeout(budTimer);
   budTimer=setTimeout(function(){
-    api('PUT','/api/admin/couples/'+c.id,{bud:c.budget.bud,cs:c.budget.cs||{}}).then(function(){status('✓ התקציב נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});
+    api('PUT','/api/admin/couples/'+c.id,{bud:c.budget.bud,cs:c.budget.cs||{},sc:c.budget.sc||[]}).then(function(){status('✓ התקציב נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});
   },600);
 }
 function load(){
@@ -149,6 +168,8 @@ document.addEventListener('change',function(e){
   if(t.id==='yr'){if(t.value){A.y=+t.value;render()}return}
   if(!c)return;
   if(d.s==='bud'){S.bud[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
+  if(d.s==='scb'){S.scb[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
+  if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
   if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
   if(t.id==='nt1'){c.notes=t.value;put(c,{notes:c.notes})}
   else if(t.id==='stg')put(c,{stage:+t.value}).then(render);
@@ -186,6 +207,10 @@ document.addEventListener('click',function(e){
     else if(a==='ai'){var g1=document.getElementById('sg').value,nm=cl(document.getElementById('sn').value);if(!nm)return;var gg=G.filter(function(z){return z.n===g1})[0];if(!gg||its(gg).indexOf(nm)>=0){status('התת קטגוריה כבר קיימת');return}var hk=g1+'|'+nm,hx=k2.hid.indexOf(hk);if(hx>=0)k2.hid.splice(hx,1);else(k2.ni[g1]=k2.ni[g1]||[]).push(nm);A.open[g1]=true}
     else{var nm2=cl(document.getElementById('cn2').value),tt=document.getElementById('ct').value;if(!nm2)return;if(G.some(function(z){return z.n===nm2})){status('הקטגוריה כבר קיימת');return}var hg2=k2.hg.indexOf(nm2);if(hg2>=0)k2.hg.splice(hg2,1);else k2.ng.push({t:tt,n:nm2});A.open[nm2]=true}
     saveBud(c);render()}
+  else if(a==='sa'){var sn=document.getElementById('scn').value.trim().slice(0,60),sd=document.getElementById('scd').value;if(!sn)return;var sc2=c.budget.sc=c.budget.sc||[];if(sc2.length>=20){status('אפשר עד 20 תסריטים');return}var nz={id:'s'+Date.now().toString(36),n:sn,d:sd||'',bud:JSON.parse(JSON.stringify(c.budget.bud||{}))};sc2.push(nz);A.sc=nz.id;saveBud(c);render()}
+  else if(a==='ss'){A.sc=x.id;render()}
+  else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
+  else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='cp')copyText('itx');
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0});put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='tt'){var tk=c.tasks[+x.i];if(tk){tk.d=tk.d?0:1;put(c,{tasks:c.tasks}).then(render)}}
