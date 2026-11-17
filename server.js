@@ -224,12 +224,14 @@ app.delete('/api/admin/couples/:id', requireAdmin, (req, res) => {
 });
 
 /* ---------- דפים ---------- */
-const pub = path.join(__dirname, 'public');
+const PUB_DIR = path.join(__dirname, 'public');
+const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
+const ASSETS = new Set(['lib.js', 'couple.js', 'admin.js', 'style.css']);
 const page = f => (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(pub, f)); };
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', page('admin.html'));
 app.get('/c/:token', page('couple.html'));
-app.use(express.static(pub, { index: false, setHeaders: res => res.setHeader('Cache-Control', 'no-cache') }));
+app.get('/:file', (req, res, next) => ASSETS.has(req.params.file) ? page(req.params.file)(req, res) : next());
 app.use((req, res) => res.status(404).type('text').send('העמוד לא נמצא'));
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: 'server_error' }); });
 
