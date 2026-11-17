@@ -182,6 +182,7 @@ document.addEventListener('change',function(e){
   if(t.id==='xf'){var fl=t.files&&t.files[0];if(!fl||!c)return;var tt=d.t,rd=new FileReader();rd.onload=function(){try{var wb=XLSX.read(rd.result,{type:'array'});A.imp={t:tt,R:W(cs(c),function(){return xplan(wb,tt)})};A.impErr=''}catch(er){A.imp={t:tt,R:null};A.impErr='לא הצלחתי לקרוא את הקובץ. ודאי שזה קובץ אקסל תקין.'}render()};rd.readAsArrayBuffer(fl);return}
   if(!c)return;
   if(d.s==='bud'){S.bud[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
+  if(d.s==='pm'){c.state=c.state||{};var pmo=c.state.pm=c.state.pm||{};pmo[d.k]=t.value;api('PUT','/api/admin/couples/'+c.id+'/state',{pm:pmo}).then(function(){status('✓ נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});render();return}
   if(d.s==='scb'){S.scb[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
   if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
   if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
@@ -230,7 +231,7 @@ document.addEventListener('click',function(e){
   else if(a==='xa'&&A.imp&&A.imp.R){var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});
     Object.keys(R.ni).forEach(function(g){var l=k.ni[g]=k.ni[g]||[];R.ni[g].forEach(function(i){if(l.indexOf(i)<0)l.push(i);var hx=k.hid.indexOf(g+'|'+i);if(hx>=0)k.hid.splice(hx,1)})});
     if(t2==='bud'){var zt=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0];if(zt)zt.bud=Object.assign({},zt.bud,R.vals);else c.budget.bud=Object.assign({},c.budget.bud||{},R.vals);A.imp=null;saveBud(c);render()}
-    else{var st0=c.state=c.state||{},body={bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
+    else{var st0=c.state=c.state||{},body={pm:Object.assign({},st0.pm||{},R.pm||{}),bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0});put(c,{tasks:c.tasks}).then(render)}}

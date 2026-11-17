@@ -139,7 +139,7 @@ function budgetFrom(b, cur) {
   return { value: { bud, cs, sc } };
 }
 
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
@@ -224,7 +224,7 @@ app.put('/api/admin/couples/:id/state', requireAdmin, (req, res) => {
   if (!row) return res.status(404).json({ error: 'not_found' });
   if (row.stage === 3) return res.status(403).json({ error: 'released' });
   const b = req.body || {}, cur = parse(row.state, {}), num = v => typeof v === 'number' && isFinite(v);
-  for (const k of ['bal', 'mo', 'rt']) if (k in b) { if (!isObj(b[k])) return res.status(400).json({ error: 'bad_' + k }); cur[k] = b[k]; }
+  for (const k of ['bal', 'mo', 'rt', 'pm']) if (k in b) { if (!isObj(b[k])) return res.status(400).json({ error: 'bad_' + k }); cur[k] = b[k]; }
   if ('L' in b) {
     const L = b.L, okL = (a, f) => Array.isArray(a) && a.length <= 300 && a.every(x => isObj(x) && typeof x.n === 'string' && x.n.length <= 200 && f.every(k => num(x[k])));
     if (!isObj(L) || !okL(L.sv || [], ['m', 'v']) || !okL(L.ln || [], ['b', 'c', 'p'])) return res.status(400).json({ error: 'bad_L' });

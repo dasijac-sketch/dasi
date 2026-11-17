@@ -7,7 +7,7 @@ var app=document.getElementById('app'),nav=document.getElementById('nav');
 function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
 function tabs(){var t=[['home','בית'],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
+function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},pm:S.pm||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
@@ -47,6 +47,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value}
   else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
   else if(d.s==='bud'){S.bud[d.k]=n(t.value)}
+  else if(d.s==='pm'){if(RO&&S.tab==='bud')return;S.pm=S.pm||{};S.pm[d.k]=t.value}
   else if(d.s==='fc'){S.fc=S.fc||{};S.fc[d.k]=t.value}
   else if(d.s==='rt'){var rr=S.rt[d.k]=S.rt[d.k]||{};rr[d.w]=t.value}
   else if(d.s==='bal')S.bal[d.k]=n(t.value);

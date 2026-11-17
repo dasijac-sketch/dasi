@@ -20,7 +20,7 @@ function bG(){var c=ecs();G=D.map(function(a){return{t:a[0],n:a[1],i:a[2]?a[2].s
 var SEC={i:'הכנסות',f:'הוצאות קבועות',v:'הוצאות משתנות'};
 var MN=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var ADM=false,RO=false,STAGE=1,INBOX=[];
-function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},fc:{},dn:0,cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
+function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},pm:{},fc:{},dn:0,cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
 var S=newState();
 function W(st,fn){var o=S;S=st;bG();try{return fn()}finally{S=o;bG()}}
 function ago(t){if(!t)return 'טרם עודכן';var m=Math.round((Date.now()-t)/60000);return m<1?'עודכן עכשיו':m<60?'עודכן לפני '+m+' דקות':m<1440?'עודכן לפני '+Math.round(m/60)+' שעות':'עודכן לפני '+Math.round(m/1440)+' ימים'}
@@ -45,7 +45,7 @@ function grp(g,mode){
   var bar=mode==='mon'&&bs?'<div class="bar"><i class="'+cls(g,sub/bs)+'" style="width:'+Math.min(100,sub/bs*100)+'%"></i></div>':'';
   var rows=o?its(g).map(function(i){
     var k=g.n+'|'+i,inp='<input type="number" inputmode="decimal" min="0"'+(RO&&mode==='bud'?' disabled':'')+' data-s="'+sn+'" data-k="'+esc(k)+'" value="'+(s[k]||'')+'" placeholder="0">';
-    if(mode==='mon'){var bv=n(S.bud[k]),av=n(s[k]),d=g.t==='i'?av-bv:bv-av;return '<div class="r"><label>'+esc(i)+'<small>תקציב '+fm(bv)+'</small></label>'+inp+'<span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}
+    if(mode==='mon'){var bv=n(S.bud[k]),av=n(s[k]),d=g.t==='i'?av-bv:bv-av;return '<div class="r"><label>'+esc(i)+'<small>תקציב '+fm(bv)+(g.t!=='i'&&pmv(g,i)?' · '+esc(pmv(g,i)):'')+'</small></label>'+inp+'<span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}
     if(mode==='bal'){var mo=(S.mo[k]||[]).slice(),fl=mo.filter(function(v){return v!==''&&v!=null}).length,rt=S.rt[k]||{},ex2=g.t!=='i';
       while(mo.length<2)mo.push('');
       var sel=function(w){return '<select data-s="rt" data-k="'+esc(k)+'" data-w="'+w+'" aria-label="דירוג"><option value="">—</option>'+[1,2,3,4,5].map(function(v){return '<option'+(String(rt[w])===String(v)?' selected':'')+'>'+v+'</option>'}).join('')+'</select>'};
@@ -53,11 +53,11 @@ function grp(g,mode){
       return '<div class="it bl"><div class="tot" style="padding:0"><span>'+esc(i)+'</span><span>'+(s[k]!==undefined&&s[k]!==''?fm(n(s[k])):'—')+'</span></div>'+
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
       '<small>'+(fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
-      (ex2?'<div class="dt"><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
-    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
+      (ex2?'<div class="dt"><span><small>אמצעי תשלום</small>'+pmSel(g,i,false)+'</span><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
+    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(mode==='bud'&&g.t!=='i'?pmSel(g,i,RO):'')+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
   return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+(ADM&&mode==='bud'&&o?'<div class="r"><button class="btn sec" style="color:var(--bd)" data-a="xg" data-g="'+esc(g.n)+'">הסרת הקטגוריה "'+esc(g.n)+'"</button></div>':'')+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
-function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return '<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
+function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return (sn==='bud'||sn==='bal'?pmSum(sn):'')+'<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
 function bal(){
   var food=n(S.bal['קניות|אוכל ומוצרי מכולת']),p=n(S.ppl);
   var opts=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');
@@ -128,6 +128,12 @@ function tin(){
 
 /* מסך הבית של הזוג */
 function doneUI(){var dt=n(S.dn);if(RO===false&&false)return '';return dt?'<div class="c"><b>✓ סימנתם שהמאזן הושלם</b><div class="hint" style="margin:4px 0 8px">המאמנת רואה שהשלמתם ב-'+new Date(dt).toLocaleDateString('he-IL')+'. אפשר להמשיך לעדכן, ואפשר לבטל את הסימון.</div><button class="btn sec" data-a="undn">ביטול הסימון</button></div>':'<div class="c"><b>סיימתם למלא?</b><div class="hint" style="margin:4px 0 8px">אחרי שמילאתם את המאזן, החסכונות, ההלוואות והביטוחים, לחצו על הכפתור כדי שהמאמנת תדע שהשלמתם.</div><button class="btn" data-a="dn">הושלם</button></div>'}
+var PMS=['מזומן','אשראי','הו"ק','חיסכון קצר (הו"ק)','חיסכון ארוך (הו"ק)'];
+function pmv(g,i){var v=(S.pm||{})[g.n+'|'+i];return v||(g.t==='v'?'מזומן':g.t==='f'?'אשראי':'')}
+function gsm(sn,g,cash){var s=st(sn);return its(g).reduce(function(a,i){var c=pmv(g,i)==='מזומן';return a+((cash?c:!c)?n(s[g.n+'|'+i]):0)},0)}
+function pmSel(g,i,dis){var k=g.n+'|'+i,v=pmv(g,i);return '<select data-s="pm" data-k="'+esc(k)+'" aria-label="אמצעי תשלום"'+(dis?' disabled':'')+'>'+PMS.map(function(o){return '<option value="'+esc(o)+'"'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>'}
+function pmSum(sn){var m={},s=st(sn),any=0;G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(i){var x=n(s[g.n+'|'+i]);if(!x)return;var p=pmv(g,i)||'אחר';m[p]=(m[p]||0)+x;any=1})});if(!any)return '';
+  return '<div class="c"><b>לפי אמצעי תשלום</b>'+(m['מזומן']?'<div class="tot" style="color:#0f6b52"><span>מזומן להוצאה החודש</span><span>'+fm(m['מזומן'])+'</span></div>':'')+Object.keys(m).filter(function(k){return k!=='מזומן'}).map(function(k){return '<div class="tot"><span>'+esc(k)+'</span><span>'+fm(m[k])+'</span></div>'}).join('')+'</div>'}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
@@ -145,12 +151,12 @@ function home(){
     else if(ae>0)h+='<div class="c">✓ אין חריגות מהתקציב החודש</div>'}
   if(st2){
     var PAL=['#2F6FED','#1C8C6E','#E0562E','#8A4FD6','#0E8FA6','#C2307A'];
-    var vs=G.filter(function(g){return g.t==='v'&&gs('bud',g)>0}),fs=G.filter(function(g){return g.t==='f'&&gs('bud',g)>0});
-    if(vs.length){var rem=0;vs.forEach(function(g){rem+=gs('bud',g)-gs('act',g)});
-      h+='<div class="sh"><h2>המעטפות שלכם</h2><span>מזומן · נשאר '+fm(rem)+'</span></div><div class="env">'+vs.map(function(g,i){var b=gs('bud',g),a=gs('act',g),r=b-a,p=Math.min(100,Math.max(0,a/b*100)),c=PAL[i%PAL.length];
+    var vs=G.filter(function(g){return g.t!=='i'&&gsm('bud',g,true)>0}),fs=G.filter(function(g){return g.t!=='i'&&gsm('bud',g,false)>0}),cashT=0;vs.forEach(function(g){cashT+=gsm('bud',g,true)});
+    if(vs.length){h+='<div class="c cashc"><div class="hint" style="margin:0">מזומן להוצאה החודש</div><div class="evv">'+fm(cashT)+'</div><small class="hint">הסכום שכדאי למשוך כדי למלא את המעטפות.</small></div>';var rem=0;vs.forEach(function(g){rem+=gsm('bud',g,true)-gsm('act',g,true)});
+      h+='<div class="sh"><h2>המעטפות שלכם</h2><span>מזומן · נשאר '+fm(rem)+'</span></div><div class="env">'+vs.map(function(g,i){var b=gsm('bud',g,true),a=gsm('act',g,true),r=b-a,p=Math.min(100,Math.max(0,a/b*100)),c=PAL[i%PAL.length];
         return '<div class="ev"><div class="evt" style="background:'+c+'"></div><div class="evb"><div class="evn">'+esc(g.n)+'</div><div class="evv'+(r<0?' neg':'')+'">'+fm(r)+'</div><small>נשאר מתוך '+fm(b)+'</small><div class="bar"><i style="width:'+p+'%;background:'+(r<0?'var(--bd)':c)+'"></i></div>'+(r<=0?'<small class="neg">'+(r<0?'חריגה':'המעטפה ריקה')+'</small>':a>=.85*b?'<small style="color:#b45309">קרוב לסוף</small>':'')+'</div></div>'}).join('')+'</div>'}
-    if(fs.length){var dn=fs.filter(function(g){return gs('act',g)>0}).length;
-      h+='<div class="sh"><h2>אשראי · הוצאות קבועות</h2><span>'+dn+' מתוך '+fs.length+' חויבו</span></div><div class="c">'+fs.map(function(g){var a=gs('act',g),b=gs('bud',g);return '<div class="r"><label>'+esc(g.n)+'</label><b>'+fm(a>0?a:b)+'</b><span class="bdg '+(a>0?'okb':'mut')+'">'+(a>0?'חויב':'ממתין')+'</span></div>'}).join('')+'</div>'}}
+    if(fs.length){var dn=fs.filter(function(g){return gsm('act',g,false)>0}).length;
+      h+='<div class="sh"><h2>אשראי והוראות קבע</h2><span>'+dn+' מתוך '+fs.length+' חויבו</span></div><div class="c">'+fs.map(function(g){var a=gsm('act',g,false),b=gsm('bud',g,false);return '<div class="r"><label>'+esc(g.n)+'</label><b>'+fm(a>0?a:b)+'</b><span class="bdg '+(a>0?'okb':'mut')+'">'+(a>0?'חויב':'ממתין')+'</span></div>'}).join('')+'</div>'}}
   var gl=S.L.gl.filter(function(x){return n(x.t)>0});
   if(gl.length)h+='<div class="sh"><h2>היעדים שלנו</h2></div><div class="goals">'+gl.map(function(x,i){var t=n(x.t),p=Math.min(100,Math.round(n(x.s)/t*100)),c=['#2F6FED','#E0562E','#1C8C6E','#8A4FD6'][i%4],m=gm(x.d);
     return '<div class="gc"><div class="evn">'+esc(x.n||'יעד')+'</div><svg viewBox="0 0 64 64" width="76" height="76" role="img" aria-label="'+p+' אחוז מהיעד"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ln)" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="'+c+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+(p*1.634)+' 163.4" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">'+p+'%</text></svg><small>'+fm(n(x.s))+' מתוך '+fm(t)+'</small>'+(m>0&&t>n(x.s)?'<small>כדאי לחסוך '+fm((t-n(x.s))/m)+' בחודש</small>':'')+'</div>'}).join('')+'</div>';

@@ -12,7 +12,7 @@ function xparseSheet(rows,mode){
   rows.forEach(function(r){
     var cells=r.map(xn),first=-1,hdr={};
     cells.forEach(function(c,i){if(c==='הכנסות'&&sec!=='i'){sec='i'}if(c==='הוצאות קבועות')sec='f';if(c==='הוצאות משתנות')sec='v';
-      if(c==='הכנסה קיימת'||c==='תקציב'||c==='ממוצע שנתי'||c==='ממוצע')hdr.val=i;if(/^חודש 1/.test(c))hdr.m1=i;if(/^חודש 2/.test(c))hdr.m2=i;if(/דרוג בן/.test(c))hdr.ra=i;if(/דרוג בת/.test(c))hdr.rb=i});
+      if(c==='הכנסה קיימת'||c==='תקציב'||c==='ממוצע שנתי'||c==='ממוצע')hdr.val=i;if(/^חודש 1/.test(c))hdr.m1=i;if(/^חודש 2/.test(c))hdr.m2=i;if(/דרוג בן/.test(c))hdr.ra=i;if(/דרוג בת/.test(c))hdr.rb=i;if(c==='אמצעי תשלום')hdr.pm=i});
     if(hdr.val!=null){role=hdr;return}
     if(!role)return;
     var firstRole=Math.min.apply(null,[role.val,role.m1,role.m2,role.ra,role.rb].filter(function(x){return x!=null}));
@@ -22,10 +22,10 @@ function xparseSheet(rows,mode){
     if(gc&&xfindGroup(gc,sec))grp=xn(gc);
     else if(strs.length===1&&xfindGroup(label,sec)&&xnum(r[role.val])===null){grp=label;return}
     if(!label||XSKIP.test(label)||label===grp&&strs.length===1)return;
-    var val=xnum(r[role.val]),m1=role.m1!=null?xnum(r[role.m1]):null,m2=role.m2!=null?xnum(r[role.m2]):null,ra=role.ra!=null?xnum(r[role.ra]):null,rb=role.rb!=null?xnum(r[role.rb]):null;
+    var val=xnum(r[role.val]),m1=role.m1!=null?xnum(r[role.m1]):null,m2=role.m2!=null?xnum(r[role.m2]):null,pmx=role.pm!=null?xn(r[role.pm]):'',ra=role.ra!=null?xnum(r[role.ra]):null,rb=role.rb!=null?xnum(r[role.rb]):null;
     if(val==null&&m1==null&&m2==null)return;
     if(sec==='i')grp='הכנסות';
-    out.items.push({sec:sec,group:grp,label:label,val:val==null?((m1||0)+(m2||0))/((m1!=null&&m2!=null)?2:1):val,m1:m1,m2:m2,ra:ra,rb:rb})});
+    out.items.push({sec:sec,group:grp,label:label,val:val==null?((m1||0)+(m2||0))/((m1!=null&&m2!=null)?2:1):val,m1:m1,m2:m2,ra:ra,rb:rb,pm:/מזומן/.test(pmx)?'מזומן':/אשראי/.test(pmx)?'אשראי':/הוק/.test(pmx)?'הו"ק':''})});
   return out}
 function xparseSav(rows){var L={sv:[],ln:[]},mode='';
   rows.forEach(function(r){var c=r.map(xn),j=c.join('|');
@@ -42,13 +42,13 @@ function xplan(wb,target){
   var names=wb.SheetNames,pick=function(re){return names.filter(function(s){return re.test(s)})[0]};
   var sn=target==='bal'?(pick(/^מאזן חודשי/)||names[0]):(pick(/התקציב שלי|תקציב/)||pick(/^מאזן חודשי/)||names[0]);
   var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null});
-  var p=xparseSheet(rows),R={sheet:sn,vals:{},mo:{},rt:{},ni:{},matched:0,added:[],skipped:[],L:null};
+  var p=xparseSheet(rows),R={sheet:sn,vals:{},mo:{},rt:{},pm:{},ni:{},matched:0,added:[],skipped:[],L:null};
   p.items.forEach(function(it){
     var g=xfindGroup(it.group,it.sec);if(!g){R.skipped.push(it.label+' (קבוצה לא מזוהה: '+it.group+')');return}
     var key,item=xfindItem(g,it.label);
     if(!item){var og=G.filter(function(z){return z.t===g.t&&z!==g&&xfindItem(z,it.label)})[0];if(og){g=og;item=xfindItem(og,it.label)}}
     if(!item){if(!it.val&&!it.m1&&!it.m2)return;item=it.label;(R.ni[g.n]=R.ni[g.n]||[]).push(item);R.added.push(g.n+' › '+item)}else R.matched++;
     key=g.n+'|'+item;R.vals[key]=it.val;
-    if(target==='bal'){if(it.m1!=null||it.m2!=null)R.mo[key]=[it.m1==null?'':it.m1,it.m2==null?'':it.m2];var rt={};if(it.ra)rt.a=String(it.ra);if(it.rb)rt.b=String(it.rb);if(rt.a||rt.b)R.rt[key]=rt}});
+    if(target==='bal'){if(it.m1!=null||it.m2!=null)R.mo[key]=[it.m1==null?'':it.m1,it.m2==null?'':it.m2];var rt={};if(it.ra)rt.a=String(it.ra);if(it.rb)rt.b=String(it.rb);if(rt.a||rt.b)R.rt[key]=rt;if(it.pm)R.pm[key]=it.pm}});
   if(target==='bal'){var ss=pick(/חסכונות והלוואות/);if(ss){var L=xparseSav(XLSX.utils.sheet_to_json(wb.Sheets[ss],{header:1,raw:true,defval:null}));if(L.sv.length||L.ln.length)R.L=L}}
   return R}
