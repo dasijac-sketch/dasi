@@ -8,16 +8,16 @@ function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
 function tabs(){var t=[['home','בית'],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
 function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
 function apply(d){
-  var keep={y:S.y,m:S.m,tab:S.tab,open:S.open};
+  var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},S.L||{});
-  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud=d.bud||{};S.fam=d.name||'';STAGE=d.stage||1;INBOX=d.msgs||[];
+  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();S.fam=d.name||'';STAGE=d.stage||1;INBOX=d.msgs||[];
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={home:home,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin}[S.tab]||home;
-  app.innerHTML=f();
+  app.innerHTML=(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f();
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
 function flush(){
@@ -37,6 +37,7 @@ function refresh(){
 document.addEventListener('change',function(e){
   var t=e.target,d=t.dataset;
   if(d.s==='bud')return;
+  if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
   if(d.s==='chd')S.chd[d.k]=t.checked?1:0;

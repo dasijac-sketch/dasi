@@ -32,6 +32,8 @@ function ym(){return S.y+'-'+S.m}
 function rc(k){var m=(S.mo[k]||[]).filter(function(v){return v!==''&&v!=null});if(m.length)S.bal[k]=m.reduce(function(a,b){return a+b},0)/m.length;else delete S.bal[k]}
 function its(g){var c=ecs();return g.i.concat(c.ni[g.n]||[],S.cx[g.n]||[]).filter(function(i,x,a){return c.hid.indexOf(g.n+'|'+i)<0&&a.indexOf(i)===x})}
 function st(sn,k){return sn==='act'?(S.act[k||ym()]||{}):(S[sn]||{})}
+function useVs(){var z=(S.sc||[]).filter(function(x){return x.id===S.vs})[0];S.bud=z?z.bud:(S.bud0||{})}
+function vsUI(){var l=S.sc||[];if(!l.length)return '';return '<div class="c vs"><label style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>תקציב להצגה</b><select id="vs" aria-label="בחירת תקציב או תסריט"><option value="">התקציב הנוכחי</option>'+l.map(function(z){return '<option value="'+esc(z.id)+'"'+(z.id===S.vs?' selected':'')+'>'+esc(z.n)+(z.d?' (מ-'+esc(z.d)+')':'')+'</option>'}).join('')+'</select></label></div>'}
 function tot(b){var o=S.scb;S.scb=b||{};var r={i:ts('scb','i'),f:ts('scb','f'),v:ts('scb','v')};r.e=r.f+r.v;r.b=r.i-r.e;S.scb=o;return r}
 function gs(sn,g,k){var s=st(sn,k);return its(g).reduce(function(a,i){return a+n(s[g.n+'|'+i])},0)}
 function ts(sn,t,k){return G.filter(function(g){return g.t===t}).reduce(function(a,g){return a+gs(sn,g,k)},0)}
@@ -80,7 +82,7 @@ function yr(){
     rows+='<tr><td>'+m+'</td><td>'+fm(ai)+'</td><td>'+fm(ae)+'</td><td class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</td><td class="'+(ex('bud')-ae<0?'neg':'')+'">'+fm(ex('bud')-ae)+'</td></tr>'});
   rows+='<tr><th>סה״כ</th><th>'+fm(TI)+'</th><th>'+fm(TE)+'</th><th>'+fm(TI-TE)+'</th><th>'+fm(TP)+'</th></tr>';
   return '<div class="c ov"><b>שנת '+S.y+'</b><table><tr><th>חודש</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>פער מהתקציב</th></tr>'+rows+'</table></div><p class="hint">פער מהתקציב: חיובי = חסכתם ביחס לתוכנית, שלילי = חריגה.</p>'}
-var FD={sv:[{k:'n',l:'שם החיסכון',t:'t'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'q',l:'נזילות',t:'s',o:['נזיל מיידית','תוך שנה','ארוך טווח']}],
+var FD={sv:[{k:'n',l:'שם החיסכון',t:'t'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'r',l:'תשואה שנתית %',t:'n'},{k:'y',l:'צפי לעוד (שנים)',t:'n'},{k:'q',l:'נזילות',t:'s',o:['נזיל מיידית','תוך שנה','ארוך טווח']}],
 ln:[{k:'n',l:'שם ההלוואה',t:'t'},{k:'b',l:'יתרה',t:'n'},{k:'c',l:'חודשים לסיום',t:'n'},{k:'p',l:'החזר חודשי',t:'n'}],
 ins:[{k:'y',l:'סוג',t:'s',o:['חיים','בריאות','רכב','דירה ותכולה','אובדן כושר עבודה','אחר']},{k:'n',l:'חברה / פירוט',t:'t'},{k:'p',l:'פרמיה',t:'n'},{k:'f',l:'תדירות',t:'s',o:['חודשי','שנתי']},{k:'r',l:'חידוש',t:'m'}],
 gl:[{k:'n',l:'שם היעד',t:'t'},{k:'t',l:'סכום יעד',t:'n'},{k:'s',l:'נחסך עד כה',t:'n'},{k:'d',l:'תאריך יעד',t:'m'}]};
@@ -108,10 +110,12 @@ function fcUI(){var f=S.fc||{},inp=function(k,l,u,ph){return '<span><small>'+l+'
   var dep=sm('sv','m'),val=sm('sv','v'),pre=(val||dep)?'<div class="hint">אפשר להתחיל מהחסכונות שלכם: שווי נוכחי '+fm(val)+', הפקדה חודשית '+fm(dep)+'.</div>':'';
   return '<div class="c"><b>תחזית חיסכון לפי תשואה</b><p class="hint">כמה יהיה שווה הכסף אם מפקידים סכום קבוע בכל חודש. התשואה היא שנתית, והחישוב מניח הפקדה בסוף כל חודש. זו הערכה בלבד ולא הבטחה לתשואה.</p>'+pre+
   '<div class="dt">'+inp('p','סכום התחלתי')+inp('m','הפקדה חודשית')+inp('r','תשואה שנתית %','', '5')+inp('y','מספר שנים','','10')+inp('s','פער לתרחישים %','','2')+'</div><div id="fcout">'+fcalc().html+'</div></div>'}
+function svf(x){var f=S.fc||{},r=x.r!==undefined&&x.r!==''&&x.r!==null?n(x.r):(f.r!==undefined&&f.r!==''?n(f.r):null),y=n(x.y)||n(f.y);if(r==null||!y)return '<small>בחרו תשואה ומספר שנים כדי לראות צפי.</small>';var a=fv(n(x.v),n(x.m),r,y),d=n(x.v)+n(x.m)*12*y;return '<div class="fcr"><b>צפי בעוד '+y+' שנים: '+fm(a)+'</b><small>בתשואה של '+r+'% לשנה · הפקדות '+fm(n(x.m)*12*y)+' · רווח צפוי '+fm(a-d)+'</small></div>'}
+function svt(){var f=S.fc||{},t=0,c=0;S.L.sv.forEach(function(x){var r=x.r!==undefined&&x.r!==''&&x.r!==null?n(x.r):(f.r!==undefined&&f.r!==''?n(f.r):null),y=n(x.y)||n(f.y);if(r==null||!y)return;t+=fv(n(x.v),n(x.m),r,y);c++});return c?t:null}
 function tvs(){
   var dep=sm('sv','m'),val=sm('sv','v'),liq=sm('sv','v',function(x){return x.q==='נזיל מיידית'}),e=ex('bal'),lb=sm('ln','b'),lp=sm('ln','p'),inc=ts('bal','i');
-  return '<div class="g">'+tile(fm(val),'שווי חסכונות')+tile(fm(dep),'הפקדה חודשית')+tile(e?(liq/e).toFixed(1):'—','כרית ביטחון (חודשי הוצאות)')+'</div>'+
-  lst('sv','חסכונות','קרן השתלמות, חיסכון לכל ילד, קופות ועוד. כרית הביטחון מחושבת מחסכונות שסומנו נזיל מיידית, מול ההוצאות החודשיות במאזן.')+
+  return '<div class="g">'+tile(fm(val),'שווי חסכונות')+tile(fm(dep),'הפקדה חודשית')+tile(e?(liq/e).toFixed(1):'—','כרית ביטחון (חודשי הוצאות)')+'</div>'+(svt()!=null?'<div class="c"><b>צפי כולל לחסכונות: '+fm(svt())+'</b><div class="hint" style="margin:0">סכום הצפי של החסכונות שהוגדרו להם תשואה ושנים.</div></div>':'')+
+  lst('sv','חסכונות','קרן השתלמות, חיסכון לכל ילד, קופות ועוד. לכל חיסכון בחרו תשואה שנתית ומספר שנים, ותראו כמה הוא צפוי להיות שווה. כרית הביטחון מחושבת מחסכונות שסומנו נזיל מיידית, מול ההוצאות החודשיות במאזן.',svf)+
   '<div class="g">'+tile(fm(lb),'יתרת הלוואות')+tile(fm(lp),'החזר חודשי')+tile(inc?Math.round(lp/inc*100)+'%':'—','מההכנסה',inc&&lp/inc>.2?'neg':'')+'</div>'+
   lst('ln','הלוואות ועסקאות בתשלומים','ההחזר החודשי אמור להופיע גם בסעיף הלוואות במאזן.',function(x){return n(x.p)&&n(x.c)?'<small>סה״כ עד סיום: '+fm(n(x.p)*n(x.c))+'</small>':''})+fcUI()}
 function tin(){

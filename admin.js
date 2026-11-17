@@ -21,8 +21,8 @@ function cs(c){
   c.budget=c.budget||{};c.budget.bud=c.budget.bud||{};
   var s=Object.assign(newState(),c.state||{});
   s.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},(c.state&&c.state.L)||{});
-  s.sc=(c.budget.sc||[]);var cc=s.sc.filter(function(z){return z.id===A.sc})[0]||s.sc[0];s.scb=cc?cc.bud:{};
-  s.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});s.bud=c.budget.bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
+  s.sc=(c.budget.sc||[]);s.bud0=c.budget.bud;s.vs=s.sc.some(function(z){return z.id===A.sc})?A.sc:'';s.scb={};
+  s.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});s.bud=(s.sc.filter(function(z){return z.id===s.vs})[0]||{bud:c.budget.bud}).bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
   return s;
 }
 function sumC(c){
@@ -64,7 +64,7 @@ function detailView(c){
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
-  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+f();
+  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
   var h='<div class="c"><b>טעינה מאקסל</b><p class="hint">'+(t==='bal'?'בחרי את קובץ המאזן של הזוג. הסכומים, החודשים, הדירוגים, החסכונות וההלוואות ימולאו, ואפשר יהיה לראות הכל לפני האישור.':'בחרי את קובץ התקציב. הסכומים ימולאו בתקציב של הזוג, ואפשר יהיה לראות הכל לפני האישור.')+'</p><input type="file" id="xf" class="fcin" data-t="'+t+'" accept=".xlsx,.xlsm,.xls" aria-label="בחירת קובץ אקסל">';
@@ -74,9 +74,9 @@ function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
     '<div class="hint">הסכומים שבקובץ יחליפו את הקיימים באותם סעיפים'+(R.L?', והחסכונות וההלוואות יוחלפו ברשימות מהקובץ':'')+'.</div><div class="f"><button class="btn" data-a="xa">מילוי</button><button class="btn sec" data-a="xc">ביטול</button></div></div>'}
   return h+'</div>'}
 function scView(c){
-  var sc=c.budget.sc=c.budget.sc||[],cur=sc.filter(function(z){return z.id===A.sc})[0]||sc[0],b0=tot(S.bud);
+  var sc=c.budget.sc=c.budget.sc||[],cur=sc.filter(function(z){return z.id===A.sc})[0]||sc[0],b0=tot(c.budget.bud);
   var rowT=function(nm,t,base){var d=t.b-base.b;return '<tr><td>'+esc(nm)+'</td><td>'+fm(t.i)+'</td><td>'+fm(t.e)+'</td><td class="'+(t.b<0?'neg':'')+'">'+fm(t.b)+'</td><td class="'+(t.b<0?'neg':'')+'">'+fm(t.b*12)+'</td><td class="'+(d<0?'neg':'')+'">'+(base===t?'—':fm(d))+'</td></tr>'};
-  var h='<p class="hint">תסריטים הם תקציבים חלופיים לשנים הקרובות, למשל מעבר דירה או ילד נוסף. כל תסריט מתחיל מעותק של התקציב הנוכחי, ואפשר לשנות בו סכומים. התסריטים מוצגים רק לך.</p>'+
+  var h='<p class="hint">תסריטים הם תקציבים חלופיים לשנים הקרובות, למשל מעבר דירה או ילד נוסף. כל תסריט מתחיל מעותק של התקציב הנוכחי, ואת משנה בו סכומים. הזוג רואה את התסריטים ויכול לעבור ביניהם.</p>'+
   '<div class="c"><b>תסריט חדש</b><div class="f" style="margin-top:8px"><input id="scn" placeholder="שם, למשל: מעבר לדירה גדולה"><input id="scd" type="month" aria-label="תאריך התחלה"><button class="btn" data-a="sa">הוספה</button></div></div>';
   if(!sc.length)return h+'<div class="c"><p class="hint" style="margin:0">עדיין אין תסריטים.</p></div>';
   h+='<div class="c ov"><b>השוואה (בחודש)</b><table><tr><th>תקציב</th><th>הכנסות</th><th>הוצאות</th><th>יתרה חודשית</th><th>יתרה שנתית</th><th>פער מהנוכחי</th></tr>'+rowT('התקציב הנוכחי',b0,b0)+sc.map(function(z){return rowT(z.n,tot(z.bud),b0)}).join('')+'</table></div>';
@@ -86,10 +86,10 @@ function scView(c){
     var o=ys[yy]=ys[yy]||{i:0,e:0,nm:{},mths:0};o.i+=t.i;o.e+=t.e;o.mths++;o.nm[a?a.n:'התקציב הנוכחי']=1}
   h+='<div class="c ov"><b>סיכום שנתי לפי התסריטים</b><p class="hint">מחושב מהחודש הנוכחי קדימה. בכל חודש נלקח התסריט האחרון שהתאריך שלו הגיע, ואם אין כזה, התקציב הנוכחי.</p><table><tr><th>שנה</th><th>תקציב פעיל</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>מצטבר</th></tr>'+
   Object.keys(ys).map(function(k){var o=ys[k];cum+=o.i-o.e;return '<tr><td>'+k+(o.mths<12?' ('+o.mths+' חודשים)':'')+'</td><td style="white-space:normal">'+esc(Object.keys(o.nm).join(', '))+'</td><td>'+fm(o.i)+'</td><td>'+fm(o.e)+'</td><td class="'+(o.i-o.e<0?'neg':'')+'">'+fm(o.i-o.e)+'</td><td class="'+(cum<0?'neg':'')+'">'+fm(cum)+'</td></tr>'}).join('')+'</table></div>';
-  h+='<div class="c"><b>עריכת תסריט</b><div class="f" style="margin:8px 0">'+sc.map(function(z){return '<button class="btn'+(z===cur?'':' sec')+'" data-a="ss" data-id="'+esc(z.id)+'">'+esc(z.n)+'</button>'}).join('')+'</div>'+
+  h+='<div class="c"><b>ניהול תסריט</b><div class="f" style="margin:8px 0">'+sc.map(function(z){return '<button class="btn'+(z===cur?'':' sec')+'" data-a="ss" data-id="'+esc(z.id)+'">'+esc(z.n)+'</button>'}).join('')+'</div>'+
   '<div class="f"><input id="scn2" value="'+esc(cur.n)+'" aria-label="שם התסריט"><input id="scd2" type="month" value="'+esc(cur.d||'')+'" aria-label="תאריך התחלה"></div>'+
   '<div class="f" style="margin-top:8px"><button class="btn sec" data-a="sr">אפס לתקציב הנוכחי</button><button class="btn sec" style="color:var(--bd)" data-a="sd">מחיקת התסריט</button></div></div>'+
-  secs('scb')+bottom('scb');
+  '<div class="f" style="margin-top:10px"><button class="btn" data-a="se" data-id="'+esc(cur.id)+'">עריכת סכומי התסריט בלשונית התקציב</button></div>';
   return h}
 function sumView(c){
   var s=sumC(c),st2=c.stage>=2;
@@ -171,6 +171,7 @@ function copyText(id){
 /* ---------- אירועים ---------- */
 document.addEventListener('change',function(e){
   var t=e.target,d=t.dataset,c=cur();
+  if(t.id==='vs'){A.sc=t.value;render();return}
   if(t.id==='ms'){A.m=+t.value;render();return}
   if(t.id==='yr'){if(t.value){A.y=+t.value;render()}return}
   if(t.id==='xf'){var fl=t.files&&t.files[0];if(!fl||!c)return;var tt=d.t,rd=new FileReader();rd.onload=function(){try{var wb=XLSX.read(rd.result,{type:'array'});A.imp={t:tt,R:W(cs(c),function(){return xplan(wb,tt)})};A.impErr=''}catch(er){A.imp={t:tt,R:null};A.impErr='לא הצלחתי לקרוא את הקובץ. ודאי שזה קובץ אקסל תקין.'}render()};rd.readAsArrayBuffer(fl);return}
@@ -217,12 +218,13 @@ document.addEventListener('click',function(e){
     saveBud(c);render()}
   else if(a==='sa'){var sn=document.getElementById('scn').value.trim().slice(0,60),sd=document.getElementById('scd').value;if(!sn)return;var sc2=c.budget.sc=c.budget.sc||[];if(sc2.length>=20){status('אפשר עד 20 תסריטים');return}var nz={id:'s'+Date.now().toString(36),n:sn,d:sd||'',bud:JSON.parse(JSON.stringify(c.budget.bud||{}))};sc2.push(nz);A.sc=nz.id;saveBud(c);render()}
   else if(a==='ss'){A.sc=x.id;render()}
+  else if(a==='se'){A.sc=x.id;A.tab='bud';render()}
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
   else if(a==='xa'&&A.imp&&A.imp.R){var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});
     Object.keys(R.ni).forEach(function(g){var l=k.ni[g]=k.ni[g]||[];R.ni[g].forEach(function(i){if(l.indexOf(i)<0)l.push(i);var hx=k.hid.indexOf(g+'|'+i);if(hx>=0)k.hid.splice(hx,1)})});
-    if(t2==='bud'){c.budget.bud=Object.assign({},c.budget.bud||{},R.vals);A.imp=null;saveBud(c);render()}
+    if(t2==='bud'){var zt=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0];if(zt)zt.bud=Object.assign({},zt.bud,R.vals);else c.budget.bud=Object.assign({},c.budget.bud||{},R.vals);A.imp=null;saveBud(c);render()}
     else{var st0=c.state=c.state||{},body={bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');

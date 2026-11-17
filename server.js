@@ -130,6 +130,7 @@ app.get('/api/c/:token', (req, res) => {
     state: parse(row.state, {}),
     bud: (parse(row.budget, {}).bud) || {},
     cs: (parse(row.budget, {}).cs) || {},
+    sc: (parse(row.budget, {}).sc) || [],
     msgs: parse(row.msgs, []),
     updated_at: row.updated_at || 0
   });
