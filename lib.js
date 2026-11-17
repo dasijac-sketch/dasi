@@ -134,6 +134,13 @@ function gsm(sn,g,cash){var s=st(sn);return its(g).reduce(function(a,i){var c=pm
 function pmSel(g,i,dis){var k=g.n+'|'+i,v=pmv(g,i);return '<select data-s="pm" data-k="'+esc(k)+'" aria-label="אמצעי תשלום"'+(dis?' disabled':'')+'>'+PMS.map(function(o){return '<option value="'+esc(o)+'"'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>'}
 function pmSum(sn){var m={},s=st(sn),any=0;G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(i){var x=n(s[g.n+'|'+i]);if(!x)return;var p=pmv(g,i)||'אחר';m[p]=(m[p]||0)+x;any=1})});if(!any)return '';
   return '<div class="c"><b>לפי אמצעי תשלום</b>'+(m['מזומן']?'<div class="tot" style="color:#0f6b52"><span>מזומן להוצאה החודש</span><span>'+fm(m['מזומן'])+'</span></div>':'')+Object.keys(m).filter(function(k){return k!=='מזומן'}).map(function(k){return '<div class="tot"><span>'+esc(k)+'</span><span>'+fm(m[k])+'</span></div>'}).join('')+'</div>'}
+function openTk(){return INBOX.filter(function(m){return(m.k==='tk'||m.k==='ch')&&!S.chd[m.id]}).length}
+function dueTxt(m){return m.due?' · עד '+new Date(m.due+'T00:00').toLocaleDateString('he-IL'):''}
+function tasksView(){var K={tk:'משימה',ch:'אתגר',msg:'הודעה'},ms=INBOX.slice().sort(function(a,b){var da=(a.k!=='msg'&&S.chd[a.id])?1:0,db=(b.k!=='msg'&&S.chd[b.id])?1:0;return da-db||b.ts-a.ts});
+  if(!ms.length)return '<div class="c"><b>משימות ואתגרים</b><p class="hint" style="margin:6px 0 0">כשהמאמנת תוסיף לכם משימות, אתגרים או הודעות, הם יופיעו כאן.</p></div>';
+  var item=function(m){var dn=m.k!=='msg'&&S.chd[m.id];return '<div class="it"><small>'+K[m.k]+' · '+new Date(m.ts).toLocaleDateString('he-IL')+dueTxt(m)+'</small><div style="white-space:pre-wrap;'+(dn?'text-decoration:line-through;color:var(--mu)':'')+'">'+esc(m.x)+'</div>'+(m.k!=='msg'?'<label style="font-size:14px"><input type="checkbox" style="width:auto" data-s="chd" data-k="'+esc(m.id)+'"'+(dn?' checked':'')+'> בוצע</label>':'')+'</div>'};
+  var sec=function(t,k){var l=ms.filter(function(m){return m.k===k});return l.length?'<div class="c"><b>'+t+'</b>'+l.map(item).join('')+'</div>':''};
+  return '<p class="hint">'+(openTk()?'נשארו '+openTk()+' משימות ואתגרים פתוחים.':'הכל בוצע, כל הכבוד.')+'</p>'+sec('משימות','tk')+sec('אתגרים','ch')+sec('הודעות מהמאמנת','msg')}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
@@ -160,8 +167,9 @@ function home(){
   var gl=S.L.gl.filter(function(x){return n(x.t)>0});
   if(gl.length)h+='<div class="sh"><h2>היעדים שלנו</h2></div><div class="goals">'+gl.map(function(x,i){var t=n(x.t),p=Math.min(100,Math.round(n(x.s)/t*100)),c=['#2F6FED','#E0562E','#1C8C6E','#8A4FD6'][i%4],m=gm(x.d);
     return '<div class="gc"><div class="evn">'+esc(x.n||'יעד')+'</div><svg viewBox="0 0 64 64" width="76" height="76" role="img" aria-label="'+p+' אחוז מהיעד"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ln)" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="'+c+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+(p*1.634)+' 163.4" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">'+p+'%</text></svg><small>'+fm(n(x.s))+' מתוך '+fm(t)+'</small>'+(m>0&&t>n(x.s)?'<small>כדאי לחסוך '+fm((t-n(x.s))/m)+' בחודש</small>':'')+'</div>'}).join('')+'</div>';
-  var ms=INBOX.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,6);
-  if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>'+(m.k==='ch'?'אתגר':'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div>'+(m.k==='ch'?'<label style="font-size:14px"><input type="checkbox" style="width:auto" data-s="chd" data-k="'+esc(m.id)+'"'+(S.chd[m.id]?' checked':'')+'> בוצע</label>':'')+'</div>'}).join('')+'</div>';
+  var ms=INBOX.filter(function(m){return m.k==='msg'}).sort(function(a,b){return b.ts-a.ts}).slice(0,3),ot=openTk();
+  if(ot)h+='<div class="c"><b>יש לכם '+ot+' משימות ואתגרים פתוחים</b><div style="margin-top:8px"><button class="btn" data-a="tab" data-id="tasks">לצפייה</button></div></div>';
+  if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>הודעה · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join('')+'</div>';
   return h}
 
 try{bG()}catch(e){}

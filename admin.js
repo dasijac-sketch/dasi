@@ -101,7 +101,7 @@ function sumView(c){
     return '<div class="cat"><div class="t"><span>'+esc(g.n)+'</span><span class="'+(a>b?'neg':'')+'">'+fm(a)+' מתוך '+fm(b)+'</span></div><div class="bar"><i class="'+cls(g,p)+'" style="width:'+Math.min(100,p*100)+'%"></i></div></div>';
   }).join('');
   var ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
-  var chT=0,chD=0;c.msgs.forEach(function(m){if(m.k==='ch'){chT++;if(S.chd[m.id])chD++}});
+  var chT=0,chD=0;c.msgs.forEach(function(m){if(m.k==='ch'||m.k==='tk'){chT++;if(S.chd[m.id])chD++}});
   var dn=n(c.state&&c.state.dn);
   return '<div class="c">'+(dn?'<b>✓ הזוג סימן שהשלים את המילוי</b><div class="hint" style="margin:2px 0 8px">ב-'+new Date(dn).toLocaleDateString('he-IL')+(c.updated_at>dn+60000?' · עודכן מאז '+ago(c.updated_at).replace('עודכן ',''):'')+'</div>':'<b>עדיין לא סימנו שהשלימו</b><div class="hint" style="margin:2px 0 8px">הזוג לוחץ על "הושלם" אחרי שמילא מאזן, חסכונות, הלוואות וביטוחים.</div>')+'<div class="hint" style="margin:0">'+ago(c.updated_at)+(c.seen_at?' · נכנסו לאחרונה '+new Date(c.seen_at).toLocaleDateString('he-IL'):' · טרם נכנסו')+'</div></div>'+
     monSel()+
@@ -113,8 +113,8 @@ function sumView(c){
     (chT?'<div class="c">'+chD+' מתוך '+chT+' אתגרים סומנו כבוצעו</div>':'');
 }
 function mgView(c){
-  var tasks=c.tasks.map(function(t,i){return '<div class="r"><input type="checkbox" style="width:auto" data-a="tt" data-i="'+i+'"'+(t.d?' checked':'')+'><label'+(t.d?' style="text-decoration:line-through;color:var(--mu)"':'')+'>'+esc(t.t)+'</label><button class="gh" style="width:30px;color:var(--bd)" data-a="td" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'}).join('');
-  var sent=c.msgs.slice().sort(function(a,b){return b.ts-a.ts}).map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+(m.k==='ch'?'אתגר':'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="md" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('');
+  var tasks=c.tasks.map(function(t,i){return '<div class="r"><input type="checkbox" style="width:auto" data-a="tt" data-i="'+i+'"'+(t.d?' checked':'')+'><label'+(t.d?' style="text-decoration:line-through;color:var(--mu)"':'')+'>'+esc(t.t)+(t.dt?' <small>· עד '+new Date(t.dt+'T00:00').toLocaleDateString('he-IL')+'</small>':'')+'</label><button class="gh" style="width:30px;color:var(--bd)" data-a="td" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'}).join('');
+  var sent=c.msgs.slice().sort(function(a,b){return b.ts-a.ts}).map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+({ch:'אתגר',tk:'משימה',msg:'הודעה'}[m.k]||'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+dueTxt(m)+(m.k!=='msg'?(S.chd[m.id]?' · ✓ בוצע':' · ממתין'):'')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="md" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('');
   var wa='https://wa.me/?text='+encodeURIComponent(invText(c));
   var out='<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
     '<textarea id="itx" rows="5" readonly style="width:100%">'+esc(invText(c))+'</textarea>'+
@@ -123,8 +123,8 @@ function mgView(c){
     '<div class="c"><b>שלב</b><div class="f" style="margin-top:8px"><select id="stg"><option value="1"'+(c.stage===1?' selected':'')+'>שלב 1: מאזן בלבד</option><option value="2"'+(c.stage===2?' selected':'')+'>שלב 2: תקציב ומעקב חודשי</option><option value="3">שלב 3: שחרור הזוג (לא ניתן לביטול)</option></select></div><p class="hint" style="margin:6px 0 0">בשלב 1 הזוג ממלא רק מאזן. אחרי שבנית עבורו תקציב בלשונית "תקציב", עברי לשלב 2 והוא יראה את התקציב ויתחיל לדווח.</p></div>'+
     '<div class="c"><b>שם המשפחה</b><div class="f" style="margin-top:8px"><input id="rn" value="'+esc(c.name)+'"></div></div>'+
     '<div class="c"><b>הערות פרטיות שלי</b><textarea id="nt1" rows="4" style="width:100%;margin-top:6px">'+esc(c.notes)+'</textarea><p class="hint" style="margin:4px 0 0">לא גלוי לזוג.</p></div>'+
-    '<div class="c"><b>משימות לפגישה הבאה</b>'+tasks+'<div class="f" style="margin-top:8px"><input id="tn" placeholder="משימה חדשה"><button class="btn" data-a="ta">הוספה</button></div></div>'+
-    '<div class="c"><b>הודעה או אתגר לזוג</b><div class="f" style="margin:8px 0"><select id="mt"><option value="msg">הודעה</option><option value="ch">אתגר</option></select></div><textarea id="mx" rows="3" style="width:100%" placeholder="לדוגמה: החודש מנסים להוריד 10% ממזון"></textarea><button class="btn" data-a="sm" style="margin-top:8px">שליחה</button>'+sent+'</div>'+
+    '<div class="c"><b>המשימות שלי לזוג</b><p class="hint" style="margin:4px 0 0">רק את רואה אותן. הזוג לא.</p>'+tasks+'<div class="f" style="margin-top:8px"><input id="tn" placeholder="משימה חדשה, למשל: לבדוק ביטוח רכב"><input id="tdt" type="date" aria-label="תאריך יעד (אופציונלי)"><button class="btn" data-a="ta">הוספה</button></div></div>'+
+    '<div class="c"><b>משימות, אתגרים והודעות לזוג</b><p class="hint" style="margin:4px 0 0">הזוג רואה אותם בלשונית נפרדת, ומסמן כשבוצע.</p><div class="f" style="margin:8px 0"><select id="mt"><option value="tk">משימה</option><option value="ch">אתגר</option><option value="msg">הודעה</option></select><input id="md2" type="date" aria-label="תאריך יעד (אופציונלי)"></div><textarea id="mx" rows="3" style="width:100%" placeholder="לדוגמה: החודש מנסים להוריד 10% ממזון"></textarea><button class="btn" data-a="sm" style="margin-top:8px">שליחה</button>'+sent+'</div>'+
     '<div class="c"><button class="btn sec" data-a="dl" style="color:var(--bd)">מחיקת הזוג וכל הנתונים שלו</button></div>';
   if(c.stage===3)out=out.split('<div class="c">').filter(function(p){return !/^<b>(הקישור האישי|שלב<|הודעה או אתגר)/.test(p)}).join('<div class="c">');
   return out}
@@ -234,10 +234,10 @@ document.addEventListener('click',function(e){
     else{var st0=c.state=c.state||{},body={pm:Object.assign({},st0.pm||{},R.pm||{}),bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');
-  else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0});put(c,{tasks:c.tasks}).then(render)}}
+  else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0,dt:(document.getElementById('tdt')||{}).value||''});put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='tt'){var tk=c.tasks[+x.i];if(tk){tk.d=tk.d?0:1;put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='td'){c.tasks.splice(+x.i,1);put(c,{tasks:c.tasks}).then(render)}
-  else if(a==='sm'){var tx=document.getElementById('mx').value.trim();if(tx){c.msgs.push({id:String(Date.now()),k:document.getElementById('mt').value,x:tx,ts:Date.now()});put(c,{msgs:c.msgs}).then(render)}}
+  else if(a==='sm'){var tx=document.getElementById('mx').value.trim();if(tx){c.msgs.push({id:String(Date.now()),k:document.getElementById('mt').value,x:tx,due:document.getElementById('mt').value==='msg'?'':document.getElementById('md2').value,ts:Date.now()});put(c,{msgs:c.msgs}).then(render)}}
   else if(a==='md'){c.msgs=c.msgs.filter(function(m){return m.id!==x.id});put(c,{msgs:c.msgs}).then(render)}
   else if(a==='rg'){if(confirm('הקישור הישן יפסיק לעבוד, ותצטרכי לשלוח לזוג את החדש. להמשיך?'))api('POST','/api/admin/couples/'+c.id+'/regenerate').then(function(r){c.token=r.token;render();status('נוצר קישור חדש')}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='dl'){if(confirm('למחוק את הזוג ואת כל הנתונים שלו? אי אפשר לשחזר.'))api('DELETE','/api/admin/couples/'+c.id).then(function(){A.list=A.list.filter(function(q){return q.id!==c.id});A.cur=null;render()}).catch(function(){status('המחיקה נכשלה')})}

@@ -243,12 +243,12 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   if ('stage' in b) { if (![1, 2, 3].includes(b.stage)) return res.status(400).json({ error: 'bad_stage' }); sets.push('stage = ?'); vals.push(b.stage); }
   if ('notes' in b) { if (typeof b.notes !== 'string' || b.notes.length > 20000) return res.status(400).json({ error: 'bad_notes' }); sets.push('notes = ?'); vals.push(b.notes); }
   if ('tasks' in b) {
-    if (!Array.isArray(b.tasks) || b.tasks.length > 200 || b.tasks.some(t => !isObj(t) || typeof t.t !== 'string' || t.t.length > 500)) return res.status(400).json({ error: 'bad_tasks' });
-    sets.push('tasks = ?'); vals.push(JSON.stringify(b.tasks.map(t => ({ t: t.t, d: t.d ? 1 : 0 }))));
+    if (!Array.isArray(b.tasks) || b.tasks.length > 200 || b.tasks.some(t => !isObj(t) || typeof t.t !== 'string' || t.t.length > 500 || (t.dt != null && (typeof t.dt !== 'string' || t.dt.length > 10)))) return res.status(400).json({ error: 'bad_tasks' });
+    sets.push('tasks = ?'); vals.push(JSON.stringify(b.tasks.map(t => ({ t: t.t, d: t.d ? 1 : 0, dt: t.dt || '' }))));
   }
   if ('msgs' in b) {
-    if (!Array.isArray(b.msgs) || b.msgs.length > 200 || b.msgs.some(m => !isObj(m) || !['msg', 'ch'].includes(m.k) || typeof m.x !== 'string' || m.x.length > 2000)) return res.status(400).json({ error: 'bad_msgs' });
-    sets.push('msgs = ?'); vals.push(JSON.stringify(b.msgs.map(m => ({ id: String(m.id), k: m.k, x: m.x, ts: Number(m.ts) || Date.now() }))));
+    if (!Array.isArray(b.msgs) || b.msgs.length > 200 || b.msgs.some(m => !isObj(m) || !['msg', 'ch', 'tk'].includes(m.k) || typeof m.x !== 'string' || m.x.length > 2000 || (m.due != null && (typeof m.due !== 'string' || m.due.length > 10)))) return res.status(400).json({ error: 'bad_msgs' });
+    sets.push('msgs = ?'); vals.push(JSON.stringify(b.msgs.map(m => ({ id: String(m.id), k: m.k, x: m.x, due: m.due || '', ts: Number(m.ts) || Date.now() }))));
   }
   if ('bud' in b || 'cs' in b || 'sc' in b) {
     const r2 = budgetFrom(b, parse(row.budget, {}));
