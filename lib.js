@@ -20,7 +20,7 @@ function bG(){var c=ecs();G=D.map(function(a){return{t:a[0],n:a[1],i:a[2]?a[2].s
 var SEC={i:'הכנסות',f:'הוצאות קבועות',v:'הוצאות משתנות'};
 var MN=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var ADM=false,RO=false,STAGE=1,INBOX=[];
-function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},fc:{},cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
+function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},fc:{},dn:0,cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
 var S=newState();
 function W(st,fn){var o=S;S=st;bG();try{return fn()}finally{S=o;bG()}}
 function ago(t){if(!t)return 'טרם עודכן';var m=Math.round((Date.now()-t)/60000);return m<1?'עודכן עכשיו':m<60?'עודכן לפני '+m+' דקות':m<1440?'עודכן לפני '+Math.round(m/60)+' שעות':'עודכן לפני '+Math.round(m/1440)+' ימים'}
@@ -127,14 +127,16 @@ function tin(){
     return '<div class="bar"><i class="'+(p>=1?'ok':'wn')+'" style="width:'+Math.min(100,p*100)+'%"></i></div><small>'+(r<=0?'היעד הושג':m==null?'נותר '+fm(r):m>0?'נותרו '+m+' חודשים · כדאי לחסוך '+fm(r/m)+' בחודש':'המועד עבר, נותר '+fm(r))+'</small>'})}
 
 /* מסך הבית של הזוג */
+function doneUI(){var dt=n(S.dn);if(RO===false&&false)return '';return dt?'<div class="c"><b>✓ סימנתם שהמאזן הושלם</b><div class="hint" style="margin:4px 0 8px">המאמנת רואה שהשלמתם ב-'+new Date(dt).toLocaleDateString('he-IL')+'. אפשר להמשיך לעדכן, ואפשר לבטל את הסימון.</div><button class="btn sec" data-a="undn">ביטול הסימון</button></div>':'<div class="c"><b>סיימתם למלא?</b><div class="hint" style="margin:4px 0 8px">אחרי שמילאתם את המאזן, החסכונות, ההלוואות והביטוחים, לחצו על הכפתור כדי שהמאמנת תדע שהשלמתם.</div><button class="btn" data-a="dn">הושלם</button></div>'}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
-  var steps=[['bal','מילוי המאזן החודשי',be>0]];
+  var steps=[['bal','מילוי המאזן, החסכונות, ההלוואות והביטוחים, ולחיצה על "הושלם"',!!n(S.dn)]];
   if(st2)steps.push(['bud','התקציב שנקבע עבורכם',pe>0],['mon','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
   var done=steps.filter(function(s){return s[2]}).length;
   var h='<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div>'+(st2?'<div class="hb">'+fm(ai-ae)+'</div><div class="hm">נשאר לכם החודש · הכנסות '+fm(ai)+' · הוצאות '+fm(ae)+'</div>':'')+'</div>';
   if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
+  if(!n(S.dn))h+=doneUI();
   if(!st2){
     h+=be>0||bi>0?'<div class="g">'+tile(fm(bi),'הכנסות חודשיות')+tile(fm(be),'הוצאות חודשיות')+tile(fm(bi-be),'יתרה חודשית',bi-be<0?'neg':'')+'</div><div class="c">תודה על מילוי המאזן. המאמנת תבנה עבורכם את התקציב, ותעדכן אתכם כאן.</div>':'<div class="c">התחילו במילוי המאזן: הזינו את ההכנסות וההוצאות החודשיות הממוצעות שלכם.</div>'}
   else{

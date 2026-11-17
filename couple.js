@@ -7,7 +7,7 @@ var app=document.getElementById('app'),nav=document.getElementById('nav');
 function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
 function tabs(){var t=[['home','בית'],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
+function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
@@ -18,7 +18,7 @@ function apply(d){
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={home:home,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin}[S.tab]||home;
-  app.innerHTML=(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f();
+  app.innerHTML=(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
 function flush(){
@@ -64,6 +64,8 @@ document.addEventListener('click',function(e){
   if(a==='tab')S.tab=b.dataset.id;
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
+  else if(a==='dn'){S.dn=Date.now();save()}
+  else if(a==='undn'){S.dn=0;save()}
   else if(a==='la'){S.L[b.dataset.l].push({});save()}
   else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}

@@ -33,7 +33,7 @@ function sumC(c){
   });
 }
 function badge(c,s){
-  if(c.stage<2)return s.be>0?'<span class="bdg ok">מילאו מאזן</span>':'<span class="bdg wn">ממתינים למאזן</span>';
+  if(c.stage<2)return n(c.state&&c.state.dn)?'<span class="bdg ok">השלימו מאזן</span>':s.be>0?'<span class="bdg wn">בתהליך מילוי</span>':'<span class="bdg wn">ממתינים למאזן</span>';
   if(!s.ok)return '<span class="bdg wn">לא דיווחו החודש</span>';
   return s.over.length?'<span class="bdg bd">'+s.over.length+' חריגות</span>':'<span class="bdg ok">במסגרת</span>';
 }
@@ -50,14 +50,14 @@ function listView(){
   var rows=A.list.map(function(c){
     if(c.stage===3)return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span><span class="bdg mut">שוחרר</span></div><small class="hint" style="margin:4px 0 0;display:block">הזוג עצמאי. הנתונים שלו לא גלויים לך.</small></button>';
     var s=sumC(c);
-    if(c.stage<2){if(!(s.be>0))wait++}else if(s.over.length)ov++;
+    if(c.stage<2){if(!n(c.state&&c.state.dn))wait++}else if(s.over.length)ov++;
     var sub=c.stage<2?'שלב 1 · '+ago(c.updated_at):(s.ok?'הוצאות '+fm(s.ae)+' מתוך '+fm(s.pe)+' · ':'')+ago(c.updated_at);
     return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span>'+badge(c,s)+'</div><small class="hint" style="margin:4px 0 0;display:block">'+sub+'</small></button>';
   }).join('');
   return '<div class="top"><b>הזוגות שלי</b><span><a class="btn sec" style="text-decoration:none" href="/api/admin/backup" download>הורדת גיבוי</a> <button class="btn sec" data-a="logout">יציאה</button></span></div>'+
     '<div class="c"><div class="f"><input id="nf" placeholder="שם המשפחה"><button class="btn" data-a="mk">+ זוג חדש</button></div></div>'+
     monSel()+
-    '<div class="g">'+tile(A.list.length,'זוגות')+tile(wait,'ממתינים למאזן')+tile(ov,'עם חריגות החודש',ov?'neg':'')+'</div>'+
+    '<div class="g">'+tile(A.list.length,'זוגות')+tile(wait,'ממתינים להשלמת מאזן')+tile(ov,'עם חריגות החודש',ov?'neg':'')+'</div>'+
     (rows||'<div class="c"><p class="hint" style="margin:0">עדיין אין זוגות. הוסיפי זוג ראשון למעלה, ותקבלי קישור אישי לשליחה.</p></div>');
 }
 function detailView(c){
@@ -102,7 +102,8 @@ function sumView(c){
   }).join('');
   var ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
   var chT=0,chD=0;c.msgs.forEach(function(m){if(m.k==='ch'){chT++;if(S.chd[m.id])chD++}});
-  return '<div class="c"><div class="hint" style="margin:0">'+ago(c.updated_at)+(c.seen_at?' · נכנסו לאחרונה '+new Date(c.seen_at).toLocaleDateString('he-IL'):' · טרם נכנסו')+'</div></div>'+
+  var dn=n(c.state&&c.state.dn);
+  return '<div class="c">'+(dn?'<b>✓ הזוג סימן שהשלים את המילוי</b><div class="hint" style="margin:2px 0 8px">ב-'+new Date(dn).toLocaleDateString('he-IL')+(c.updated_at>dn+60000?' · עודכן מאז '+ago(c.updated_at).replace('עודכן ',''):'')+'</div>':'<b>עדיין לא סימנו שהשלימו</b><div class="hint" style="margin:2px 0 8px">הזוג לוחץ על "הושלם" אחרי שמילא מאזן, חסכונות, הלוואות וביטוחים.</div>')+'<div class="hint" style="margin:0">'+ago(c.updated_at)+(c.seen_at?' · נכנסו לאחרונה '+new Date(c.seen_at).toLocaleDateString('he-IL'):' · טרם נכנסו')+'</div></div>'+
     monSel()+
     (st2?'<div class="g">'+tile(fm(s.ai),'הכנסות (תקציב '+fm(s.pi)+')')+tile(fm(s.ae),'הוצאות (תקציב '+fm(s.pe)+')',s.pe&&s.ae>s.pe?'neg':'')+tile(fm(s.ai-s.ae),'יתרה',s.ai-s.ae<0?'neg':'')+'</div>'
       :'<div class="g">'+tile(fm(s.bi),'הכנסות חודשיות')+tile(fm(s.be),'הוצאות חודשיות')+tile(fm(s.bi-s.be),'יתרה חודשית',s.bi-s.be<0?'neg':'')+'</div>')+
