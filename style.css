@@ -55,3 +55,4 @@ h3{color:#16233b}
  nav button.on{background:#223556;box-shadow:inset -3px 0 0 var(--pr)}
  #app{grid-area:a;min-width:0}
 }
+.bl{padding:10px 0}.bl .dt{padding:6px 0 2px}.bl .dt input{width:92px}.bl>small{display:block;color:var(--mu);font-size:12px}.btn.sec{background:none;border:1px solid var(--ln);color:var(--tx);padding:8px 12px}

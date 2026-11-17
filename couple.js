@@ -43,7 +43,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='ppl')S.ppl=n(t.value);
   else if(d.s==='act'){var k=ym();S.act[k]=S.act[k]||{};S.act[k][d.k]=n(t.value)}
   else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value}
-  else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
+  else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
   else if(d.s==='rt'){var rr=S.rt[d.k]=S.rt[d.k]||{};rr[d.w]=t.value}
   else if(d.s==='bal')S.bal[d.k]=n(t.value);
   else if(t.id==='nt')S.note[ym()]=t.value;
@@ -61,7 +61,7 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='la'){S.L[b.dataset.l].push({});save()}
   else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
-  else if(a==='mo'){(S.mo[b.dataset.id]=S.mo[b.dataset.id]||[]).push('');S.open[b.dataset.id]=true;save()}
+  else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}
   else if(a==='add'){var g=document.getElementById('cg').value,nm=document.getElementById('cn').value.trim();if(!nm)return;S.cx[g]=(S.cx[g]||[]).concat(nm);S.open[g]=true;save()}
   else return;
   render();

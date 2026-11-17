@@ -27,7 +27,7 @@ function n(v){return Number(v)||0}
 function fm(v){return Math.round(v).toLocaleString('he-IL')+' ₪'}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function ym(){return S.y+'-'+S.m}
-function rc(k){var m=(S.mo[k]||[]).filter(function(v){return v!==''});if(m.length)S.bal[k]=m.reduce(function(a,b){return a+b},0)/m.length}
+function rc(k){var m=(S.mo[k]||[]).filter(function(v){return v!==''&&v!=null});if(m.length)S.bal[k]=m.reduce(function(a,b){return a+b},0)/m.length;else delete S.bal[k]}
 function its(g){return g.i.concat(S.cx[g.n]||[])}
 function st(sn,k){return sn==='act'?(S.act[k||ym()]||{}):S[sn]}
 function gs(sn,g,k){var s=st(sn,k);return its(g).reduce(function(a,i){return a+n(s[g.n+'|'+i])},0)}
@@ -41,9 +41,14 @@ function grp(g,mode){
   var rows=o?its(g).map(function(i){
     var k=g.n+'|'+i,inp='<input type="number" inputmode="decimal" min="0"'+(RO&&mode==='bud'?' disabled':'')+' data-s="'+sn+'" data-k="'+esc(k)+'" value="'+(s[k]||'')+'" placeholder="0">';
     if(mode==='mon'){var bv=n(S.bud[k]),av=n(s[k]),d=g.t==='i'?av-bv:bv-av;return '<div class="r"><label>'+esc(i)+'<small>תקציב '+fm(bv)+'</small></label>'+inp+'<span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}
-    if(mode==='bal'){var mo=S.mo[k]||[],fl=mo.filter(function(v){return v!==''}).length,x=S.open[k],rt=S.rt[k]||{};
-      var sel=function(w){return '<select data-s="rt" data-k="'+esc(k)+'" data-w="'+w+'"><option value="">—</option>'+[1,2,3,4,5].map(function(v){return '<option'+(String(rt[w])===String(v)?' selected':'')+'>'+v+'</option>'}).join('')+'</select>'};
-      return '<div class="r"><label>'+esc(i)+(fl?'<small>ממוצע של '+fl+' חודשים</small>':'')+'</label>'+(fl?'<b class="d" style="width:92px">'+fm(n(s[k]))+'</b>':inp)+'<button class="gh" style="width:30px" data-a="tg" data-id="'+esc(k)+'">'+(x?'▴':'▾')+'</button></div>'+(x?'<div class="dt">'+mo.map(function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+v+'"></span>'}).join('')+'<button class="btn" data-a="mo" data-id="'+esc(k)+'">+ חודש</button></div><div class="dt"><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span><small>1 = חיוני, 5 = אפשר לוותר</small></div>':'')}
+    if(mode==='bal'){var mo=(S.mo[k]||[]).slice(),fl=mo.filter(function(v){return v!==''&&v!=null}).length,rt=S.rt[k]||{},ex2=g.t!=='i';
+      while(mo.length<2)mo.push('');
+      var sel=function(w){return '<select data-s="rt" data-k="'+esc(k)+'" data-w="'+w+'" aria-label="דירוג"><option value="">—</option>'+[1,2,3,4,5].map(function(v){return '<option'+(String(rt[w])===String(v)?' selected':'')+'>'+v+'</option>'}).join('')+'</select>'};
+      var ra=n(rt.a),rb=n(rt.b),rav=ra&&rb?(ra+rb)/2:0;
+      return '<div class="it bl"><div class="tot" style="padding:0"><span>'+esc(i)+'</span><span>'+(s[k]!==undefined&&s[k]!==''?fm(n(s[k])):'—')+'</span></div>'+
+      '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
+      '<small>'+(fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
+      (ex2?'<div class="dt"><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
     return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':'')+'</label>'+inp+'</div>'}).join(''):'';
   return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
@@ -51,7 +56,7 @@ function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return '<div class="c"><div 
 function bal(){
   var food=n(S.bal['קניות|אוכל ומוצרי מכולת']),p=n(S.ppl);
   var opts=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');
-  return '<p class="hint">הזינו ממוצע חודשי לכל סעיף, או לחצו על ▾ ליד הסעיף כדי להזין כמה חודשים (חודש 1, חודש 2 ועוד) והממוצע יחושב לבד, ולדרג כל סעיף.</p>'+secs('bal')+bottom('bal')+
+  return '<p class="hint">לכל סעיף הזינו את הסכום של חודשיים והממוצע יחושב לבד (אפשר להוסיף עוד חודשים). בן הזוג ובת הזוג מדרגים כל הוצאה: 1 = חיוני, 5 = אפשר לוותר.</p>'+secs('bal')+bottom('bal')+
   '<div class="c"><div class="r" style="border:0"><label>מספר נפשות בבית</label><input type="number" min="0" data-s="ppl" data-k="x" value="'+(S.ppl||'')+'"></div>'+
   (p&&food?'<div class="tot"><span>מזון לנפש לשבוע</span><span>'+fm(food/p/4.2)+'</span></div>':'')+'</div>'+
   '<div class="c"><b>הוספת סעיף</b><div class="f" style="margin-top:8px"><select id="cg">'+opts+'</select><input id="cn" placeholder="שם הסעיף"><button class="btn" data-a="add">הוספה</button></div></div>'}
