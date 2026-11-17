@@ -1,0 +1,22 @@
+# הגדרה אוטומטית ל-Render (https://render.com): New > Blueprint
+services:
+  - type: web
+    name: budget-coach
+    runtime: node
+    plan: starter            # נדרש תוכנית בתשלום כדי לשמור נתונים בדיסק
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD    # הסיסמה שלך למסך הניהול - תזיני אותה ב-Render
+        sync: false
+      - key: SESSION_SECRET    # נוצר אוטומטית
+        generateValue: true
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: budget-data
+      mountPath: /var/data
+      sizeGB: 1
