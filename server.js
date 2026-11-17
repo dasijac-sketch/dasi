@@ -188,6 +188,20 @@ app.post('/api/admin/couples', requireAdmin, (req, res) => {
   res.json(shape(q.byId.get(info.lastInsertRowid)));
 });
 
+app.put('/api/admin/couples/:id/state', requireAdmin, (req, res) => {
+  const row = q.byId.get(Number(req.params.id));
+  if (!row) return res.status(404).json({ error: 'not_found' });
+  const b = req.body || {}, cur = parse(row.state, {}), num = v => typeof v === 'number' && isFinite(v);
+  for (const k of ['bal', 'mo', 'rt']) if (k in b) { if (!isObj(b[k])) return res.status(400).json({ error: 'bad_' + k }); cur[k] = b[k]; }
+  if ('L' in b) {
+    const L = b.L, okL = (a, f) => Array.isArray(a) && a.length <= 300 && a.every(x => isObj(x) && typeof x.n === 'string' && x.n.length <= 200 && f.every(k => num(x[k])));
+    if (!isObj(L) || !okL(L.sv || [], ['m', 'v']) || !okL(L.ln || [], ['b', 'c', 'p'])) return res.status(400).json({ error: 'bad_L' });
+    cur.L = Object.assign({}, cur.L || {}, { sv: L.sv || [], ln: L.ln || [] });
+  }
+  const now = Date.now();
+  q.saveState.run(JSON.stringify(cur), now, row.id);
+  res.json(shape(q.byId.get(row.id)));
+});
 app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   const row = q.byId.get(Number(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
@@ -242,7 +256,7 @@ app.delete('/api/admin/couples/:id', requireAdmin, (req, res) => {
 /* ---------- דפים ---------- */
 const PUB_DIR = path.join(__dirname, 'public');
 const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
-const ASSETS = new Set(['lib.js', 'couple.js', 'admin.js', 'style.css']);
+const ASSETS = new Set(['xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
 const page = f => (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(pub, f)); };
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', page('admin.html'));
