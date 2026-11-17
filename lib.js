@@ -104,14 +104,25 @@ function home(){
   var steps=[['bal','מילוי המאזן החודשי',be>0]];
   if(st2)steps.push(['bud','התקציב שנקבע עבורכם',pe>0],['mon','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
   var done=steps.filter(function(s){return s[2]}).length;
-  var h='<div class="c"><h2 style="margin:0 0 4px;font-size:18px">שלום משפחת '+esc(S.fam)+'</h2><div class="hint" style="margin:0">'+MN[S.m-1]+' '+S.y+'</div></div>';
+  var h='<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div>'+(st2?'<div class="hb">'+fm(ai-ae)+'</div><div class="hm">נשאר לכם החודש · הכנסות '+fm(ai)+' · הוצאות '+fm(ae)+'</div>':'')+'</div>';
   if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
   if(!st2){
     h+=be>0||bi>0?'<div class="g">'+tile(fm(bi),'הכנסות חודשיות')+tile(fm(be),'הוצאות חודשיות')+tile(fm(bi-be),'יתרה חודשית',bi-be<0?'neg':'')+'</div><div class="c">תודה על מילוי המאזן. המאמנת תבנה עבורכם את התקציב, ותעדכן אתכם כאן.</div>':'<div class="c">התחילו במילוי המאזן: הזינו את ההכנסות וההוצאות החודשיות הממוצעות שלכם.</div>'}
   else{
-    h+='<div class="g">'+tile(fm(ai),'הכנסות החודש (תקציב '+fm(pi)+')')+tile(fm(ae),'הוצאות (תקציב '+fm(pe)+')',pe&&ae>pe?'neg':'')+tile(fm(ai-ae),'יתרה',ai-ae<0?'neg':'')+'</div>';
+    
     if(over.length||near.length)h+='<div class="c"><b>שימו לב החודש</b>'+over.map(function(x){return '<div class="r"><span class="bdg bd">חריגה</span><label>'+esc(x)+'</label></div>'}).join('')+near.map(function(x){return '<div class="r"><span class="bdg wn">קרוב</span><label>'+esc(x)+'</label></div>'}).join('')+'</div>';
     else if(ae>0)h+='<div class="c">✓ אין חריגות מהתקציב החודש</div>'}
+  if(st2){
+    var PAL=['#2F6FED','#1C8C6E','#E0562E','#8A4FD6','#0E8FA6','#C2307A'];
+    var vs=G.filter(function(g){return g.t==='v'&&gs('bud',g)>0}),fs=G.filter(function(g){return g.t==='f'&&gs('bud',g)>0});
+    if(vs.length){var rem=0;vs.forEach(function(g){rem+=gs('bud',g)-gs('act',g)});
+      h+='<div class="sh"><h2>המעטפות שלכם</h2><span>מזומן · נשאר '+fm(rem)+'</span></div><div class="env">'+vs.map(function(g,i){var b=gs('bud',g),a=gs('act',g),r=b-a,p=Math.min(100,Math.max(0,a/b*100)),c=PAL[i%PAL.length];
+        return '<div class="ev"><div class="evt" style="background:'+c+'"></div><div class="evb"><div class="evn">'+esc(g.n)+'</div><div class="evv'+(r<0?' neg':'')+'">'+fm(r)+'</div><small>נשאר מתוך '+fm(b)+'</small><div class="bar"><i style="width:'+p+'%;background:'+(r<0?'var(--bd)':c)+'"></i></div>'+(r<=0?'<small class="neg">'+(r<0?'חריגה':'המעטפה ריקה')+'</small>':a>=.85*b?'<small style="color:#b45309">קרוב לסוף</small>':'')+'</div></div>'}).join('')+'</div>'}
+    if(fs.length){var dn=fs.filter(function(g){return gs('act',g)>0}).length;
+      h+='<div class="sh"><h2>אשראי · הוצאות קבועות</h2><span>'+dn+' מתוך '+fs.length+' חויבו</span></div><div class="c">'+fs.map(function(g){var a=gs('act',g),b=gs('bud',g);return '<div class="r"><label>'+esc(g.n)+'</label><b>'+fm(a>0?a:b)+'</b><span class="bdg '+(a>0?'okb':'mut')+'">'+(a>0?'חויב':'ממתין')+'</span></div>'}).join('')+'</div>'}}
+  var gl=S.L.gl.filter(function(x){return n(x.t)>0});
+  if(gl.length)h+='<div class="sh"><h2>היעדים שלנו</h2></div><div class="goals">'+gl.map(function(x,i){var t=n(x.t),p=Math.min(100,Math.round(n(x.s)/t*100)),c=['#2F6FED','#E0562E','#1C8C6E','#8A4FD6'][i%4],m=gm(x.d);
+    return '<div class="gc"><div class="evn">'+esc(x.n||'יעד')+'</div><svg viewBox="0 0 64 64" width="76" height="76" role="img" aria-label="'+p+' אחוז מהיעד"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--ln)" stroke-width="8"/><circle cx="32" cy="32" r="26" fill="none" stroke="'+c+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+(p*1.634)+' 163.4" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">'+p+'%</text></svg><small>'+fm(n(x.s))+' מתוך '+fm(t)+'</small>'+(m>0&&t>n(x.s)?'<small>כדאי לחסוך '+fm((t-n(x.s))/m)+' בחודש</small>':'')+'</div>'}).join('')+'</div>';
   var ms=INBOX.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,6);
   if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>'+(m.k==='ch'?'אתגר':'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div>'+(m.k==='ch'?'<label style="font-size:14px"><input type="checkbox" style="width:auto" data-s="chd" data-k="'+esc(m.id)+'"'+(S.chd[m.id]?' checked':'')+'> בוצע</label>':'')+'</div>'}).join('')+'</div>';
   return h}
