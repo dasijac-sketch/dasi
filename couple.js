@@ -11,7 +11,7 @@ function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},S.L||{});
-  S.bud=d.bud||{};S.fam=d.name||'';STAGE=d.stage||1;INBOX=d.msgs||[];
+  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud=d.bud||{};S.fam=d.name||'';STAGE=d.stage||1;INBOX=d.msgs||[];
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){

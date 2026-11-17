@@ -1,5 +1,6 @@
 /* מסך המנהלת: /admin */
 (function(){
+ADM=true;
 var A={auth:null,list:[],cur:null,tab:'sum',y:S.y,m:S.m,open:{},err:''};
 var app=document.getElementById('app'),nav=document.getElementById('nav'),budTimer=null;
 
@@ -20,7 +21,7 @@ function cs(c){
   c.budget=c.budget||{};c.budget.bud=c.budget.bud||{};
   var s=Object.assign(newState(),c.state||{});
   s.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},(c.state&&c.state.L)||{});
-  s.bud=c.budget.bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
+  s.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});s.bud=c.budget.bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
   return s;
 }
 function sumC(c){
@@ -43,7 +44,7 @@ function loginView(){
   return '<div class="login c"><h2 style="margin:0">כניסת מאמנת</h2><input id="pw" type="password" placeholder="סיסמה" autocomplete="current-password"><button class="btn" data-a="login" style="width:100%">כניסה</button><div class="err" id="er">'+esc(A.err)+'</div></div>';
 }
 function listView(){
-  S=newState();S.y=A.y;S.m=A.m;
+  S=newState();S.y=A.y;S.m=A.m;bG();
   var wait=0,ov=0;
   var rows=A.list.map(function(c){
     var s=sumC(c);
@@ -58,7 +59,7 @@ function listView(){
     (rows||'<div class="c"><p class="hint" style="margin:0">עדיין אין זוגות. הוסיפי זוג ראשון למעלה, ותקבלי קישור אישי לשליחה.</p></div>');
 }
 function detailView(c){
-  S=cs(c);
+  S=cs(c);bG();
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
@@ -127,7 +128,7 @@ function put(c,body){
 function saveBud(c){
   status('שומרת...');clearTimeout(budTimer);
   budTimer=setTimeout(function(){
-    api('PUT','/api/admin/couples/'+c.id,{bud:c.budget.bud}).then(function(){status('✓ התקציב נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});
+    api('PUT','/api/admin/couples/'+c.id,{bud:c.budget.bud,cs:c.budget.cs||{}}).then(function(){status('✓ התקציב נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});
   },600);
 }
 function load(){
@@ -176,6 +177,14 @@ document.addEventListener('click',function(e){
   if(a==='tg'){A.open[x.id]=!A.open[x.id];render();return}
   if(!c)return;
   if(a==='fill'){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});saveBud(c);render()}
+  else if(a==='xi'||a==='xg'||a==='ai'||a==='ag'){
+    var k2=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});
+    var cl=function(v){return String(v||'').replace(/\|/g,' ').trim().slice(0,60)};
+    if(a==='xi'){var key=x.g+'|'+x.i,L2=k2.ni[x.g]||[],ix=L2.indexOf(x.i);if(ix>=0)L2.splice(ix,1);if(k2.hid.indexOf(key)<0)k2.hid.push(key)}
+    else if(a==='xg'){var ngi=k2.ng.findIndex(function(z){return z.n===x.g});if(ngi>=0)k2.ng.splice(ngi,1);else if(k2.hg.indexOf(x.g)<0)k2.hg.push(x.g)}
+    else if(a==='ai'){var g1=document.getElementById('sg').value,nm=cl(document.getElementById('sn').value);if(!nm)return;var gg=G.filter(function(z){return z.n===g1})[0];if(!gg||its(gg).indexOf(nm)>=0){status('התת קטגוריה כבר קיימת');return}var hk=g1+'|'+nm,hx=k2.hid.indexOf(hk);if(hx>=0)k2.hid.splice(hx,1);else(k2.ni[g1]=k2.ni[g1]||[]).push(nm);A.open[g1]=true}
+    else{var nm2=cl(document.getElementById('cn2').value),tt=document.getElementById('ct').value;if(!nm2)return;if(G.some(function(z){return z.n===nm2})){status('הקטגוריה כבר קיימת');return}var hg2=k2.hg.indexOf(nm2);if(hg2>=0)k2.hg.splice(hg2,1);else k2.ng.push({t:tt,n:nm2});A.open[nm2]=true}
+    saveBud(c);render()}
   else if(a==='cp')copyText('itx');
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0});put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='tt'){var tk=c.tasks[+x.i];if(tk){tk.d=tk.d?0:1;put(c,{tasks:c.tasks}).then(render)}}

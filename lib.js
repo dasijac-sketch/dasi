@@ -14,13 +14,15 @@ var D=[['i','הכנסות','הכנסה מעבודה בן זוג,הכנסה מע�
 ['v','בית','מוצרים ורהיטים לבית,ספרים,תיקונים וטכנאים,אחזקת הבית'],
 ['v','בילויים','בילויים,מסעדות,צעצועים,מתנות לצוות בית הספר,מתנות לבני משפחה,מתנות לאירועים'],
 ['v','שונות משתנות','דמי כיס הורים,דמי כיס ילדים']];
-var G=D.map(function(a){return{t:a[0],n:a[1],i:a[2]?a[2].split(','):[]}});
+var G=[];
+function ecs(){var c=(S&&S.cs)||{};return{hid:c.hid||[],hg:c.hg||[],ng:c.ng||[],ni:c.ni||{}}}
+function bG(){var c=ecs();G=D.map(function(a){return{t:a[0],n:a[1],i:a[2]?a[2].split(','):[]}}).filter(function(g){return c.hg.indexOf(g.n)<0}).concat(c.ng.map(function(x){return{t:x.t,n:x.n,i:[]}}))}
 var SEC={i:'הכנסות',f:'הוצאות קבועות',v:'הוצאות משתנות'};
 var MN=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-var RO=false,STAGE=1,INBOX=[];
-function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
+var ADM=false,RO=false,STAGE=1,INBOX=[];
+function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
 var S=newState();
-function W(st,fn){var o=S;S=st;try{return fn()}finally{S=o}}
+function W(st,fn){var o=S;S=st;bG();try{return fn()}finally{S=o;bG()}}
 function ago(t){if(!t)return 'טרם עודכן';var m=Math.round((Date.now()-t)/60000);return m<1?'עודכן עכשיו':m<60?'עודכן לפני '+m+' דקות':m<1440?'עודכן לפני '+Math.round(m/60)+' שעות':'עודכן לפני '+Math.round(m/1440)+' ימים'}
 function monSel(){var o=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');return '<div class="f" style="margin-bottom:10px"><select id="ms">'+o+'</select><input id="yr" type="number" value="'+S.y+'" style="max-width:100px"></div>'}
 function n(v){return Number(v)||0}
@@ -28,7 +30,7 @@ function fm(v){return Math.round(v).toLocaleString('he-IL')+' ₪'}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function ym(){return S.y+'-'+S.m}
 function rc(k){var m=(S.mo[k]||[]).filter(function(v){return v!==''&&v!=null});if(m.length)S.bal[k]=m.reduce(function(a,b){return a+b},0)/m.length;else delete S.bal[k]}
-function its(g){return g.i.concat(S.cx[g.n]||[])}
+function its(g){var c=ecs();return g.i.concat(c.ni[g.n]||[],S.cx[g.n]||[]).filter(function(i,x,a){return c.hid.indexOf(g.n+'|'+i)<0&&a.indexOf(i)===x})}
 function st(sn,k){return sn==='act'?(S.act[k||ym()]||{}):S[sn]}
 function gs(sn,g,k){var s=st(sn,k);return its(g).reduce(function(a,i){return a+n(s[g.n+'|'+i])},0)}
 function ts(sn,t,k){return G.filter(function(g){return g.t===t}).reduce(function(a,g){return a+gs(sn,g,k)},0)}
@@ -49,8 +51,8 @@ function grp(g,mode){
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
       '<small>'+(fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
       (ex2?'<div class="dt"><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
-    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':'')+'</label>'+inp+'</div>'}).join(''):'';
-  return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+'</div>'}
+    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':'')+'</label>'+inp+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
+  return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+(ADM&&mode==='bud'&&o?'<div class="r"><button class="btn sec" style="color:var(--bd)" data-a="xg" data-g="'+esc(g.n)+'">הסרת הקטגוריה "'+esc(g.n)+'"</button></div>':'')+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
 function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return '<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
 function bal(){
@@ -60,7 +62,8 @@ function bal(){
   '<div class="c"><div class="r" style="border:0"><label>מספר נפשות בבית</label><input type="number" min="0" data-s="ppl" data-k="x" value="'+(S.ppl||'')+'"></div>'+
   (p&&food?'<div class="tot"><span>מזון לנפש לשבוע</span><span>'+fm(food/p/4.2)+'</span></div>':'')+'</div>'+
   '<div class="c"><b>הוספת סעיף</b><div class="f" style="margin-top:8px"><select id="cg">'+opts+'</select><input id="cn" placeholder="שם הסעיף"><button class="btn" data-a="add">הוספה</button></div></div>'}
-function bud(){return '<p class="hint">'+(RO?'התקציב נקבע עבורכם על ידי המאמנת, ומוצג כאן לצפייה.':'התקציב נבנה מהמאזן. אפשר להעתיק אותו ואז לשנות סעיפים.')+'</p>'+(RO?'':'<button class="btn" data-a="fill" style="margin-bottom:6px">העתק מהמאזן</button>')+secs('bud')+bottom('bud')}
+function structUI(){var o=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');return '<div class="c"><b>ניהול קטגוריות</b><p class="hint">שינוי כאן מתעדכן אצל הזוג במאזן, בתקציב, במעקב ובסיכומים. הסרה מסתירה את הסעיף, והנתונים נשמרים.</p><div class="f"><select id="sg">'+o+'</select><input id="sn" placeholder="שם תת קטגוריה"><button class="btn" data-a="ai">הוספת תת קטגוריה</button></div><div class="f" style="margin-top:8px"><select id="ct"><option value="f">הוצאה קבועה (אשראי)</option><option value="v">הוצאה משתנה (מעטפה)</option><option value="i">הכנסה</option></select><input id="cn2" placeholder="שם קטגוריה חדשה"><button class="btn" data-a="ag">הוספת קטגוריה</button></div></div>'}
+function bud(){return '<p class="hint">'+(RO?'התקציב נקבע עבורכם על ידי המאמנת, ומוצג כאן לצפייה.':'התקציב נבנה מהמאזן. אפשר להעתיק אותו ואז לשנות סעיפים.')+'</p>'+(RO?'':'<button class="btn" data-a="fill" style="margin-bottom:6px">העתק מהמאזן</button>')+secs('bud')+bottom('bud')+(ADM?structUI():'')}
 function mon(){
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
@@ -131,3 +134,5 @@ function home(){
   var ms=INBOX.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,6);
   if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>'+(m.k==='ch'?'אתגר':'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div>'+(m.k==='ch'?'<label style="font-size:14px"><input type="checkbox" style="width:auto" data-s="chd" data-k="'+esc(m.id)+'"'+(S.chd[m.id]?' checked':'')+'> בוצע</label>':'')+'</div>'}).join('')+'</div>';
   return h}
+
+try{bG()}catch(e){}
