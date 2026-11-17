@@ -119,7 +119,7 @@ function coupleFromToken(req, res) {
   if (!row) { hit('bad:' + ip, 10 * 60 * 1000); res.status(404).json({ error: 'not_found' }); return null; }
   return row;
 }
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;

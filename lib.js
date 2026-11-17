@@ -20,7 +20,7 @@ function bG(){var c=ecs();G=D.map(function(a){return{t:a[0],n:a[1],i:a[2]?a[2].s
 var SEC={i:'הכנסות',f:'הוצאות קבועות',v:'הוצאות משתנות'};
 var MN=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var ADM=false,RO=false,STAGE=1,INBOX=[];
-function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
+function newState(){return{bal:{},bud:{},act:{},cx:{},note:{},fam:'',chd:{},ppl:0,mo:{},rt:{},fc:{},cs:{hid:[],hg:[],ng:[],ni:{}},L:{sv:[],ln:[],ins:[],gl:[]},y:new Date().getFullYear(),m:new Date().getMonth()+1,tab:'home',open:{}}}
 var S=newState();
 function W(st,fn){var o=S;S=st;bG();try{return fn()}finally{S=o;bG()}}
 function ago(t){if(!t)return 'טרם עודכן';var m=Math.round((Date.now()-t)/60000);return m<1?'עודכן עכשיו':m<60?'עודכן לפני '+m+' דקות':m<1440?'עודכן לפני '+Math.round(m/60)+' שעות':'עודכן לפני '+Math.round(m/1440)+' ימים'}
@@ -91,12 +91,28 @@ function fld(l,i,f,v){var b=' data-s="L" data-k="'+l+'.'+i+'.'+f.k+'"'+(f.t==='n
   return '<span><small>'+f.l+'</small>'+h+'</span>'}
 function lst(l,title,hint,xf){return '<div class="c"><b>'+title+'</b><p class="hint">'+hint+'</p>'+S.L[l].map(function(x,i){return '<div class="it"><div class="fl">'+FD[l].map(function(f){return fld(l,i,f,x[f.k])}).join('')+'<button class="gh" style="width:30px;color:var(--bd)" data-a="ld" data-l="'+l+'" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'+(xf?xf(x):'')+'</div>'}).join('')+'<button class="btn" data-a="la" data-l="'+l+'" style="margin-top:8px">+ הוספה</button></div>'}
 function gm(d){if(!d)return null;var p=d.split('-'),t=new Date();return (+p[0]-t.getFullYear())*12+(+p[1]-(t.getMonth()+1))}
+function fv(p,m,r,y){var i=Math.pow(1+r/100,1/12)-1,k=Math.round(y*12),v=p;for(var j=0;j<k;j++)v=v*(1+i)+m;return v}
+function fcalc(){var f=S.fc||{},p=n(f.p),m=n(f.m),r=n(f.r),y=Math.min(60,Math.max(0,n(f.y))),sp=n(f.s)||2;
+  var sc=[Math.max(0,r-sp),r,r+sp],ys=[],yy;for(yy=1;yy<=y;yy++)ys.push(yy);
+  var dep=function(t){return p+m*t*12};
+  var rows=ys.filter(function(t){return t<=10||t%5===0||t===y}).map(function(t){return '<tr><td>'+t+'</td><td>'+fm(dep(t))+'</td>'+sc.map(function(c){return '<td>'+fm(fv(p,m,c,t))+'</td>'}).join('')+'</tr>'}).join('');
+  var W=320,H=120,pts=function(c){return ys.length?[0].concat(ys).map(function(t,ix){return (ix/ys.length*W).toFixed(1)+','+(H-8-(fv(p,m,c,t)/Math.max(1,fv(p,m,sc[2],y)))*(H-16)).toFixed(1)}).join(' '):''};
+  var dl=ys.length?[0].concat(ys).map(function(t,ix){return (ix/ys.length*W).toFixed(1)+','+(H-8-(dep(t)/Math.max(1,fv(p,m,sc[2],y)))*(H-16)).toFixed(1)}).join(' '):'';
+  var gain=fv(p,m,r,y)-dep(y);
+  return {sc:sc,y:y,html:(y>0&&(p||m)?'<div class="g">'+tile(fm(fv(p,m,r,y)),'שווי צפוי בתשואה '+r+'%')+tile(fm(dep(y)),'סך הפקדות')+tile(fm(gain),'רווח צפוי')+'</div>'+
+  '<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="גרף תחזית חיסכון" style="max-height:170px"><polyline points="'+dl+'" fill="none" stroke="#8a97b0" stroke-width="2" stroke-dasharray="4 3"/><polyline points="'+pts(sc[0])+'" fill="none" stroke="#e0562e" stroke-width="2"/><polyline points="'+pts(sc[1])+'" fill="none" stroke="#2f6fed" stroke-width="3"/><polyline points="'+pts(sc[2])+'" fill="none" stroke="#1c8c6e" stroke-width="2"/></svg>'+
+  '<small class="hint">קו מקווקו: הפקדות בלבד · כתום: '+sc[0]+'% · כחול: '+sc[1]+'% · ירוק: '+sc[2]+'%</small>'+
+  '<div class="ov"><table><tr><th>שנה</th><th>הפקדות</th><th>תשואה '+sc[0]+'%</th><th>תשואה '+sc[1]+'%</th><th>תשואה '+sc[2]+'%</th></tr>'+rows+'</table></div>':'<p class="hint">הזינו סכום התחלתי או הפקדה חודשית, תשואה ומספר שנים כדי לראות תחזית.</p>')}}
+function fcUI(){var f=S.fc||{},inp=function(k,l,u,ph){return '<span><small>'+l+'</small><input type="number" inputmode="decimal" min="0" class="fcin" data-s="fc" data-k="'+k+'" value="'+(f[k]===undefined?'':esc(f[k]))+'" placeholder="'+(ph||'0')+'" aria-label="'+l+'"></span>'};
+  var dep=sm('sv','m'),val=sm('sv','v'),pre=(val||dep)?'<div class="hint">אפשר להתחיל מהחסכונות שלכם: שווי נוכחי '+fm(val)+', הפקדה חודשית '+fm(dep)+'.</div>':'';
+  return '<div class="c"><b>תחזית חיסכון לפי תשואה</b><p class="hint">כמה יהיה שווה הכסף אם מפקידים סכום קבוע בכל חודש. התשואה היא שנתית, והחישוב מניח הפקדה בסוף כל חודש. זו הערכה בלבד ולא הבטחה לתשואה.</p>'+pre+
+  '<div class="dt">'+inp('p','סכום התחלתי')+inp('m','הפקדה חודשית')+inp('r','תשואה שנתית %','', '5')+inp('y','מספר שנים','','10')+inp('s','פער לתרחישים %','','2')+'</div><div id="fcout">'+fcalc().html+'</div></div>'}
 function tvs(){
   var dep=sm('sv','m'),val=sm('sv','v'),liq=sm('sv','v',function(x){return x.q==='נזיל מיידית'}),e=ex('bal'),lb=sm('ln','b'),lp=sm('ln','p'),inc=ts('bal','i');
   return '<div class="g">'+tile(fm(val),'שווי חסכונות')+tile(fm(dep),'הפקדה חודשית')+tile(e?(liq/e).toFixed(1):'—','כרית ביטחון (חודשי הוצאות)')+'</div>'+
   lst('sv','חסכונות','קרן השתלמות, חיסכון לכל ילד, קופות ועוד. כרית הביטחון מחושבת מחסכונות שסומנו נזיל מיידית, מול ההוצאות החודשיות במאזן.')+
   '<div class="g">'+tile(fm(lb),'יתרת הלוואות')+tile(fm(lp),'החזר חודשי')+tile(inc?Math.round(lp/inc*100)+'%':'—','מההכנסה',inc&&lp/inc>.2?'neg':'')+'</div>'+
-  lst('ln','הלוואות ועסקאות בתשלומים','ההחזר החודשי אמור להופיע גם בסעיף הלוואות במאזן.',function(x){return n(x.p)&&n(x.c)?'<small>סה״כ עד סיום: '+fm(n(x.p)*n(x.c))+'</small>':''})}
+  lst('ln','הלוואות ועסקאות בתשלומים','ההחזר החודשי אמור להופיע גם בסעיף הלוואות במאזן.',function(x){return n(x.p)&&n(x.c)?'<small>סה״כ עד סיום: '+fm(n(x.p)*n(x.c))+'</small>':''})+fcUI()}
 function tin(){
   var mo=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0),need=0;
   S.L.gl.forEach(function(x){var m=gm(x.d),r=n(x.t)-n(x.s);if(m>0&&r>0)need+=r/m});

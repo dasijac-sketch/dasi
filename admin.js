@@ -101,7 +101,7 @@ function mgView(c){
 /* במסכי הצפייה הערכים של הזוג נעולים, רק התקציב והניהול ניתנים לעריכה */
 function lock(){
   if(A.tab==='bud'||A.tab==='mg'||A.tab==='sum')return;
-  app.querySelectorAll('input,select,textarea').forEach(function(e){if(e.id!=='ms'&&e.id!=='yr')e.disabled=true});
+  app.querySelectorAll('input,select,textarea').forEach(function(e){if(e.id!=='ms'&&e.id!=='yr'&&!e.classList.contains('fcin'))e.disabled=true});
   app.querySelectorAll('button[data-a=mo],button[data-a=la],button[data-a=ld],button[data-a=add]').forEach(function(b){b.disabled=true});
 }
 function render(){
@@ -149,6 +149,7 @@ document.addEventListener('change',function(e){
   if(t.id==='yr'){if(t.value){A.y=+t.value;render()}return}
   if(!c)return;
   if(d.s==='bud'){S.bud[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
+  if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
   if(t.id==='nt1'){c.notes=t.value;put(c,{notes:c.notes})}
   else if(t.id==='stg')put(c,{stage:+t.value}).then(render);
   else if(t.id==='rn'){var v=t.value.trim();if(v)put(c,{name:v}).then(render)}
