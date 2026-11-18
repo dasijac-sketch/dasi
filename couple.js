@@ -70,6 +70,7 @@ document.addEventListener('click',function(e){
   else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
+  else if(a==='tkd'){S.chd[b.dataset.id]=S.chd[b.dataset.id]?0:1;save()}
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
@@ -91,3 +92,5 @@ fetch(API,{cache:'no-store'}).then(function(r){if(r.status===404)throw 'nf';if(!
   app.innerHTML=e==='nf'?'<div class="c">הקישור אינו תקין או שכבר אינו פעיל. פנו למאמנת לקבלת קישור חדש.</div>':'<div class="c">לא ניתן להתחבר כרגע. נסו לרענן את הדף בעוד רגע.</div>';
 });
 })();
+
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='mti'){e.preventDefault();var b=document.querySelector('[data-a=mta]');if(b)b.click()}});
