@@ -54,7 +54,7 @@ function grp(g,mode){
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
       '<small>'+(fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
       (ex2?'<div class="dt"><span><small>אמצעי תשלום</small>'+pmSel(g,i,false)+'</span><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
-    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(mode==='bud'&&g.t!=='i'?pmSel(g,i,RO):'')+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
+    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+(ADM?rtTxt(k):'')+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(mode==='bud'&&g.t!=='i'?pmSel(g,i,RO):'')+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
   return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span>'+(o?'▾ ':'◂ ')+esc(g.n)+'</span><span>'+meta+'</span></button>'+bar+rows+(ADM&&mode==='bud'&&o&&ecs().ng.some(function(z){return z.n===g.n})?'<div class="r"><button class="btn sec" style="color:var(--bd)" data-a="xg" data-g="'+esc(g.n)+'">הסרת הקטגוריה "'+esc(g.n)+'"</button></div>':'')+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
 function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return (sn==='bud'||sn==='bal'?pmSum(sn):'')+'<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
@@ -124,6 +124,16 @@ function fmUI(){var f=S.fm||{},k=S.L.kd||[],ag=k.filter(function(x){return x.a!=
   return '<div class="c"><b>הסיפור המשפחתי שלנו</b><p class="hint">גילאי ההורים והילדים עוזרים לתכנן יעדים לאורך השנים, כמו בר מצווה, חתונה ופרישה.</p><div class="dt">'+inp('a','גיל בן הזוג')+inp('b','גיל בת הזוג')+'</div>'+
   (k.length?'<div class="hint" style="margin:8px 0 0">'+(k.length===1?'ילד אחד':k.length+' ילדים')+(ag.length>1?' · הגדול בן '+ag[0]+', הקטן בן '+ag[ag.length-1]:ag.length?' · בן '+ag[0]:'')+' · '+(2+k.length)+' נפשות בבית</div>':'')+'</div>'+
   lst('kd','הילדים','שם וגיל של כל ילד. אפשר להוסיף כמה שצריך.')}
+function rtTxt(k){var r=S.rt[k]||{},a=n(r.a),b=n(r.b);if(!a&&!b)return '';return ' · דירוג'+(a?' בן '+a:'')+(b?' בת '+b:'')+(a&&b?' · ממוצע '+((a+b)/2).toFixed(1):'')}
+function ctxUI(){var f=S.fm||{},k=S.L.kd||[],ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
+  var ag=k.map(function(x){return esc(x.n||'ילד')+(x.a!==''&&x.a!=null?' ('+esc(x.a)+')':'')}).join(', ');
+  var gl=S.L.gl.filter(function(x){return x.n||n(x.t)}).map(function(x){var t=n(x.t),m=gm(x.d),r=t-n(x.s);return esc(x.n||'יעד')+': '+fm(t)+(m>0&&r>0?' · כדאי '+fm(r/m)+' בחודש':'')}).join('<br>');
+  var low=[];G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(i){var r=S.rt[g.n+'|'+i]||{},a=n(r.a),b=n(r.b);if(a&&b&&Math.abs(a-b)>=2)low.push(esc(i)+' (בן '+a+', בת '+b+')')})});
+  return '<div class="c"><b>תמונת מצב לבניית התקציב</b><div class="hint" style="margin:6px 0 0;line-height:1.7">'+
+   '<b>סיפור משפחתי:</b> '+((f.a||f.b)?'בן זוג '+(f.a||'?')+', בת זוג '+(f.b||'?'):'לא מולא')+(k.length?' · ילדים: '+ag:'')+'<br>'+
+   '<b>יעדים:</b> '+(gl||'לא הוגדרו')+'<br>'+
+   '<b>ביטוחים:</b> '+fm(ins)+' בחודש · <b>חסכונות:</b> '+fm(sm('sv','v'))+' · <b>הלוואות:</b> '+fm(sm('ln','b'))+
+   (low.length?'<br><b>פערי דירוג בין בני הזוג:</b> '+low.join(', '):'')+'</div></div>'}
 function tin(){
   var mo=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0),need=0;
   S.L.gl.forEach(function(x){var m=gm(x.d),r=n(x.t)-n(x.s);if(m>0&&r>0)need+=r/m});

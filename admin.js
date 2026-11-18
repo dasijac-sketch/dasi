@@ -66,7 +66,7 @@ function detailView(c){
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
-  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
+  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
   var h='<div class="c"><b>טעינה מאקסל</b><p class="hint">'+(t==='bal'?'בחרי את קובץ המאזן של הזוג. הסכומים, החודשים, הדירוגים, החסכונות וההלוואות ימולאו, ואפשר יהיה לראות הכל לפני האישור.':'בחרי את קובץ התקציב. הסכומים ימולאו בתקציב של הזוג, ואפשר יהיה לראות הכל לפני האישור.')+'</p><input type="file" id="xf" class="fcin" data-t="'+t+'" accept=".xlsx,.xlsm,.xls" aria-label="בחירת קובץ אקסל">';
