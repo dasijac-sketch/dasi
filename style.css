@@ -82,3 +82,6 @@ nav button{padding:8px 2px}nav button.on .ic{color:#ffb84d}
 @media (min-width:900px){.ni{flex-direction:row;gap:12px;font-size:15px}}
 .sh h2{display:flex;align-items:center;gap:8px}
 @media (min-width:900px){.w>.sub{justify-self:end;align-self:center;margin:0}}
+
+.sgs{display:flex;gap:6px;overflow-x:auto;margin:6px 0 12px;padding-bottom:2px}.sg{flex:1 0 auto;min-width:74px;border:1px solid var(--ln);background:var(--card);border-radius:12px;padding:8px 10px;font:inherit;cursor:pointer;text-align:center}.sg span{display:block;font-size:14px}.sg small{display:block;color:var(--mu);font-size:12px}.sg.on{background:#16233b;border-color:#16233b;color:#fff}.sg.on small{color:#c7d2e6}
+.sgh{display:flex;align-items:center;gap:8px;margin:12px 0 4px}.sgh:first-child{margin-top:0}

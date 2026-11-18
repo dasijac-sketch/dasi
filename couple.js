@@ -20,7 +20,7 @@ function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות וא�
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
-  var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
+  var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
   S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<3;INBOX=d.msgs||[];
@@ -88,6 +88,7 @@ document.addEventListener('click',function(e){
   else if(a==='envx'){if(S.env&&S.env[b.dataset.e])S.env[b.dataset.e].w=0;save()}
   else if(a==='envc'){S.env=S.env||{};S.env[b.dataset.e]=S.env[b.dataset.e]||{};envFinish(b.dataset.e);save()}
   else if(a==='envu'){envUndo(b.dataset.e);save()}
+  else if(a==='seg'){S.seg=b.dataset.id}
   else if(a==='og'){S.open[b.dataset.id]=true}
   else if(a==='gm'){S.y=+b.dataset.y;S.m=+b.dataset.m;S.tab='mon'}
   else if(a==='obn'){OB++;if(OB>2)obx()}
