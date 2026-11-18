@@ -139,7 +139,7 @@ function budgetFrom(b, cur) {
   return { value: { bud, cs, sc } };
 }
 
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;

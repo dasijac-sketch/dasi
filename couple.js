@@ -18,7 +18,7 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEF
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
+function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
@@ -52,6 +52,7 @@ document.addEventListener('change',function(e){
   if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
+  if(d.s==='envl'||d.s==='envm'){var ee=S.env=S.env||{};ee[d.e]=ee[d.e]||{};if(d.s==='envl'){(ee[d.e].left=ee[d.e].left||{})[d.k]=t.value===''?'':Math.max(0,n(t.value))}else{(ee[d.e].mv=ee[d.e].mv||{})[d.k]=t.value}save();return}
   if(d.s==='chd')S.chd[d.k]=t.checked?1:0;
   else if(d.s==='yc'){S.yc=S.yc||{};S.yc[d.k]=n(t.value)}
   else if(d.s==='ppl')S.ppl=n(t.value);
@@ -83,6 +84,10 @@ document.addEventListener('click',function(e){
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
   else if(a==='yxa'){var ys=document.getElementById('yxs').value,yn=document.getElementById('yxn').value.trim();if(!yn)return;S.yx=S.yx||{};S.yx[ys]=(S.yx[ys]||[]).concat(yn.slice(0,80));save()}
+  else if(a==='envw'){S.env=S.env||{};(S.env[b.dataset.e]=S.env[b.dataset.e]||{}).w=Date.now();save()}
+  else if(a==='envx'){if(S.env&&S.env[b.dataset.e])S.env[b.dataset.e].w=0;save()}
+  else if(a==='envc'){S.env=S.env||{};S.env[b.dataset.e]=S.env[b.dataset.e]||{};envFinish(b.dataset.e);save()}
+  else if(a==='envu'){envUndo(b.dataset.e);save()}
   else if(a==='og'){S.open[b.dataset.id]=true}
   else if(a==='gm'){S.y=+b.dataset.y;S.m=+b.dataset.m;S.tab='mon'}
   else if(a==='obn'){OB++;if(OB>2)obx()}
