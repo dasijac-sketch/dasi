@@ -61,7 +61,7 @@ function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return (sn==='bud'||sn==='ba
 function bal(){
   var food=n(S.bal['קניות|אוכל ומוצרי מכולת']),p=n(S.ppl)||((S.L.kd||[]).length?2+S.L.kd.length:0);
   var opts=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');
-  return '<p class="hint">לכל סעיף הזינו את הסכום של חודשיים והממוצע יחושב לבד (אפשר להוסיף עוד חודשים). בן הזוג ובת הזוג מדרגים כל הוצאה: 1 = חיוני, 5 = אפשר לוותר.</p>'+secs('bal')+bottom('bal')+
+  return (ADM?'':rulesUI())+'<p class="hint">לכל סעיף הזינו את הסכום של חודשיים והממוצע יחושב לבד (אפשר להוסיף עוד חודשים). בן הזוג ובת הזוג מדרגים כל הוצאה: 1 = חיוני, 5 = אפשר לוותר.</p>'+secs('bal')+bottom('bal')+
   '<div class="c"><div class="r" style="border:0"><label>מספר נפשות בבית</label><input type="number" min="0" data-s="ppl" data-k="x" value="'+(S.ppl||'')+'"></div>'+
   (p&&food?'<div class="tot"><span>מזון לנפש לשבוע</span><span>'+fm(food/p/4.2)+'</span></div>':'')+'</div>'+
   '<div class="c"><b>הוספת סעיף</b><div class="f" style="margin-top:8px"><select id="cg">'+opts+'</select><input id="cn" placeholder="שם הסעיף"><button class="btn" data-a="add">הוספה</button></div></div>'}
@@ -72,7 +72,7 @@ function mon(){
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
   return '<div class="f" style="margin-bottom:10px"><select id="ms">'+ms+'</select><input id="yr" type="number" value="'+S.y+'" style="max-width:100px"></div>'+
   '<div class="g"><div class="k"><b>'+fm(ai)+'</b><span>הכנסות (תקציב '+fm(pi)+')</span></div><div class="k"><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae)+'</b><span>הוצאות (תקציב '+fm(pe)+')</span></div><div class="k"><b class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</b><span>יתרה בפועל</span></div></div>'+
-  '<p class="hint">הזינו את הסכום בפועל לכל סעיף. העמודה האחרונה מראה את ההפרש מהתקציב, ובאדום חריגה.</p>'+secs('mon')+
+  overUI()+'<p class="hint">הזינו את הסכום בפועל לכל סעיף. העמודה האחרונה מראה את ההפרש מהתקציב, ובאדום חריגה.</p>'+secs('mon')+
   '<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI()}
 function yr(){
   var rows='',TI=0,TE=0,TP=0;
@@ -157,6 +157,14 @@ function pmSum(sn){var m=pmData(sn);if(!m)return '';
   return '<div class="c"><b>לאן הולכות ההוצאות</b><div class="hint" style="margin:2px 0 6px">לפי אמצעי תשלום</div>'+pmChart(m)+(m['מזומן']?'<div class="tot" style="color:#0f6b52;margin-top:8px"><span>מזומן להוצאה החודש</span><span>'+fm(m['מזומן'])+'</span></div>':'')+'</div>'}
 function openTk(){return INBOX.filter(function(m){return(m.k==='tk'||m.k==='ch')&&!S.chd[m.id]}).length+Object.keys(S.mt||{}).filter(function(id){return !S.chd[id]}).length}
 function dueTxt(m){return m.due?' · עד '+new Date(m.due+'T00:00').toLocaleDateString('he-IL'):''}
+var RULES=[["שיתוף פעולה זוגי", "חשוב ששני בני הזוג יהיו מעורבים במילוי. זו משימה משותפת שמטרתה ליצור בהירות, הבנה ושיתוף. רק כששני בני הזוג מעורבים ומחויבים להצלחה, התהליך באמת מצליח."], ["רישום הוצאות", "למלא כל הוצאה בדיוק כפי שהיא. לא מסננים, לא מתלבטים, לא דנים, רק מתעדים. זה לא הזמן להתווכח אם ההוצאה \"נכונה\" או \"מיותרת\". בשביל זה תדרגו כל הוצאה בהמשך."], ["מילוי חודשיים רצופים", "ממלאים לשני חודשים עוקבים כדי לקבל תמונה מלאה ולזהות דפוסים חוזרים."], ["שימוש בנתוני אשראי", "רושמים את החיובים בדיוק כפי שמופיעים בכרטיסי האשראי בחודש שעליו אתם עובדים, גם אם ההוצאה בוצעה בחודש קודם."], ["עסקאות בתשלומים", "כל תשלום נחשב הלוואה. את הסכום החודשי רושמים בהוצאות, ואת יתרת התשלומים בלשונית \"חסכונות והלוואות\"."], ["הלוואות", "ממלאים את כל ההלוואות הקיימות, כולל גמ\"ח, בנק, מינוס ועסקאות בתשלומים."], ["חסכונות ונכסים", "מציינים חסכונות, קופות גמל, חיסכון לכל ילד, קרן השתלמות, השקעות, נכסים כמו דירה וכל נכס פיננסי אחר."], ["ממוצע שנתי", "לאחר מילוי חודשיים הממוצע מחושב לבד. לסעיפי חגים, חופשות וכדומה כדאי להתחשב בהוצאה השנתית כולה."], ["סולם ערכים אישי", "בסיום, כל אחד מבני הזוג מדרג את הסעיפים לפי הערכים האישיים שלו. התקציב צריך לשקף את המשפחה שלכם."]];
+function rulesUI(){var empty=!Object.keys(S.bal||{}).length;
+  return '<details class="c rul"'+(empty?' open':'')+'><summary><b>הוראות למילוי המאזן</b></summary><div class="rl">'+RULES.map(function(r,i){return '<div class="rr"><span>'+(i+1)+'</span><div><b>'+r[0]+'</b><div class="hint" style="margin:2px 0 0">'+r[1]+'</div></div></div>'}).join('')+'<div class="hint" style="margin-top:10px">לכל שאלה אפשר לפנות לדסי הרשטיק, מאמנת לכלכלת המשפחה: <a href="mailto:nekodatizon@gmail.com">nekodatizon@gmail.com</a> · <a href="tel:0548421336">054-8421336</a></div></div></details>'}
+function overUI(){var o=G.filter(function(g){var b=gs('bud',g),a=gs('act',g);return g.t!=='i'&&b>0&&a>b});if(!o.length)return '';
+  return '<div class="c" style="border:1px solid var(--bd)"><b>'+(o.length===1?'קטגוריה אחת חרגה':o.length+' קטגוריות חרגו')+' מהתקציב</b>'+o.map(function(g){var a=gs('act',g),b=gs('bud',g);return '<button class="r cc" data-a="og" data-id="'+esc(g.n)+'"><span>'+esc(g.n)+'</span><span class="neg">+'+fm(a-b)+'</span></button>'}).join('')+'</div>'}
+function remUI(){if(STAGE<2)return '';var d=new Date(),py=d.getMonth()?d.getFullYear():d.getFullYear()-1,pm=d.getMonth()||12,pk=py+'-'+pm;
+  if(n((S.md||{})[pk])||!S.act[pk]||!Object.keys(S.act[pk]).length)return '';
+  return '<div class="c" style="border:1px solid var(--wn)"><b>סגירת '+MN[pm-1]+'</b><div class="hint" style="margin:4px 0 8px">'+MN[pm-1]+' עוד לא סומן כהושלם. כדאי לעבור על ההוצאות בפועל ולסגור את החודש.</div><button class="btn" data-a="gm" data-y="'+py+'" data-m="'+pm+'">לסגירת החודש</button></div>'}
 function mdUI(){var k=ym(),dt=n((S.md||{})[k]),bal=ts('act','i')-ex('act');
   if(!dt)return '<div class="c"><b>סיימתם את החודש?</b><div class="hint" style="margin:4px 0 8px">אחרי שהזנתם את כל ההכנסות וההוצאות בפועל, לחצו על הכפתור.</div><button class="btn" data-a="md">הושלם לחודש זה</button></div>';
   var msg=bal>0?'איזה כיף! נשארה לכם יתרה של '+fm(bal)+'. אפשר לקחת אותה לקטגוריה שחשובה לכם, כמו חיסכון, יעד או משהו שרציתם לעצמכם.':bal<0?'יש חריגה של '+fm(-bal)+'. צריך לכסות אותה בתוך החודש הקרוב. אפשר להוסיף לעצמכם משימה בלשונית "משימות ואתגרים".':'יצאתם מאוזנים החודש, כל הכבוד.';
@@ -179,6 +187,7 @@ function home(){
   if(st2)steps.push(['bud','התקציב שנקבע עבורכם',pe>0],['mon','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
   var done=steps.filter(function(s){return s[2]}).length;
   var h='<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div>'+(st2?'<div class="hb">'+fm(ai-ae)+'</div><div class="hm">נשאר לכם החודש · הכנסות '+fm(ai)+' · הוצאות '+fm(ae)+'</div>':'')+'</div>';
+  h+=remUI();
   if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
   if(!n(S.dn))h+=doneUI();
   if(!st2){

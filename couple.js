@@ -5,6 +5,17 @@ RO=true;
 var dirty=false,busy=false,timer=null;
 var app=document.getElementById('app'),nav=document.getElementById('nav');
 function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
+var OB=-1,DEFP=null,INSTH=false;try{if(!localStorage.getItem('ob1'))OB=0;if(localStorage.getItem('insx'))INSTH=true}catch(e){}
+function obx(){OB=-1;try{localStorage.setItem('ob1','1')}catch(e){}}
+function obUI(){if(OB<0)return '';var P=[['ברוכים הבאים','זה המקום האישי שלכם לניהול התקציב. נכנסים ישירות מהקישור, בלי סיסמה, וכל מה שממלאים נשמר אוטומטית.'],
+ ['מה ממלאים עכשיו','מאזן: הכנסות והוצאות של חודשיים, כל אחד מבני הזוג מדרג כל הוצאה, ואחר כך חסכונות, הלוואות וביטוחים. בסוף לוחצים "הושלם".'],
+ ['ומה אחר כך','המאמנת בונה עבורכם תקציב, ומשם מעקב חודשי פשוט: מזינים מה קרה בפועל ורואים איפה אתם עומדים.']];
+ return '<div class="c ob"><div class="obs">'+P.map(function(x,i){return '<i class="'+(i===OB?'on':'')+'"></i>'}).join('')+'</div><b>'+P[OB][0]+'</b><p>'+P[OB][1]+'</p><div class="f"><button class="btn" data-a="obn">'+(OB<2?'הבא':'מתחילים')+'</button><button class="btn sec" data-a="obx">דילוג</button></div></div>'}
+function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone;if(sa)return '';
+ if(DEFP)return '<div class="c"><b>התקנה כאפליקציה</b><div class="hint" style="margin:4px 0 8px">אייקון על המסך הראשי ופתיחה במסך מלא.</div><div class="f"><button class="btn" data-a="inst">התקנה</button><button class="btn sec" data-a="insx">לא עכשיו</button></div></div>';
+ if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
@@ -18,7 +29,7 @@ function apply(d){
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin}[S.tab]||home;
-  app.innerHTML=(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
+  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
 function flush(){
@@ -70,6 +81,12 @@ document.addEventListener('click',function(e){
   else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
+  else if(a==='og'){S.open[b.dataset.id]=true}
+  else if(a==='gm'){S.y=+b.dataset.y;S.m=+b.dataset.m;S.tab='mon'}
+  else if(a==='obn'){OB++;if(OB>2)obx()}
+  else if(a==='obx'){obx()}
+  else if(a==='inst'&&DEFP){DEFP.prompt();DEFP=null;INSTH=true}
+  else if(a==='insx'){INSTH=true;try{localStorage.setItem('insx','1')}catch(e){}}
   else if(a==='tkd'){S.chd[b.dataset.id]=S.chd[b.dataset.id]?0:1;save()}
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
