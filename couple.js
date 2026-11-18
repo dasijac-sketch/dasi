@@ -61,7 +61,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
   else if(d.s==='bud'){S.bud[d.k]=n(t.value)}
   else if(d.s==='fm'){S.fm=S.fm||{};S.fm[d.k]=n(t.value)}
-  else if(d.s==='pm'){if(RO&&S.tab==='bud')return;S.pm=S.pm||{};S.pm[d.k]=t.value}
+  else if(d.s==='pm'){S.pm=S.pm||{};S.pm[d.k]=t.value}
   else if(d.s==='fc'){S.fc=S.fc||{};S.fc[d.k]=t.value}
   else if(d.s==='rt'){var rr=S.rt[d.k]=S.rt[d.k]||{};rr[d.w]=t.value}
   else if(d.s==='bal')S.bal[d.k]=n(t.value);

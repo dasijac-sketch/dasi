@@ -94,7 +94,12 @@ body{background:var(--soft)}
 .hero{background-image:radial-gradient(circle at 12% 0,rgba(201,162,63,.28),transparent 48%)}
 .ob .btn:not(.sec){background:#c9a23f;color:#1f3a5f;font-weight:700}
 
-:root{--bg:#ffffff;--soft:#f6f3ec}
-body{background:#fff}
+:root{--bg:#f6f2ea;--soft:#efe9dc}
+body{background:#f6f2ea}
 .c,.k,.ev,.gc,.tk{border:1px solid #ece7dc;box-shadow:0 1px 3px rgba(31,58,95,.06)}
 .hero,.ob,.cashc{border:0}
+
+.brand{margin:4px 0 8px}
+.c,.k,.ev,.gc,.tk{border:0;box-shadow:0 1px 2px rgba(31,58,95,.08)}
+.pmr{flex-basis:100%;display:flex;align-items:center;gap:8px;margin-top:4px}.pmr small{color:var(--mu);font-size:12px}.pmr select{max-width:none;flex:1}
+.r:has(.pmr){flex-wrap:wrap}
