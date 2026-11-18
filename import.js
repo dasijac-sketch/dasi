@@ -31,17 +31,18 @@ function xparseSheet(rows,mode){
     if(val==null&&m1==null&&m2==null)return;
     out.items.push({sec:sec,group:grp,label:label,val:val==null?((m1||0)+(m2||0))/((m1!=null&&m2!=null)?2:1):val,m1:m1,m2:m2,ra:ra,rb:rb,pm:/מזומן/.test(pmx)?'מזומן':/אשראי/.test(pmx)?'אשראי':/הוק/.test(pmx)?'הו"ק':''})});
   return out}
-function xparseSav(rows){var L={sv:[],ln:[]},mode='';
+function xparseSav(rows){var L={sv:[],ln:[],pn:[]},mode='';
   rows.forEach(function(r){var c=r.map(xn),j=c.join('|');
-    if(/חסכונות קיימים/.test(j)){mode='sv';return}if(/^פנסיה|\|פנסיה/.test(j)&&c.indexOf('פנסיה')>=0){mode='';return}
+    if(/חסכונות קיימים/.test(j)){mode='sv';return}if(/^פנסיה|\|פנסיה/.test(j)&&c.indexOf('פנסיה')>=0){mode='pn';return}
     if(c.indexOf('הלוואות')>=0&&c.length&&c.filter(Boolean).length===1||c.filter(function(x){return /^ע[יס]*ק[אות]+ בתשלומים$/.test(x)}).length&&c.filter(Boolean).length===1){mode='ln';return}
     if(c.indexOf('משכנתא')>=0&&c.filter(Boolean).length===1){mode='mg';return}
     var f=-1;c.forEach(function(x,i){if(f<0&&x&&xnum(r[i])===null&&!/^פירוט|שם ה|^סה|לחץ כאן|תאריך|^יתרת|^סיום|^החזר/.test(x))f=i});
     if(f<0||XSKIP.test(c[f]))return;var nums=r.map(xnum);
     if(mode==='sv'){var hd=function(k){return null};var m=nums[f+2],v=nums[f+3];if(m==null&&v==null)return;L.sv.push({n:c[f],m:m||0,v:v||0,q:''})}
+    else if(mode==='pn'){var pv=nums[f+1],pm=nums[f+2],pe=nums[f+3],pc=nums[f+4];if(pv==null&&pm==null&&pe==null)return;L.pn.push({n:c[f],v:pv||0,m:pm||0,e:pe||0,c:pc||0})}
     else if(mode==='mg'){var mb=nums[f+1],mp=nums[f+3];if(!mb&&!mp)return;L.ln.push({n:'משכנתא - '+c[f],b:mb||0,c:0,p:mp||0})}
     else if(mode==='ln'){var b=nums[f+1],mo=nums[f+2],p=nums[f+4]!=null?nums[f+4]:nums[f+3];L.ln.push({n:c[f],b:b||0,c:mo||0,p:p||0})}});
-  return L}
+  if(!L.pn.length)delete L.pn;return L}
 /* מחזיר תוצאה לתצוגה מקדימה והחלה: {bal,mo,rt,bud,ni,L,matched,added,skipped} */
 function xplan(wb,target){
   var names=wb.SheetNames,pick=function(re){return names.filter(function(s){return re.test(s)})[0]};
@@ -68,5 +69,5 @@ function xplan(wb,target){
     key=g.n+'|'+item;R.vals[key]=it.val;
     if(target==='bal'){if(it.m1!=null||it.m2!=null)R.mo[key]=[it.m1==null?'':it.m1,it.m2==null?'':it.m2];var rt={};if(it.ra)rt.a=String(it.ra);if(it.rb)rt.b=String(it.rb);if(rt.a||rt.b)R.rt[key]=rt;if(it.pm)R.pm[key]=it.pm}});};
   if(useCs)W({cs:useCs,cx:{}},runItems);else runItems();
-  if(target==='bal'){var ss=pick(/חסכונות והלוואות/);if(ss){var L=xparseSav(XLSX.utils.sheet_to_json(wb.Sheets[ss],{header:1,raw:true,defval:null}));if(L.sv.length||L.ln.length)R.L=L}}
+  if(target==='bal'){var ss=pick(/חסכונות והלוואות/);if(ss){var L=xparseSav(XLSX.utils.sheet_to_json(wb.Sheets[ss],{header:1,raw:true,defval:null}));if(L.sv.length||L.ln.length||L.pn.length)R.L=L}}
   return R}

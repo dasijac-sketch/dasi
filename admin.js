@@ -63,9 +63,9 @@ function listView(){
 function detailView(c){
   S=cs(c);bG();
   if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+t[1]+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
-  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
+  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
-  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
+  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
   return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
@@ -132,7 +132,7 @@ function mgView(c){
 
 /* במסכי הצפייה הערכים של הזוג נעולים, רק התקציב והניהול ניתנים לעריכה */
 function lock(){
-  if(A.tab==='bud'||A.tab==='sc'||A.tab==='mg'||A.tab==='sum')return;
+  if(A.tab==='bud'||A.tab==='sc'||A.tab==='mg'||A.tab==='sum'||A.tab==='ins')return;
   app.querySelectorAll('input,select,textarea').forEach(function(e){if(e.id!=='ms'&&e.id!=='yr'&&!e.classList.contains('fcin'))e.disabled=true});
   app.querySelectorAll('button[data-a=mo],button[data-a=la],button[data-a=ld],button[data-a=add]').forEach(function(b){b.disabled=true});
 }
@@ -143,6 +143,7 @@ function render(){
   if(c){app.innerHTML=detailView(c);lock()}
   else{A.cur=null;nav.innerHTML='';app.innerHTML=listView()}
 }
+function saveL(c){api('PUT','/api/admin/couples/'+c.id+'/state',{L:c.state.L}).then(function(){status('✓ נשמר')}).catch(function(){status('השמירה נכשלה')})}
 function keepFocus(fn){
   var a=document.activeElement,id=a&&a.dataset&&a.dataset.k?a.dataset.s+'#'+a.dataset.k:null;
   fn();
@@ -183,6 +184,7 @@ document.addEventListener('change',function(e){
   if(t.id==='xf'){var fl=t.files&&t.files[0];if(!fl||!c)return;var tt=d.t,rd=new FileReader();rd.onload=function(){try{var wb=XLSX.read(rd.result,{type:'array'});A.imp={t:tt,R:W(cs(c),function(){return xplan(wb,tt)})};A.impErr=''}catch(er){A.imp={t:tt,R:null};A.impErr='לא הצלחתי לקרוא את הקובץ. ודאי שזה קובץ אקסל תקין.'}render()};rd.readAsArrayBuffer(fl);return}
   if(!c)return;
   if(d.s==='bud'){S.bud[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
+  if(d.s==='L'||d.s==='fm'){c.state=c.state||{};if(d.s==='fm'){(c.state.fm=c.state.fm||{})[d.k]=n(t.value);api('PUT','/api/admin/couples/'+c.id+'/state',{fm:c.state.fm}).then(function(){status('✓ נשמר')}).catch(function(){status('השמירה נכשלה')});return}var L2=c.state.L=Object.assign(defL(),c.state.L||{}),p2=d.k.split('.');if(L2[p2[0]]&&L2[p2[0]][+p2[1]]){L2[p2[0]][+p2[1]][p2[2]]=d.ty==='n'?n(t.value):t.value;saveL(c);keepFocus(render)}return}
   if(d.s==='pm'){c.state=c.state||{};var pmo=c.state.pm=c.state.pm||{};pmo[d.k]=t.value;api('PUT','/api/admin/couples/'+c.id+'/state',{pm:pmo}).then(function(){status('✓ נשמר')}).catch(function(){status('השמירה נכשלה, נסי שוב')});render();return}
   if(d.s==='scb'){S.scb[d.k]=n(t.value);saveBud(c);keepFocus(render);return}
   if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
@@ -227,6 +229,7 @@ document.addEventListener('click',function(e){
   else if(a==='ss'){A.sc=x.id;render()}
   else if(a==='se'){A.sc=x.id;A.tab='bud';render()}
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
+  else if(a==='la'||a==='ld'){c.state=c.state||{};var L3=c.state.L=Object.assign(defL(),c.state.L||{}),ll=b.dataset.l;L3[ll]=L3[ll]||[];if(a==='la')L3[ll].push({});else L3[ll].splice(+b.dataset.i,1);saveL(c);render()}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
   else if(a==='xa'&&A.imp&&A.imp.R){if(!confirm('טעינת אקסל תמחק את כל הנתונים הקודמים של הזוג (סכומים, חודשים, דירוגים, חסכונות והלוואות) ותחליף אותם בנתוני הקובץ. האם ברצונך להמשיך?'))return;var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));

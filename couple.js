@@ -16,9 +16,9 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
+function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
@@ -28,7 +28,7 @@ function apply(d){
 }
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
-  var f={home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,ins:tin}[S.tab]||home;
+  var f={home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
   app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
@@ -53,6 +53,7 @@ document.addEventListener('change',function(e){
   if(t.id==='ms'){S.m=+t.value;render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
   if(d.s==='chd')S.chd[d.k]=t.checked?1:0;
+  else if(d.s==='yc'){S.yc=S.yc||{};S.yc[d.k]=n(t.value)}
   else if(d.s==='ppl')S.ppl=n(t.value);
   else if(d.s==='act'){var k=ym();S.act[k]=S.act[k]||{};S.act[k][d.k]=n(t.value)}
   else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value}
@@ -81,6 +82,7 @@ document.addEventListener('click',function(e){
   else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
+  else if(a==='yxa'){var ys=document.getElementById('yxs').value,yn=document.getElementById('yxn').value.trim();if(!yn)return;S.yx=S.yx||{};S.yx[ys]=(S.yx[ys]||[]).concat(yn.slice(0,80));save()}
   else if(a==='og'){S.open[b.dataset.id]=true}
   else if(a==='gm'){S.y=+b.dataset.y;S.m=+b.dataset.m;S.tab='mon'}
   else if(a==='obn'){OB++;if(OB>2)obx()}
