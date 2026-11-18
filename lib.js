@@ -224,13 +224,23 @@ function tasksView(){var all=tkAll().sort(function(a,b){return (a.due||'9')<(b.d
    (op.length?'<div class="tkl">'+op.map(tkCard).join('')+'</div>':'')+
    (dn.length?'<details class="tkd"><summary>בוצעו ('+dn.length+')</summary><div class="tkl">'+dn.map(tkCard).join('')+'</div></details>':'')+
    (msgs.length?'<h3>הודעות מהמאמנת</h3>'+msgs.map(function(m){return '<div class="c tkn"><small>'+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join(''):'')+cuUI()}
+function trendUI(){var pts=[],m,k;for(m=1;m<=S.m;m++){k=S.y+'-'+m;var i=ts('act','i',k),e=ex('act',k);if(i>0||e>0)pts.push({m:m,v:i-e})}
+  pts=pts.slice(-6);if(pts.length<2)return '';
+  var W=320,H=96,mx=Math.max.apply(null,pts.map(function(p){return p.v})),mn=Math.min.apply(null,pts.map(function(p){return p.v})),rg=Math.max(1,mx-mn),
+  xy=pts.map(function(p,i){return [W-8-i/(pts.length-1)*(W-16),H-14-((p.v-mn)/rg)*(H-34)]}),
+  d=xy.slice().reverse().map(function(q,i){return (i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)}).join(' '),lp=xy[xy.length-1];
+  return '<svg class="tr" viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" role="img" aria-label="היתרה החודשית שלכם בחודשים האחרונים"><defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F3A5F" stop-opacity=".22"/><stop offset="1" stop-color="#1F3A5F" stop-opacity="0"/></linearGradient></defs><path d="'+d+' L'+W+' '+H+' L0 '+H+'Z" fill="url(#trg)"/><path d="'+d+'" fill="none" stroke="#1F3A5F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="6" fill="#fff" stroke="#1F3A5F" stroke-width="3"/></svg><div class="trl">'+pts.map(function(p){return '<span>'+MN[p.m-1].slice(0,3)+'</span>'}).join('')+'</div>'}
+function actList(){var rows=G.filter(function(g){return g.t!=='i'&&gs('act',g)>0}).sort(function(a,b){return gs('act',b)-gs('act',a)}).slice(0,6);
+  if(!rows.length)return '';
+  return '<div class="sh"><h2>'+ic('card',20)+' הוצאות החודש</h2><button class="lnk" data-a="tab" data-id="mon">לכל הדיווח</button></div><div class="c actl">'+rows.map(function(g){var a=gs('act',g),b=gs('bud',g),p=b?Math.min(100,Math.round(a/b*100)):0;return '<div class="ar">'+gic(g.n)+'<div class="am"><div class="an">'+esc(g.n)+'</div>'+(b?'<div class="ab"><i class="'+(a>b?'o':'')+'" style="width:'+p+'%"></i></div>':'')+'</div><div class="aa'+(b&&a>b?' neg':'')+'">'+fm(a)+(b?'<small>מתוך '+fm(b)+'</small>':'')+'</div></div>'}).join('')+'</div>'}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
   var steps=st2?[]:[['bal','מילוי המאזן, החסכונות, ההלוואות והביטוחים, ולחיצה על "הושלם"',!!n(S.dn)]];
   if(st2)steps.push(['bud','התקציב שנקבע עבורכם',pe>0],['mon','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
   var done=steps.filter(function(s){return s[2]}).length;
-  var h='<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div>'+(st2?'<div class="hb">'+fm(ai-ae)+'</div><div class="hm">נשאר לכם החודש · הכנסות '+fm(ai)+' · הוצאות '+fm(ae)+'</div>':'')+'</div>';
+  var pk=(S.m===1?(S.y-1)+'-12':S.y+'-'+(S.m-1)),pv=ts('act','i',pk)-ex('act',pk),cv=ai-ae,dl=(ts('act','i',pk)>0||ex('act',pk)>0)?cv-pv:null;
+   var h=st2?'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+' · משפחת '+esc(S.fam)+'</div><div class="h2r"><div><div class="hm2">נשאר לכם החודש</div><div class="hb2">'+fm(cv)+'</div></div>'+(dl!==null?'<span class="dlt '+(dl>=0?'up':'dn')+'">'+(dl>=0?'+':'-')+fm(Math.abs(dl)).replace(' ₪','')+' ₪ מהחודש שעבר</span>':'')+'</div>'+trendUI()+'<div class="h2s"><span>הכנסות <b>'+fm(ai)+'</b></span><span>הוצאות <b>'+fm(ae)+'</b></span></div></div>':'<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div></div>';
   h+=remUI();
   if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
   if(STAGE>=3)h+=cuUI();
@@ -241,6 +251,7 @@ function home(){
     
     if(over.length||near.length)h+='<div class="c"><b>שימו לב החודש</b>'+over.map(function(x){return '<div class="r"><span class="bdg bd">חריגה</span><label>'+esc(x)+'</label></div>'}).join('')+near.map(function(x){return '<div class="r"><span class="bdg wn">קרוב</span><label>'+esc(x)+'</label></div>'}).join('')+'</div>';
     else if(ae>0)h+='<div class="c">✓ אין חריגות מהתקציב החודש</div>'}
+  if(st2)h+=actList();
   if(st2){
     var PAL=['#1F3A5F','#1F6F50','#8C3B3B','#C9A23F','#7A5C8C','#5B7DA6'];
     var vs=G.filter(function(g){return g.t!=='i'&&gsm('bud',g,true)>0}),fs=G.filter(function(g){return g.t!=='i'&&gsm('bud',g,false)>0}),cashT=0;vs.forEach(function(g){cashT+=gsm('bud',g,true)});
@@ -258,6 +269,7 @@ function home(){
   if(ot)h+='<div class="c"><b>יש לכם '+ot+' משימות ואתגרים פתוחים</b><div style="margin-top:8px"><button class="btn" data-a="tab" data-id="tasks">לצפייה</button></div></div>';
   if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>הודעה · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join('')+'</div>';
   if(CODE)h+='<div class="c"><div class="hint" style="margin:0">קוד הכניסה האישי שלכם: <b style="letter-spacing:.12em;direction:ltr;display:inline-block">'+esc(CODE)+'</b><br>אפשר להיכנס איתו גם מהכתובת הראשית של האתר, בלי הקישור הארוך.</div><div class="f" style="margin-top:8px"><input id="ccn" placeholder="קוד אישי חדש (6 עד 24 תווים)" maxlength="24" autocapitalize="characters"><button class="btn sec" data-a="ccs">שינוי קוד</button></div><div class="hint" id="ccr" style="margin:6px 0 0">אם תשנו, רק אתם תכירו את הקוד החדש. המאמנת לא תראה אותו.</div></div>';
+  if(st2&&!ADM)h+='<button class="fab" data-a="tab" data-id="mon" aria-label="דיווח הוצאה">'+ic('card',24)+'</button>';
   return h}
 
 try{bG()}catch(e){}
