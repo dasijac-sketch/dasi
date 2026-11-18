@@ -45,9 +45,10 @@ db.exec(`CREATE TABLE IF NOT EXISTS couples(
 const CODE_AL = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const genCode = () => Array.from(crypto.randomBytes(6), b => CODE_AL[b % CODE_AL.length]).join('');
 const normCode = c => String(c || '').trim().toLowerCase();
-const codeOk = c => typeof c === 'string' && /^[a-z0-9\u05d0-\u05ea-]{6,24}$/.test(normCode(c));
+const codeOk = c => typeof c === 'string' && /^[\x21-\x7e\u05d0-\u05ea]{6,40}$/.test(normCode(c));
+const hcode = c => 'h:' + crypto.createHmac('sha256', SESSION_SECRET || 'x').update(normCode(c)).digest('hex');
 const q = {
-  byCode: db.prepare('SELECT * FROM couples WHERE code = ?'),
+  byCode0: db.prepare('SELECT * FROM couples WHERE code = ?'),
   setCode: db.prepare('UPDATE couples SET code = ? WHERE id = ?'),
   byToken: db.prepare('SELECT * FROM couples WHERE token = ?'),
   byId: db.prepare('SELECT * FROM couples WHERE id = ?'),
@@ -58,9 +59,11 @@ const q = {
   del: db.prepare('DELETE FROM couples WHERE id = ?'),
   setToken: db.prepare('UPDATE couples SET token = ? WHERE id = ?')
 };
+q.byCode = c => q.byCode0.get(normCode(c)) || q.byCode0.get(hcode(c));
+db.prepare("SELECT id, code FROM couples WHERE cown = 1 AND code NOT LIKE 'h:%'").all().forEach(r => q.setCode.run(hcode(r.code), r.id));
 
 /* ---------- כלים ---------- */
-function freshCode() { for (;;) { const c = normCode(genCode()); if (!q.byCode.get(c)) return c; } }
+function freshCode() { for (;;) { const c = normCode(genCode()); if (!q.byCode(c)) return c; } }
 db.prepare('SELECT id FROM couples WHERE code IS NULL').all().forEach(r => q.setCode.run(freshCode(), r.id));
 const newToken = () => crypto.randomBytes(18).toString('base64url');
 const tokenOk = t => typeof t === 'string' && /^[A-Za-z0-9_-]{20,64}$/.test(t);
@@ -154,14 +157,14 @@ function budgetFrom(b, cur) {
   return { value: { bud, cs, sc } };
 }
 
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o', sd: 'n' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
   q.seen.run(Date.now(), row.id);
   res.json({
     name: row.name,
-    code: (row.code || '').toUpperCase(),
+    pwset: row.cown ? 1 : 0,
     stage: row.stage,
     state: parse(row.state, {}),
     bud: (parse(row.budget, {}).bud) || {},
@@ -176,7 +179,7 @@ app.post('/api/enter', (req, res) => {
   const ip = req.ip || 'x';
   if (limited('enter:' + ip, 10, 10 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
   hit('enter:' + ip, 10 * 60 * 1000);
-  const row = codeOk(req.body && req.body.code) ? q.byCode.get(normCode(req.body.code)) : null;
+  const row = codeOk(req.body && req.body.code) ? q.byCode(normCode(req.body.code)) : null;
   if (!row) return res.status(404).json({ error: 'bad_code' });
   res.json({ token: row.token });
 });
@@ -199,10 +202,10 @@ app.post('/api/c/:token/code', (req, res) => {
   hit('cc:' + row.id, 60 * 60 * 1000);
   const c = req.body && req.body.code;
   if (!codeOk(c)) return res.status(400).json({ error: 'bad_code' });
-  const nc = normCode(c), ex = q.byCode.get(nc);
+  const nc = normCode(c), ex = q.byCode(nc);
   if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
-  db.prepare('UPDATE couples SET code = ?, cown = 1 WHERE id = ?').run(nc, row.id);
-  res.json({ ok: true, code: nc.toUpperCase() });
+  db.prepare('UPDATE couples SET code = ?, cown = 1 WHERE id = ?').run(hcode(nc), row.id);
+  res.json({ ok: true });
 });
 
 app.put('/api/c/:token/state', (req, res) => {
@@ -296,7 +299,7 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   if ('code' in b) {
     if (row.cown && !b.reset) return res.status(403).json({ error: 'couple_owned' });
     if (!codeOk(b.code)) return res.status(400).json({ error: 'bad_code' });
-    const nc = normCode(b.code), ex = q.byCode.get(nc);
+    const nc = normCode(b.code), ex = q.byCode(nc);
     if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
     sets.push('code = ?'); vals.push(nc);
     if (row.cown) { sets.push('cown = 0'); }

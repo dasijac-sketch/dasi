@@ -16,21 +16,22 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים']);return t}
-var LASTB='';function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
+var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
+function payload(){return{sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
-  CODE=d.code||'';
+  PWSET=d.pwset?1:0;
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
   S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();LASTB=bdJ();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<2;INBOX=d.msgs||[];
+  if(!PINIT){var P1=perNow(S.sd);S.y=P1.y;S.m=P1.m;PINIT=true}
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
-  var f={home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
+  var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
   app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
@@ -53,6 +54,7 @@ document.addEventListener('change',function(e){
   if(d.s==='bud'&&RO)return;
   if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
+  if(t.id==='sdd'){S.sd=+t.value;var P2=perNow(S.sd);S.y=P2.y;S.m=P2.m;save();render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
   if(d.s==='envl'||d.s==='envm'){var ee=S.env=S.env||{};ee[d.e]=ee[d.e]||{};if(d.s==='envl'){(ee[d.e].left=ee[d.e].left||{})[d.k]=t.value===''?'':Math.max(0,n(t.value))}else{(ee[d.e].mv=ee[d.e].mv||{})[d.k]=t.value}save();return}
   if(d.s==='chd')S.chd[d.k]=t.checked?1:0;
@@ -103,10 +105,11 @@ document.addEventListener('click',function(e){
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
-  else if(a==='ccs'){var nv=(document.getElementById('ccn').value||'').trim(),re=document.getElementById('ccr');
-    if(!/^[A-Za-z0-9\u05d0-\u05ea-]{6,24}$/.test(nv)){re.textContent='הקוד צריך להיות באורך 6 עד 24 תווים: אותיות ומספרים בלבד.';return}
-    if(!confirm('לשנות את הקוד ל-'+nv+'? הקוד הקודם יפסיק לעבוד, והמאמנת לא תוכל לראות את הקוד החדש.'))return;
-    fetch(API+'/code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:nv})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})}).then(function(o){if(o.ok){CODE=o.j.code;render();status('✓ הקוד שונה')}else re.textContent=o.s===409?'הקוד כבר בשימוש, בחרו אחר.':o.s===429?'יותר מדי ניסיונות, נסו מאוחר יותר.':'השינוי נכשל'}).catch(function(){re.textContent='השינוי נכשל'})}
+  else if(a==='pws'){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value,re=document.getElementById('ccr');
+    if(!/^[\x21-\x7e\u05d0-\u05ea]{6,40}$/.test(p1)){re.textContent='הסיסמה צריכה להיות באורך 6 עד 40 תווים, בלי רווחים.';return}
+    if(p1!==p2){re.textContent='שתי הסיסמאות לא זהות.';return}
+    if(!confirm('להחליף את הסיסמה? הסיסמה הקודמת תפסיק לעבוד, והסיסמה החדשה לא תוצג באתר.'))return;
+    fetch(API+'/code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:p1})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})}).then(function(o){if(o.ok){PWSET=1;render();status('✓ הסיסמה הוחלפה')}else re.textContent=o.s===409?'הסיסמה כבר בשימוש, בחרו אחרת.':o.s===429?'יותר מדי ניסיונות, נסו מאוחר יותר.':'ההחלפה נכשלה'}).catch(function(){re.textContent='ההחלפה נכשלה'})}
   else if(a==='la'){S.L[b.dataset.l].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});save()}
   else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}
