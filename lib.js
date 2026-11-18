@@ -214,13 +214,16 @@ function tkAll(){var K={tk:'מהמאמנת',ch:'אתגר'},l=INBOX.filter(functi
   var mt=S.mt||{};Object.keys(mt).forEach(function(id){l.push({id:id,x:mt[id].x,ts:mt[id].ts,due:'',tag:'שלי',own:true})});return l}
 function tkCard(t){var dn=!!S.chd[t.id],od=!dn&&t.due&&new Date(t.due+'T23:59')<new Date();
   return '<div class="tk'+(dn?' dn':'')+'"><button class="tkc" data-a="tkd" data-id="'+esc(t.id)+'" aria-pressed="'+dn+'" aria-label="'+(dn?'ביטול סימון':'סימון כבוצע')+'">'+(dn?'✓':'')+'</button><div class="tkb"><div class="tkx">'+esc(t.x)+'</div><div class="tkm"><span class="chip'+(t.own?' me':t.tag==='אתגר'?' ch':'')+'">'+t.tag+'</span>'+(t.due?'<span class="chip'+(od?' od':'')+'">'+(od?'באיחור · ':'עד ')+new Date(t.due+'T00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short'})+'</span>':'')+'</div></div>'+(t.own?'<button class="tkx2" data-a="mtd" data-id="'+esc(t.id)+'" aria-label="מחיקת משימה">✕</button>':'')+'</div>'}
+var CODE='',CUM='';
+function cuSummary(){var st=STAGE>=2,i=st?ts('bud','i'):ts('bal','i'),e=st?ex('bud'):ex('bal');return (st?'סיכום התקציב':'סיכום המאזן')+': הכנסות '+fm(i)+', הוצאות '+fm(e)+', יתרה '+fm(i-e)}
+function cuUI(){return '<div class="c"><b>עדכון למאמנת</b><p class="hint" style="margin:4px 0 8px">'+(STAGE>=3?'סיימתם את התהליך והמאמנת כבר לא רואה מה אתם עושים כאן. כשתרצו לעדכן אותה או לשאול משהו, כתבו כאן ושלחו.':'המאמנת רואה מה שאתם ממלאים. אפשר גם לשלוח לה הודעה ישירה בכפתור.')+'</p><textarea id="cux" rows="3" style="width:100%" maxlength="1800" placeholder="מה תרצו לעדכן או לשאול?"></textarea><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px"><input type="checkbox" id="cuc" style="width:auto"> לצרף סיכום מספרים</label><button class="btn" style="margin-top:8px" data-a="cus">שליחה למאמנת</button>'+(CUM?'<div class="hint" style="margin:8px 0 0;color:var(--ok)">'+CUM+'</div>':'')+'</div>'}
 function tasksView(){var all=tkAll().sort(function(a,b){return (a.due||'9')<(b.due||'9')?-1:(a.due||'9')>(b.due||'9')?1:b.ts-a.ts}),op=all.filter(function(t){return !S.chd[t.id]}),dn=all.filter(function(t){return S.chd[t.id]}),pc=all.length?Math.round(dn.length/all.length*100):0;
   var msgs=INBOX.filter(function(m){return m.k==='msg'}).sort(function(a,b){return b.ts-a.ts});
   return '<div class="c tkh"><div class="tkt"><b>'+(all.length?(op.length?op.length+' משימות פתוחות':'הכל בוצע, כל הכבוד'):'אין משימות עדיין')+'</b>'+(all.length?'<span>'+dn.length+' מתוך '+all.length+'</span>':'')+'</div>'+(all.length?'<div class="bar"><i class="ok" style="width:'+pc+'%"></i></div>':'')+
    '<div class="tka"><input id="mti" type="text" maxlength="200" placeholder="הוספת משימה לעצמנו" aria-label="משימה חדשה"><button class="btn" data-a="mta" aria-label="הוספה">+</button></div></div>'+
    (op.length?'<div class="tkl">'+op.map(tkCard).join('')+'</div>':'')+
    (dn.length?'<details class="tkd"><summary>בוצעו ('+dn.length+')</summary><div class="tkl">'+dn.map(tkCard).join('')+'</div></details>':'')+
-   (msgs.length?'<h3>הודעות מהמאמנת</h3>'+msgs.map(function(m){return '<div class="c tkn"><small>'+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join(''):'')}
+   (msgs.length?'<h3>הודעות מהמאמנת</h3>'+msgs.map(function(m){return '<div class="c tkn"><small>'+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join(''):'')+cuUI()}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
@@ -230,6 +233,7 @@ function home(){
   var h='<div class="hero"><div class="hm">'+MN[S.m-1]+' '+S.y+'</div><div class="hl">שלום משפחת '+esc(S.fam)+'</div>'+(st2?'<div class="hb">'+fm(ai-ae)+'</div><div class="hm">נשאר לכם החודש · הכנסות '+fm(ai)+' · הוצאות '+fm(ae)+'</div>':'')+'</div>';
   h+=remUI();
   if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
+  if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
     h+=be>0||bi>0?'<div class="g">'+tile(fm(bi),'הכנסות חודשיות')+tile(fm(be),'הוצאות חודשיות')+tile(fm(bi-be),'יתרה חודשית',bi-be<0?'neg':'')+'</div><div class="c">תודה על מילוי המאזן. המאמנת תבנה עבורכם את התקציב, ותעדכן אתכם כאן.</div>':'<div class="c">התחילו במילוי המאזן: הזינו את ההכנסות וההוצאות החודשיות הממוצעות שלכם.</div>'}
@@ -253,6 +257,7 @@ function home(){
   var ms=INBOX.filter(function(m){return m.k==='msg'}).sort(function(a,b){return b.ts-a.ts}).slice(0,3),ot=openTk();
   if(ot)h+='<div class="c"><b>יש לכם '+ot+' משימות ואתגרים פתוחים</b><div style="margin-top:8px"><button class="btn" data-a="tab" data-id="tasks">לצפייה</button></div></div>';
   if(ms.length)h+='<div class="c"><b>מהמאמנת</b>'+ms.map(function(m){return '<div class="it"><small>הודעה · '+new Date(m.ts).toLocaleDateString('he-IL')+'</small><div style="white-space:pre-wrap">'+esc(m.x)+'</div></div>'}).join('')+'</div>';
+  if(CODE)h+='<div class="c"><div class="hint" style="margin:0">קוד הכניסה האישי שלכם: <b style="letter-spacing:.12em;direction:ltr;display:inline-block">'+esc(CODE)+'</b><br>אפשר להיכנס איתו גם מהכתובת הראשית של האתר, בלי הקישור הארוך.</div></div>';
   return h}
 
 try{bG()}catch(e){}

@@ -35,11 +35,23 @@ db.exec(`CREATE TABLE IF NOT EXISTS couples(
   seen_at INTEGER
 )`);
 
+{
+  const cols = db.prepare('PRAGMA table_info(couples)').all().map(c => c.name);
+  if (!cols.includes('code')) db.exec('ALTER TABLE couples ADD COLUMN code TEXT');
+  if (!cols.includes('cmsgs')) db.exec("ALTER TABLE couples ADD COLUMN cmsgs TEXT NOT NULL DEFAULT '[]'");
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_couples_code ON couples(code)');
+}
+const CODE_AL = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const genCode = () => Array.from(crypto.randomBytes(6), b => CODE_AL[b % CODE_AL.length]).join('');
+const normCode = c => String(c || '').trim().toLowerCase();
+const codeOk = c => typeof c === 'string' && /^[a-z0-9\u05d0-\u05ea-]{6,24}$/.test(normCode(c));
 const q = {
+  byCode: db.prepare('SELECT * FROM couples WHERE code = ?'),
+  setCode: db.prepare('UPDATE couples SET code = ? WHERE id = ?'),
   byToken: db.prepare('SELECT * FROM couples WHERE token = ?'),
   byId: db.prepare('SELECT * FROM couples WHERE id = ?'),
   all: db.prepare('SELECT * FROM couples ORDER BY COALESCE(updated_at, created_at) DESC'),
-  insert: db.prepare('INSERT INTO couples(token, name, created_at) VALUES (?, ?, ?)'),
+  insert: db.prepare('INSERT INTO couples(token, name, created_at, code) VALUES (?, ?, ?, ?)'),
   saveState: db.prepare('UPDATE couples SET state = ?, updated_at = ? WHERE id = ?'),
   seen: db.prepare('UPDATE couples SET seen_at = ? WHERE id = ?'),
   del: db.prepare('DELETE FROM couples WHERE id = ?'),
@@ -47,6 +59,8 @@ const q = {
 };
 
 /* ---------- כלים ---------- */
+function freshCode() { for (;;) { const c = normCode(genCode()); if (!q.byCode.get(c)) return c; } }
+db.prepare('SELECT id FROM couples WHERE code IS NULL').all().forEach(r => q.setCode.run(freshCode(), r.id));
 const newToken = () => crypto.randomBytes(18).toString('base64url');
 const tokenOk = t => typeof t === 'string' && /^[A-Za-z0-9_-]{20,64}$/.test(t);
 const parse = (s, d) => { try { return JSON.parse(s); } catch (e) { return d; } };
@@ -146,6 +160,7 @@ app.get('/api/c/:token', (req, res) => {
   q.seen.run(Date.now(), row.id);
   res.json({
     name: row.name,
+    code: (row.code || '').toUpperCase(),
     stage: row.stage,
     state: parse(row.state, {}),
     bud: (parse(row.budget, {}).bud) || {},
@@ -154,6 +169,27 @@ app.get('/api/c/:token', (req, res) => {
     msgs: parse(row.msgs, []),
     updated_at: row.updated_at || 0
   });
+});
+
+app.post('/api/enter', (req, res) => {
+  const ip = req.ip || 'x';
+  if (limited('enter:' + ip, 10, 10 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
+  hit('enter:' + ip, 10 * 60 * 1000);
+  const row = codeOk(req.body && req.body.code) ? q.byCode.get(normCode(req.body.code)) : null;
+  if (!row) return res.status(404).json({ error: 'bad_code' });
+  res.json({ token: row.token });
+});
+
+app.post('/api/c/:token/update', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  if (limited('upd:' + row.id, 10, 60 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
+  const x = req.body && typeof req.body.x === 'string' ? req.body.x.trim() : '';
+  if (!x || x.length > 2000) return res.status(400).json({ error: 'bad_text' });
+  hit('upd:' + row.id, 60 * 60 * 1000);
+  const list = parse(row.cmsgs, []);
+  list.push({ id: String(Date.now()), x, ts: Date.now(), read: 0 });
+  db.prepare('UPDATE couples SET cmsgs = ? WHERE id = ?').run(JSON.stringify(list.slice(-50)), row.id);
+  res.json({ ok: true });
 });
 
 app.put('/api/c/:token/state', (req, res) => {
@@ -194,11 +230,11 @@ app.get('/api/admin/me', (req, res) => res.json({ auth: validSession(cookie(req,
 
 /* זוג ששוחרר (שלב 3): המאמנת לא רואה יותר את הנתונים שלו */
 const shape = r => r.stage === 3 ? ({
-  id: r.id, token: '', name: r.name, stage: 3, released: true,
+  id: r.id, token: '', code: (r.code || '').toUpperCase(), cmsgs: parse(r.cmsgs, []), name: r.name, stage: 3, released: true,
   state: {}, budget: {}, notes: r.notes, tasks: parse(r.tasks, []), msgs: [],
   created_at: r.created_at, updated_at: 0, seen_at: 0
 }) : ({
-  id: r.id, token: r.token, name: r.name, stage: r.stage,
+  id: r.id, token: r.token, code: (r.code || '').toUpperCase(), cmsgs: parse(r.cmsgs, []), name: r.name, stage: r.stage,
   state: parse(r.state, {}), budget: parse(r.budget, {}),
   notes: r.notes, tasks: parse(r.tasks, []), msgs: parse(r.msgs, []),
   created_at: r.created_at, updated_at: r.updated_at || 0, seen_at: r.seen_at || 0
@@ -215,7 +251,7 @@ app.get('/api/admin/backup', requireAdmin, (req, res) => {
 app.post('/api/admin/couples', requireAdmin, (req, res) => {
   const name = req.body && typeof req.body.name === 'string' ? req.body.name.trim() : '';
   if (!name || name.length > 80) return res.status(400).json({ error: 'bad_name' });
-  const info = q.insert.run(newToken(), name, Date.now());
+  const info = q.insert.run(newToken(), name, Date.now(), freshCode());
   res.json(shape(q.byId.get(info.lastInsertRowid)));
 });
 
@@ -241,9 +277,19 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   const row = q.byId.get(Number(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
   const b = req.body || {}, sets = [], vals = [];
-  if (row.stage === 3 && ['stage', 'bud', 'cs', 'sc', 'msgs'].some(k => k in b)) return res.status(403).json({ error: 'released' });
+  if (row.stage === 3 && ['bud', 'cs', 'sc', 'msgs'].some(k => k in b)) return res.status(403).json({ error: 'released' });
   if ('name' in b) { if (typeof b.name !== 'string' || !b.name.trim() || b.name.length > 80) return res.status(400).json({ error: 'bad_name' }); sets.push('name = ?'); vals.push(b.name.trim()); }
   if ('stage' in b) { if (![1, 2, 3].includes(b.stage)) return res.status(400).json({ error: 'bad_stage' }); sets.push('stage = ?'); vals.push(b.stage); }
+  if ('code' in b) {
+    if (!codeOk(b.code)) return res.status(400).json({ error: 'bad_code' });
+    const nc = normCode(b.code), ex = q.byCode.get(nc);
+    if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
+    sets.push('code = ?'); vals.push(nc);
+  }
+  if ('cmsgs' in b) {
+    if (!Array.isArray(b.cmsgs) || b.cmsgs.length > 50 || b.cmsgs.some(m => !isObj(m) || typeof m.x !== 'string' || m.x.length > 2000)) return res.status(400).json({ error: 'bad_cmsgs' });
+    sets.push('cmsgs = ?'); vals.push(JSON.stringify(b.cmsgs.map(m => ({ id: String(m.id), x: m.x, ts: Number(m.ts) || Date.now(), read: m.read ? 1 : 0 }))));
+  }
   if ('notes' in b) { if (typeof b.notes !== 'string' || b.notes.length > 20000) return res.status(400).json({ error: 'bad_notes' }); sets.push('notes = ?'); vals.push(b.notes); }
   if ('tasks' in b) {
     if (!Array.isArray(b.tasks) || b.tasks.length > 200 || b.tasks.some(t => !isObj(t) || typeof t.t !== 'string' || t.t.length > 500 || (t.dt != null && (typeof t.dt !== 'string' || t.dt.length > 10)))) return res.status(400).json({ error: 'bad_tasks' });
@@ -293,9 +339,9 @@ dailyBackup(); setInterval(dailyBackup, 6 * 60 * 60 * 1000).unref();
 /* ---------- דפים ---------- */
 const PUB_DIR = path.join(__dirname, 'public');
 const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
-const ASSETS = new Set(['favicon.svg','icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
+const ASSETS = new Set(['enter.js','favicon.svg','icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
 const page = f => (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(pub, f)); };
-app.get('/', (req, res) => res.redirect('/admin'));
+app.get('/', page('enter.html'));
 app.get('/admin', page('admin.html'));
 app.get('/c/:token', page('couple.html'));
 app.get('/c/:token/manifest.webmanifest', (req, res) => {

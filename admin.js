@@ -32,41 +32,37 @@ function sumC(c){
     return{ai:ts('act','i'),ae:ex('act'),pi:ts('bud','i'),pe:ex('bud'),bi:ts('bal','i'),be:ex('bal'),over:over,ok:!!(ts('act','i')||ex('act'))};
   });
 }
-function badge(c,s){
-  if(c.stage<2)return n(c.state&&c.state.dn)?'<span class="bdg ok">השלימו מאזן</span>':s.be>0?'<span class="bdg wn">בתהליך מילוי</span>':'<span class="bdg wn">ממתינים למאזן</span>';
-  if(!s.ok)return '<span class="bdg wn">לא דיווחו החודש</span>';
-  return s.over.length?'<span class="bdg bd">'+s.over.length+' חריגות</span>':'<span class="bdg ok">במסגרת</span>';
-}
+function stat(c,s){if(c.stage===3)return 'fin';if(c.stage===2)return 'bud';if(n(c.state&&c.state.dn))return 'done';return s&&(s.be>0||s.bi>0)?'fill':'new'}
+var STL={new:['ממתינים למאזן','wn'],fill:['בתהליך מילוי','wn'],done:['השלימו מאזן','ok'],bud:['בשלב התקציב','ok'],fin:['סיימו את התהליך','mut']};
+function badge(c,s){var t=STL[stat(c,s)];return '<span class="bdg '+t[1]+'">'+t[0]+'</span>'}
+function unread(c){return (c.cmsgs||[]).filter(function(m){return !m.read}).length}
 function link(c){return location.origin+'/c/'+c.token}
-function invText(c){return 'שלום משפחת '+c.name+',\nזה הקישור האישי שלכם לניהול התקציב: '+link(c)+'\nנכנסים ישירות מהקישור, בלי סיסמה. כדאי לשמור אותו ולא להעביר הלאה.\nבכניסה הראשונה מלאו את המאזן החודשי.'}
+function invText(c){return 'שלום משפחת '+c.name+',\nזה הקישור האישי שלכם לניהול התקציב: '+link(c)+'\nאפשר להיכנס גם דרך '+location.origin+' עם הקוד האישי שלכם: '+(c.code||'')+'\nכדאי לשמור אותם ולא להעביר הלאה.\nבכניסה הראשונה מלאו את המאזן החודשי.'}
 
 /* ---------- תצוגות ---------- */
 function loginView(){
   return '<div class="login c"><h2 style="margin:0">כניסת מאמנת</h2><input id="pw" type="password" placeholder="סיסמה" autocomplete="current-password"><button class="btn" data-a="login" style="width:100%">כניסה</button><div class="err" id="er">'+esc(A.err)+'</div></div>';
 }
 function listView(){
-  S=newState();S.y=A.y;S.m=A.m;bG();
-  var wait=0,ov=0;
-  var rows=A.list.map(function(c){
-    if(c.stage===3)return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span><span class="bdg mut">שוחרר</span></div><small class="hint" style="margin:4px 0 0;display:block">הזוג עצמאי. הנתונים שלו לא גלויים לך.</small></button>';
-    var s=sumC(c);
-    if(c.stage<2){if(!n(c.state&&c.state.dn))wait++}else if(s.over.length)ov++;
-    var sub=c.stage<2?'שלב 1 · '+ago(c.updated_at):(s.ok?'הוצאות '+fm(s.ae)+' מתוך '+fm(s.pe)+' · ':'')+ago(c.updated_at);
-    return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span>'+badge(c,s)+'</div><small class="hint" style="margin:4px 0 0;display:block">'+sub+'</small></button>';
-  }).join('');
+  S=newState();bG();
+  var cnt={new:0,fill:0,done:0,bud:0,fin:0},ord={done:0,fill:1,new:2,bud:3,fin:4};
+  var items=A.list.map(function(c){var sm=c.stage===3?null:sumC(c),k=stat(c,sm);cnt[k]++;return{c:c,s:sm,k:k}}).sort(function(a,b){return (unread(b.c)>0)-(unread(a.c)>0)||ord[a.k]-ord[b.k]});
+  var rows=items.map(function(x){var c=x.c,u=unread(c);
+    var sub=({new:'עדיין לא התחילו למלא',fill:'עודכן '+ago(c.updated_at).replace('עודכן ',''),done:'השלימו את המאזן ומחכים לתקציב',bud:'בשלב התקציב',fin:'סיימו את התהליך'})[x.k];
+    return '<button class="c cc" data-a="op" data-id="'+c.id+'"><div class="tot" style="padding:0"><span>'+esc(c.name)+'</span><span>'+(u?'<span class="bdg bd">'+(u===1?'עדכון חדש':u+' עדכונים חדשים')+'</span> ':'')+badge(c,x.s)+'</span></div><small class="hint" style="margin:4px 0 0;display:block">'+sub+' · קוד '+esc(c.code||'')+'</small></button>'}).join('');
   return '<div class="top"><b>הזוגות שלי</b><span><a class="btn sec" style="text-decoration:none" href="/api/admin/backup" download>הורדת גיבוי</a> <button class="btn sec" data-a="logout">יציאה</button></span></div>'+
     '<div class="c"><div class="f"><input id="nf" placeholder="שם המשפחה"><button class="btn" data-a="mk">+ זוג חדש</button></div></div>'+
-    monSel()+
-    '<div class="g">'+tile(A.list.length,'זוגות')+tile(wait,'ממתינים להשלמת מאזן')+tile(ov,'עם חריגות החודש',ov?'neg':'')+'</div>'+
-    (rows||'<div class="c"><p class="hint" style="margin:0">עדיין אין זוגות. הוסיפי זוג ראשון למעלה, ותקבלי קישור אישי לשליחה.</p></div>');
+    '<div class="g">'+tile(A.list.length,'זוגות')+tile(cnt.new+cnt.fill,'ממתינים למילוי מאזן')+tile(cnt.done,'השלימו מאזן',cnt.done?'ok':'')+'</div>'+
+    '<div class="g">'+tile(cnt.bud,'בשלב התקציב')+tile(cnt.fin,'סיימו את התהליך')+tile(A.list.reduce(function(a,c){return a+unread(c)},0),'עדכונים חדשים')+'</div>'+
+    (rows||'<div class="c"><p class="hint" style="margin:0">עדיין אין זוגות. הוסיפי זוג ראשון למעלה, ותקבלי קוד וקישור אישי לשליחה.</p></div>');
 }
 function detailView(c){
   S=cs(c);bG();
-  if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+navLbl(t[0],t[1])+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
+  if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+navLbl(t[0],t[1])+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג סיים את התהליך</b><p class="hint" style="margin:4px 0 0">מכאן והלאה אינך רואה מה הזוג מילא ומה הוא עושה באזור האישי שלו. תקבלי רק עדכונים שהוא שולח לך בכפתור. אפשר לחזור לשלב קודם דרך בחירת השלב.</p></div>'+mgView(c)}
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
-  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
+  return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(bud)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
   var h='<div class="c"><b>טעינה מאקסל</b><p class="hint">'+(t==='bal'?'בחרי את קובץ המאזן של הזוג. הסכומים, החודשים, הדירוגים, החסכונות וההלוואות ימולאו, ואפשר יהיה לראות הכל לפני האישור.':'בחרי את קובץ התקציב. הסכומים ימולאו בתקציב של הזוג, ואפשר יהיה לראות הכל לפני האישור.')+'</p><input type="file" id="xf" class="fcin" data-t="'+t+'" accept=".xlsx,.xlsm,.xls" aria-label="בחירת קובץ אקסל">';
@@ -94,40 +90,34 @@ function scView(c){
   '<div class="f" style="margin-top:10px"><button class="btn" data-a="se" data-id="'+esc(cur.id)+'">עריכת סכומי התסריט בלשונית התקציב</button></div>';
   return h}
 function sumView(c){
-  var s=sumC(c),st2=c.stage>=2;
-  var rows=G.filter(function(g){return g.t!=='i'}).map(function(g){
-    if(!st2){var v=gs('bal',g);return v?'<div class="r"><label>'+esc(g.n)+'</label><span>'+fm(v)+(s.bi?' · '+Math.round(v/s.bi*100)+'%':'')+'</span></div>':''}
-    var a=gs('act',g),b=gs('bud',g);if(!a&&!b)return '';var p=b?a/b:2;
-    return '<div class="cat"><div class="t"><span>'+esc(g.n)+'</span><span class="'+(a>b?'neg':'')+'">'+fm(a)+' מתוך '+fm(b)+'</span></div><div class="bar"><i class="'+cls(g,p)+'" style="width:'+Math.min(100,p*100)+'%"></i></div></div>';
-  }).join('');
-  var ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
-  var chT=0,chD=0;c.msgs.forEach(function(m){if(m.k==='ch'||m.k==='tk'){chT++;if(S.chd[m.id])chD++}});
-  var dn=n(c.state&&c.state.dn);
-  return '<div class="c">'+(dn?'<b>✓ הזוג סימן שהשלים את המילוי</b><div class="hint" style="margin:2px 0 8px">ב-'+new Date(dn).toLocaleDateString('he-IL')+(c.updated_at>dn+60000?' · עודכן מאז '+ago(c.updated_at).replace('עודכן ',''):'')+'</div>':'<b>עדיין לא סימנו שהשלימו</b><div class="hint" style="margin:2px 0 8px">הזוג לוחץ על "הושלם" אחרי שמילא מאזן, חסכונות, הלוואות וביטוחים.</div>')+'<div class="hint" style="margin:0">'+ago(c.updated_at)+(c.seen_at?' · נכנסו לאחרונה '+new Date(c.seen_at).toLocaleDateString('he-IL'):' · טרם נכנסו')+'</div></div>'+
-    monSel()+
-    (st2?'<div class="g">'+tile(fm(s.ai),'הכנסות (תקציב '+fm(s.pi)+')')+tile(fm(s.ae),'הוצאות (תקציב '+fm(s.pe)+')',s.pe&&s.ae>s.pe?'neg':'')+tile(fm(s.ai-s.ae),'יתרה',s.ai-s.ae<0?'neg':'')+'</div>'
-      :'<div class="g">'+tile(fm(s.bi),'הכנסות חודשיות')+tile(fm(s.be),'הוצאות חודשיות')+tile(fm(s.bi-s.be),'יתרה חודשית',s.bi-s.be<0?'neg':'')+'</div>')+
-    '<div class="c"><b>'+(st2?'מול התקציב':'פירוט ההוצאות במאזן')+'</b>'+(rows||'<p class="hint" style="margin:6px 0 0">אין עדיין נתונים.</p>')+'</div>'+
+  var s=sumC(c),st2=c.stage>=2,pl=function(sn){return st2?ts('bud','i'):ts('bal','i')};
+  var rows=G.filter(function(g){return g.t!=='i'}).map(function(g){var v=gs(st2?'bud':'bal',g),inc=st2?s.pi:s.bi;return v?'<div class="r"><label>'+esc(g.n)+'</label><span>'+fm(v)+(inc?' · '+Math.round(v/inc*100)+'%':'')+'</span></div>':''}).join('');
+  var ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0),dn=n(c.state&&c.state.dn),u=unread(c);
+  var inc=st2?s.pi:s.bi,exp=st2?s.pe:s.be;
+  return '<div class="c"><b>'+STL[stat(c,s)][0]+'</b><div class="hint" style="margin:4px 0 0">'+(dn?'הזוג סימן שהשלים את המאזן ב-'+new Date(dn).toLocaleDateString('he-IL')+'.':'הזוג עדיין לא סימן שהשלים את המאזן.')+' '+(c.seen_at?'נכנסו לאחרונה ב-'+new Date(c.seen_at).toLocaleDateString('he-IL')+'.':'טרם נכנסו.')+'</div></div>'+
+    (u?'<div class="c" style="border-color:var(--bd)"><b>'+(u===1?'עדכון חדש מהזוג':u+' עדכונים חדשים מהזוג')+'</b>'+cmUI(c)+'</div>':'')+
+    '<div class="g">'+tile(fm(inc),st2?'הכנסות בתקציב':'הכנסות חודשיות')+tile(fm(exp),st2?'הוצאות בתקציב':'הוצאות חודשיות')+tile(fm(inc-exp),'יתרה',inc-exp<0?'neg':'')+'</div>'+
+    '<div class="c"><b>'+(st2?'התקציב לפי קטגוריה':'פירוט ההוצאות במאזן')+'</b>'+(rows||'<p class="hint" style="margin:6px 0 0">אין עדיין נתונים.</p>')+'</div>'+
     ((S.fm&&(S.fm.a||S.fm.b)||S.L.kd.length)?'<div class="c"><b>הסיפור המשפחתי</b><div class="hint" style="margin:4px 0 0">'+((S.fm.a||S.fm.b)?'בן זוג '+(S.fm.a||'?')+' · בת זוג '+(S.fm.b||'?'):'')+(S.L.kd.length?'<br>ילדים: '+S.L.kd.map(function(k){return esc(k.n||'ילד')+(k.a!==''&&k.a!=null?' ('+esc(k.a)+')':'')}).join(', '):'')+'</div></div>':'')+
-    '<div class="g">'+tile(fm(sm('sv','v')),'שווי חסכונות')+tile(fm(sm('ln','b')),'יתרת הלוואות')+tile(fm(ins),'ביטוחים בחודש')+'</div>'+
-    (S.note[ym()]?'<div class="c"><b>הערת הזוג לחודש</b><div style="white-space:pre-wrap;margin-top:6px;font-size:14px">'+esc(S.note[ym()])+'</div></div>':'')+
-    (chT?'<div class="c">'+chD+' מתוך '+chT+' אתגרים סומנו כבוצעו</div>':'');
+    '<div class="g">'+tile(fm(sm('sv','v')),'שווי חסכונות')+tile(fm(sm('ln','b')),'יתרת הלוואות')+tile(fm(ins),'ביטוחים בחודש')+'</div>';
 }
+function cmUI(c){var l=(c.cmsgs||[]).slice().sort(function(a,b){return b.ts-a.ts});if(!l.length)return '<p class="hint" style="margin:6px 0 0">עדיין לא התקבלו עדכונים מהזוג.</p>';
+  return l.map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+new Date(m.ts).toLocaleDateString('he-IL')+' '+new Date(m.ts).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+(m.read?'':' · חדש')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="cmd" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('')+(unread(c)?'<button class="btn sec" style="margin-top:8px" data-a="cmr">סימון הכל כנקרא</button>':'')}
 function mgView(c){
   var tasks=c.tasks.map(function(t,i){return '<div class="r"><input type="checkbox" style="width:auto" data-a="tt" data-i="'+i+'"'+(t.d?' checked':'')+'><label'+(t.d?' style="text-decoration:line-through;color:var(--mu)"':'')+'>'+esc(t.t)+(t.dt?' <small>· עד '+new Date(t.dt+'T00:00').toLocaleDateString('he-IL')+'</small>':'')+'</label><button class="gh" style="width:30px;color:var(--bd)" data-a="td" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'}).join('');
   var sent=c.msgs.slice().sort(function(a,b){return b.ts-a.ts}).map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+({ch:'אתגר',tk:'משימה',msg:'הודעה'}[m.k]||'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+dueTxt(m)+(m.k!=='msg'?(S.chd[m.id]?' · ✓ בוצע':' · ממתין'):'')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="md" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('');
   var wa='https://wa.me/?text='+encodeURIComponent(invText(c));
-  var out='<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
+  var out=((c.cmsgs||[]).length?'<div class="c"'+(unread(c)?' style="border-color:var(--bd)"':'')+'><b>עדכונים מהזוג</b>'+cmUI(c)+'</div>':'')+'<div class="c"><b>קוד כניסה</b><p class="hint" style="margin:4px 0 8px">הזוג מקליד את הקוד בכתובת האתר ונכנס לאזור האישי שלו. אפשר לשנות אותו בכל עת, והקוד הקודם יפסיק לעבוד.</p><div class="cdb">'+esc(c.code||'')+'</div><div class="f" style="margin-top:8px"><input id="cdn" placeholder="קוד חדש (6 עד 24 תווים)" maxlength="24" autocapitalize="characters"><button class="btn" data-a="cds">שמירה</button><button class="btn sec" data-a="cdg">קוד אקראי</button></div><div class="err" id="cder"></div></div>'+'<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
     '<textarea id="itx" rows="5" readonly style="width:100%">'+esc(invText(c))+'</textarea>'+
     '<div class="f" style="margin-top:8px"><button class="btn" data-a="cp">העתקה</button><a class="btn" style="text-decoration:none;text-align:center" href="'+wa+'" target="_blank" rel="noopener noreferrer">שליחה בוואטסאפ</a></div>'+
     '<div class="f" style="margin-top:8px"><button class="btn sec" data-a="rg">קישור חדש (מבטל את הישן)</button></div></div>'+
-    '<div class="c"><b>שלב</b><div class="f" style="margin-top:8px"><select id="stg"><option value="1"'+(c.stage===1?' selected':'')+'>שלב 1: מאזן בלבד</option><option value="2"'+(c.stage===2?' selected':'')+'>שלב 2: תקציב ומעקב חודשי</option><option value="3">שלב 3: שחרור הזוג (לא ניתן לביטול)</option></select></div><p class="hint" style="margin:6px 0 0">בשלב 1 הזוג ממלא רק מאזן. אחרי שבנית עבורו תקציב בלשונית "תקציב", עברי לשלב 2 והוא יראה את התקציב ויתחיל לדווח.</p></div>'+
+    '<div class="c"><b>שלב</b><div class="f" style="margin-top:8px"><select id="stg"><option value="1"'+(c.stage===1?' selected':'')+'>שלב 1: מאזן בלבד</option><option value="2"'+(c.stage===2?' selected':'')+'>שלב 2: תקציב ומעקב חודשי</option><option value="3"'+(c.stage===3?' selected':'')+'>שלב 3: סיימנו את התהליך</option></select></div><p class="hint" style="margin:6px 0 0">בשלב 1 הזוג ממלא רק מאזן. אחרי שבנית עבורו תקציב בלשונית "תקציב", עברי לשלב 2 והוא יראה את התקציב ויתחיל לדווח. בשלב 3 התהליך הסתיים, ואת מפסיקה לראות מה הזוג עושה.</p></div>'+
     '<div class="c"><b>שם המשפחה</b><div class="f" style="margin-top:8px"><input id="rn" value="'+esc(c.name)+'"></div></div>'+
     '<div class="c"><b>הערות פרטיות שלי</b><textarea id="nt1" rows="4" style="width:100%;margin-top:6px">'+esc(c.notes)+'</textarea><p class="hint" style="margin:4px 0 0">לא גלוי לזוג.</p></div>'+
     '<div class="c"><b>המשימות שלי לזוג</b><p class="hint" style="margin:4px 0 0">רק את רואה אותן. הזוג לא.</p>'+tasks+'<div class="f" style="margin-top:8px"><input id="tn" placeholder="משימה חדשה, למשל: לבדוק ביטוח רכב"><input id="tdt" type="date" aria-label="תאריך יעד (אופציונלי)"><button class="btn" data-a="ta">הוספה</button></div></div>'+
     '<div class="c"><b>משימות, אתגרים והודעות לזוג</b><p class="hint" style="margin:4px 0 0">הזוג רואה אותם בלשונית נפרדת, ומסמן כשבוצע.</p><div class="f" style="margin:8px 0"><select id="mt"><option value="tk">משימה</option><option value="ch">אתגר</option><option value="msg">הודעה</option></select><input id="md2" type="date" aria-label="תאריך יעד (אופציונלי)"></div><textarea id="mx" rows="3" style="width:100%" placeholder="לדוגמה: החודש מנסים להוריד 10% ממזון"></textarea><button class="btn" data-a="sm" style="margin-top:8px">שליחה</button>'+sent+'</div>'+
     '<div class="c"><button class="btn sec" data-a="dl" style="color:var(--bd)">מחיקת הזוג וכל הנתונים שלו</button></div>';
-  if(c.stage===3)out=out.split('<div class="c">').filter(function(p){return !/^<b>(הקישור האישי|שלב<|הודעה או אתגר)/.test(p)}).join('<div class="c">');
+  if(c.stage===3)out=out.split('<div class="c">').filter(function(p){return !/^<b>(הקישור האישי|משימות, אתגרים)/.test(p)}).join('<div class="c">');
   return out}
 
 /* במסכי הצפייה הערכים של הזוג נעולים, רק התקציב והניהול ניתנים לעריכה */
@@ -154,7 +144,7 @@ function keepFocus(fn){
 function put(c,body){
   status('שומרת...');
   return api('PUT','/api/admin/couples/'+c.id,body).then(function(r){
-    ['name','stage','notes','tasks','msgs'].forEach(function(k){c[k]=r[k]});
+    Object.keys(r).forEach(function(k){c[k]=r[k]});
     status('✓ נשמר');
   }).catch(function(){status('השמירה נכשלה, נסי שוב')});
 }
@@ -190,7 +180,7 @@ document.addEventListener('change',function(e){
   if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
   if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
   if(t.id==='nt1'){c.notes=t.value;put(c,{notes:c.notes})}
-  else if(t.id==='stg'){if(+t.value===2&&c.stage!==2&&!confirm('מעבר לשלב התקציב: הזוג יראה את התקציב, הסימולטור והמעקב החודשי, והמאזן ייעלם מהם. להמשיך?')){render();return}if(+t.value===1&&c.stage>1&&!confirm('חזרה לשלב המאזן: הזוג יחזור לראות את המאזן, והתקציב והמעקב החודשי יוסתרו מהם. להמשיך?')){render();return}if(+t.value===3&&!confirm('לשחרר את הזוג? אחרי השחרור לא תוכלי לראות מה הם מילאו, לעדכן להם תקציב או לשלוח הודעות, והפעולה אינה ניתנת לביטול.')){render();return}put(c,{stage:+t.value}).then(function(){if(+t.value===3){c.state={};c.budget={};c.msgs=[]}render()})}
+  else if(t.id==='stg'){if(+t.value===2&&c.stage!==2&&!confirm('מעבר לשלב התקציב: הזוג יראה את התקציב, הסימולטור והמעקב החודשי, והמאזן ייעלם מהם. להמשיך?')){render();return}if(+t.value===1&&c.stage>1&&!confirm('חזרה לשלב המאזן: הזוג יחזור לראות את המאזן, והתקציב והמעקב החודשי יוסתרו מהם. להמשיך?')){render();return}if(+t.value===3&&!confirm('לסיים את התהליך עם הזוג? מכאן והלאה לא תראי מה הם מילאו ומה הם עושים באזור האישי שלהם. תקבלי רק עדכונים שהם שולחים לך בכפתור. אפשר לחזור לשלב קודם בכל עת.')){render();return}put(c,{stage:+t.value}).then(function(){if(+t.value===3){c.state={};c.budget={};c.msgs=[]}else load().then(render);render()})}
   else if(t.id==='rn'){var v=t.value.trim();if(v)put(c,{name:v}).then(render)}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='pw')doLogin()});
@@ -238,6 +228,12 @@ document.addEventListener('click',function(e){
     else{var st0=c.state=c.state||{},body={pm:Object.assign({},R.pm||{}),bal:Object.assign({},R.vals),mo:Object.assign({},R.mo),rt:Object.assign({},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');
+  else if(a==='cds'||a==='cdg'){var nv=a==='cdg'?(function(){var al='ABCDEFGHJKMNPQRSTUVWXYZ23456789',o='',i;for(i=0;i<6;i++)o+=al[Math.floor(Math.random()*al.length)];return o})():(document.getElementById('cdn').value||'').trim();
+    if(!/^[A-Za-z0-9\u05d0-\u05ea-]{6,24}$/.test(nv)){var ce=document.getElementById('cder');if(ce)ce.textContent='הקוד צריך להיות באורך 6 עד 24 תווים: אותיות ומספרים בלבד.';return}
+    if(a==='cds'&&!confirm('לשנות את הקוד ל-'+nv+'? הקוד הישן יפסיק לעבוד.'))return;
+    api('PUT','/api/admin/couples/'+c.id,{code:nv}).then(function(r){c.code=r.code;render();status('✓ הקוד עודכן')}).catch(function(er){var ce=document.getElementById('cder');if(ce)ce.textContent=er&&er.status===409?'הקוד כבר בשימוש אצל זוג אחר.':'השמירה נכשלה'})}
+  else if(a==='cmr'){api('PUT','/api/admin/couples/'+c.id,{cmsgs:(c.cmsgs||[]).map(function(m){return Object.assign({},m,{read:1})})}).then(function(r){c.cmsgs=r.cmsgs;render()})}
+  else if(a==='cmd'){api('PUT','/api/admin/couples/'+c.id,{cmsgs:(c.cmsgs||[]).filter(function(m){return m.id!==x.id})}).then(function(r){c.cmsgs=r.cmsgs;render()})}
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0,dt:(document.getElementById('tdt')||{}).value||''});put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='tt'){var tk=c.tasks[+x.i];if(tk){tk.d=tk.d?0:1;put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='td'){c.tasks.splice(+x.i,1);put(c,{tasks:c.tasks}).then(render)}
