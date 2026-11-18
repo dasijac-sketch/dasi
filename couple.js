@@ -19,7 +19,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
+function payload(){return{sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
   PWSET=d.pwset?1:0;PROF=d.profile||{};
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
@@ -107,6 +107,10 @@ document.addEventListener('click',function(e){
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
+  else if(a==='mpv'){S.m--;if(S.m<1){S.m=12;S.y--}render()}
+  else if(a==='mnx'){S.m++;if(S.m>12){S.m=1;S.y++}render()}
+  else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;render()}
+  else if(a==='nsn'){S.sn=Date.now();save();render()}
   else if(a==='dvc'){if(!confirm('לנתק את כל המכשירים האחרים? הם ייכנסו שוב עם הסיסמה.'))return;fetch(API+'/rotate',{method:'POST'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){location.href='/c/'+encodeURIComponent(j.token)}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='pws'){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value,re=document.getElementById('ccr');
     if(!/^[\x21-\x7e\u05d0-\u05ea]{6,40}$/.test(p1)){re.textContent='הסיסמה צריכה להיות באורך 6 עד 40 תווים, בלי רווחים.';return}

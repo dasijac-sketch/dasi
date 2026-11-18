@@ -32,7 +32,7 @@ function sumC(c){
     return{ai:ts('act','i'),ae:ex('act'),pi:ts('bud','i'),pe:ex('bud'),bi:ts('bal','i'),be:ex('bal'),over:over,ok:!!(ts('act','i')||ex('act'))};
   });
 }
-function famBar(c){var t=STL[stat(c,c.stage===3?null:sumC(c))]||['',''],nm=(c.name||'').trim();return '<div class="fam"><button class="fam-b" data-a="bk" aria-label="חזרה לרשימה">→</button><span class="fam-av">'+esc(nm.charAt(0))+'</span><div class="fam-n"><h2>'+esc(nm)+'</h2><span class="bdg '+t[1]+'">'+t[0]+'</span></div></div>'}
+function famBar(c){var t=STL[stat(c,c.stage===3?null:sumC(c))]||['',''];return '<div class="fh"><button class="fh-b" data-a="bk">→ כל הזוגות</button><div class="fh-t"><h1>'+esc((c.name||'').trim())+'</h1><span class="bdg '+t[1]+'">'+t[0]+'</span></div></div>'}
 function stat(c,s){if(c.stage===3)return 'fin';if(c.stage===2)return 'bud';if(n(c.state&&c.state.dn))return 'done';return s&&(s.be>0||s.bi>0)?'fill':'new'}
 var STL={new:['ממתינים למאזן','wn'],fill:['בתהליך מילוי','wn'],done:['השלימו מאזן','ok'],bud:['בשלב התקציב','ok'],fin:['סיימו את התהליך','mut']};
 function badge(c,s){var t=STL[stat(c,s)];return '<span class="bdg '+t[1]+'">'+t[0]+'</span>'}

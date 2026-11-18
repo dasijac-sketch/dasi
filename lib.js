@@ -132,7 +132,7 @@ function tvs(){
   return '<div class="g">'+tile(fm(val),'שווי חסכונות')+tile(fm(dep),'הפקדה חודשית')+tile(e?(liq/e).toFixed(1):'—','כרית ביטחון (חודשי הוצאות)')+'</div>'+(svt()!=null?'<div class="c"><b>צפי כולל לחסכונות: '+fm(svt())+'</b><div class="hint" style="margin:0">סכום הצפי של החסכונות שהוגדרו להם תשואה ושנים.</div></div>':'')+
   lst('pn','פנסיה','לכל קרן פנסיה: שווי נוכחי, הפקדה חודשית, הצפי לפנסיה ואחוז עמלות.',function(x){return n(x.v)?'<small>שווי נוכחי '+fm(n(x.v))+(n(x.m)?' · הפקדה שנתית '+fm(n(x.m)*12):'')+'</small>':''})+
   lst('sv','חסכונות','קרן השתלמות, חיסכון לכל ילד, קופות ועוד. לכל חיסכון בחרו תשואה שנתית ומספר שנים, ותראו כמה הוא צפוי להיות שווה. כרית הביטחון מחושבת מחסכונות שסומנו נזיל מיידית, מול ההוצאות החודשיות במאזן.',svf)+
-  '<div class="g">'+tile(fm(lb),'יתרת הלוואות ומשכנתא')+tile(fm(lp),'החזר חודשי')+tile(inc?Math.round(lp/inc*100)+'%':'—','מההכנסה',inc&&lp/inc>.2?'neg':'')+'</div>'+
+  '<div class="g">'+tile(fm(sm('ln','b',function(x){return x.y!=='משכנתא'})),'יתרת הלוואות')+tile(fm(sm('ln','b',function(x){return x.y==='משכנתא'})),'יתרת משכנתא')+tile(fm(sm('ln','p',function(x){return x.y!=='משכנתא'})),'החזר חודשי על הלוואות')+tile(fm(sm('ln','p',function(x){return x.y==='משכנתא'})),'החזר חודשי על משכנתא')+tile(inc?Math.round(lp/inc*100)+'%':'—','מההכנסה (סה״כ החזרים)',inc&&lp/inc>.2?'neg':'')+'</div>'+
   lst('ln','הלוואות ועסקאות בתשלומים','ההחזר החודשי אמור להופיע גם בסעיף הלוואות במאזן.',function(x){var o=n(x.p)&&n(x.c)?'<small>סה״כ עד סיום: '+fm(n(x.p)*n(x.c))+'</small>':'';if(x.y==='משכנתא'&&n(x.w))o+='<small>שווי הנכס '+fm(n(x.w))+(n(x.b)?' · יתרת המשכנתא '+Math.round(n(x.b)/n(x.w)*100)+'% משווי הנכס · הון עצמי '+fm(Math.max(0,n(x.w)-n(x.b))):'')+'</small>';return o})+fcUI()}
 function fmUI(){var f=S.fm||{},k=S.L.kd||[],ag=k.filter(function(x){return x.a!==''&&x.a!=null}).map(function(x){return n(x.a)}).sort(function(a,b){return b-a});
   var inp=function(key,l){return '<span><small>'+l+'</small><input type="number" inputmode="numeric" min="0" max="120" data-s="fm" data-k="'+key+'" value="'+(f[key]===undefined||f[key]===0?'':esc(f[key]))+'" aria-label="'+l+'"></span>'};
@@ -245,21 +245,28 @@ function heroUI(ai,ae,pi,pe,cT,hasCash){var cv=ai-ae,pe1=pe>0?Math.min(1,ae/pe):
   var ring='<svg viewBox="0 0 190 190" width="190" height="190" role="img" aria-label="הוצאות '+Math.round(pe1*100)+' אחוז מהצפוי, הכנסות '+Math.round(pi1*100)+' אחוז מהצפוי"><circle cx="95" cy="95" r="80" fill="none" stroke="#EEF1F7" stroke-width="16"/><circle cx="95" cy="95" r="80" fill="none" stroke="'+(pe>0&&ae>pe?'#8C3B3B':'#1F3A5F')+'" stroke-width="16" stroke-linecap="round" stroke-dasharray="'+(pe1*C1).toFixed(1)+' '+C1.toFixed(1)+'" transform="rotate(-90 95 95)"/><circle cx="95" cy="95" r="58" fill="none" stroke="#EEF1F7" stroke-width="10"/><circle cx="95" cy="95" r="58" fill="none" stroke="#C9A23F" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(pi1*C2).toFixed(1)+' '+C2.toFixed(1)+'" transform="rotate(-90 95 95)"/><text x="95" y="90" text-anchor="middle" font-size="12" fill="#6B778C">נשאר החודש</text><text x="95" y="116" text-anchor="middle" font-size="26" font-weight="800" fill="'+(cv<0?'#8C3B3B':'#1B2A41')+'">'+fm(cv)+'</text></svg>';
   return '<div class="hero2 hr1"><div class="hm2">'+MN[S.m-1]+' '+S.y+' · משפחת '+esc(S.fam)+'</div>'+ring+'<div class="lgd"><span><i style="background:#1F3A5F"></i>הוצאות'+(pe>0?' '+Math.round(pe1*100)+'% מהצפוי':'')+'</span><span><i style="background:#C9A23F"></i>הכנסות'+(pi>0?' '+Math.round(pi1*100)+'% מהצפוי':'')+'</span></div></div>'+
   '<div class="sg2"><div class="sk"><small>הכנסות צפויות החודש</small><b>'+fm(pi)+'</b></div><div class="sk"><small>הכנסות שהתקבלו</small><b class="pos">'+fm(ai)+'</b></div><div class="sk"><small>הוצאות החודש</small><b'+(pe>0&&ae>pe?' class="neg"':'')+'>'+fm(ae)+'</b>'+(pe>0?'<small>מתוך '+fm(pe)+'</small>':'')+'</div>'+(hasCash?'<div class="sk"><small>מזומן למשיכה</small><b>'+fm(cT)+'</b><button class="lnk" data-a="tab" data-id="mon">לפירוט במעקב</button></div>':'')+'</div>'}
-function homeSum(){var sv=sm('sv','v'),pn=sm('pn','v'),lb=sm('ln','b'),lp=sm('ln','p'),pv=sm('ln','w'),t=[];
-  if(sv)t.push(['שווי חסכונות',fm(sv),'']);if(pn)t.push(['שווי פנסיה',fm(pn),'']);if(lb)t.push(['יתרת הלוואות ומשכנתא',fm(lb),lp?'החזר חודשי '+fm(lp):'']);if(pv)t.push(['שווי הנכס',fm(pv),lb?'הון עצמי '+fm(Math.max(0,pv-sm('ln','b',function(x){return n(x.w)>0}))):'']);
+function homeSum(){var mg=function(x){return x.y==='משכנתא'},sv=sm('sv','v'),pn=sm('pn','v'),lb=sm('ln','b',function(x){return !mg(x)}),lp=sm('ln','p',function(x){return !mg(x)}),mb=sm('ln','b',mg),mp=sm('ln','p',mg),pv=sm('ln','w',mg),t=[];
+  if(sv)t.push(['שווי חסכונות',fm(sv),'']);if(pn)t.push(['שווי פנסיה',fm(pn),'']);
+  if(lb)t.push(['יתרת הלוואות',fm(lb),'']);if(lp)t.push(['החזר חודשי על הלוואות',fm(lp),'']);
+  if(mb)t.push(['יתרת משכנתא',fm(mb),pv?'מתוך שווי נכס '+fm(pv):'']);if(mp)t.push(['החזר חודשי על משכנתא',fm(mp),'']);
   if(!t.length)return '';
   return '<div class="sh"><h2>'+ic('sv',20)+' תמונת מצב</h2><button class="lnk" data-a="tab" data-id="sv">לפירוט</button></div><div class="sg2">'+t.map(function(x){return '<div class="sk"><small>'+x[0]+'</small><b>'+x[1]+'</b>'+(x[2]?'<small>'+x[2]+'</small>':'')+'</div>'}).join('')+'</div>'}
+function monBar(){var P=perNow(S.sd),cur=S.y===P.y&&S.m===P.m;return '<div class="mb'+(cur?'':' offm')+'"><button class="mbb" data-a="mpv" aria-label="חודש קודם">→</button><div class="mbt"><div class="mbn">'+MN[S.m-1]+' '+S.y+'</div><div class="mbs'+(cur?'':' off')+'">'+(cur?'החודש הנוכחי':'<button class="lnk" data-a="mcu">חזרה לחודש הנוכחי</button>')+'</div></div><button class="mbb" data-a="mnx" aria-label="חודש הבא">←</button></div>'}
+function newsUI(){var sn=n(S.sn),lim=Date.now()-14*864e5,l=INBOX.filter(function(m){return m.ts>sn&&m.ts>lim}).sort(function(a,b){return b.ts-a.ts});if(!l.length)return '';
+  var K={msg:'הודעה חדשה מהמאמנת',tk:'משימה חדשה מהמאמנת',ch:'אתגר חדש מהמאמנת'};
+  return '<div class="nw" role="status"><b>'+(l.length===1?K[l[0].k]||'הודעה חדשה מהמאמנת':l.length+' עדכונים חדשים מהמאמנת')+'</b>'+l.slice(0,3).map(function(m){return '<div class="nwi">'+esc(m.x)+'</div>'}).join('')+'<div class="f"><button class="btn" data-a="nsn">קראתי</button>'+(l.some(function(m){return m.k!=='msg'})?'<button class="btn sec" data-a="tab" data-id="tasks">למשימות</button>':'')+'</div></div>'}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
-  var steps=st2?[]:[['bal','מילוי המאזן, החסכונות, ההלוואות והביטוחים, ולחיצה על "הושלם"',!!n(S.dn)]];
-  if(st2)steps.push(['bud','התקציב שנקבע עבורכם',pe>0],['mon','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
-  var done=steps.filter(function(s){return s[2]}).length;
+  var steps=st2?[]:[['bal','מעבר למאזן','מילוי המאזן, החסכונות, ההלוואות והביטוחים, ולחיצה על "הושלם"',!!n(S.dn)]];
+  if(st2)steps.push(['bud','מעבר לתקציב','התקציב שנקבע עבורכם',pe>0],['mon','מעבר למעקב החודשי','דיווח הכנסות והוצאות בפועל',ai>0||ae>0]);
+  var done=steps.filter(function(s){return s[3]}).length;
   var pk=(S.m===1?(S.y-1)+'-12':S.y+'-'+(S.m-1)),pv=ts('act','i',pk)-ex('act',pk),cv=ai-ae,dl=(ts('act','i',pk)>0||ex('act',pk)>0)?cv-pv:null;
    var ev0=st2?envKs():[],cT=0;ev0.forEach(function(x){cT+=n(S.bud[x.k])});
    var h=st2?heroUI(ai,ae,pi,pe,cT,ev0.length):'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
+  h=newsUI()+(st2?monBar():'')+h;
   h+=remUI();
-  if(done<steps.length)h+='<div class="c"><b>הצעדים שלכם</b>'+steps.map(function(s){return '<button class="r cc" data-a="tab" data-id="'+s[0]+'"><span>'+(s[2]?'✓ ':'○ ')+s[1]+'</span></button>'}).join('')+'</div>';
+  if(st2||done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
   if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
