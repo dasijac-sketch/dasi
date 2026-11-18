@@ -293,13 +293,13 @@ dailyBackup(); setInterval(dailyBackup, 6 * 60 * 60 * 1000).unref();
 /* ---------- דפים ---------- */
 const PUB_DIR = path.join(__dirname, 'public');
 const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
-const ASSETS = new Set(['icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
+const ASSETS = new Set(['favicon.svg','icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
 const page = f => (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(pub, f)); };
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', page('admin.html'));
 app.get('/c/:token', page('couple.html'));
 app.get('/c/:token/manifest.webmanifest', (req, res) => {
-  res.type('application/manifest+json').json({ name: 'נקודת איזון', short_name: 'נקודת איזון', lang: 'he', dir: 'rtl', start_url: '/c/' + encodeURIComponent(req.params.token), scope: '/c/', display: 'standalone', background_color: '#f4f6fa', theme_color: '#16233b', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] });
+  res.type('application/manifest+json').json({ name: 'נקודת איזון', short_name: 'נקודת איזון', lang: 'he', dir: 'rtl', start_url: '/c/' + encodeURIComponent(req.params.token), scope: '/c/', display: 'standalone', background_color: '#faf8f3', theme_color: '#1f3a5f', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] });
 });
 app.get('/sw.js', (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.type('application/javascript').send("self.addEventListener('install',function(){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim())});self.addEventListener('fetch',function(e){e.respondWith(fetch(e.request))});"); });
 app.get('/:file', (req, res, next) => ASSETS.has(req.params.file) ? page(req.params.file)(req, res) : next());
