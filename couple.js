@@ -5,9 +5,9 @@ RO=true;
 var dirty=false,busy=false,timer=null;
 var app=document.getElementById('app'),nav=document.getElementById('nav');
 function status(t){var e=document.getElementById('sv');if(e)e.textContent=t||''}
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים']);return t}
 function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl)}}
+function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs};
   S=Object.assign(newState(),d.state||{},keep);
@@ -66,6 +66,11 @@ document.addEventListener('click',function(e){
   if(a==='tab')S.tab=b.dataset.id;
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
+  else if(a==='md'){S.md=S.md||{};S.md[ym()]=Date.now();save()}
+  else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
+  else if(a==='gt'){S.tab='tasks'}
+  else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
+  else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
   else if(a==='la'){S.L[b.dataset.l].push({});save()}

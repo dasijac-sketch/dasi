@@ -63,7 +63,7 @@ function listView(){
 function detailView(c){
   S=cs(c);bG();
   if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+t[1]+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
-  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['mon','מעקב חודשי'],['yr','סיכום שנתי'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
+  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
   return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
@@ -188,7 +188,7 @@ document.addEventListener('change',function(e){
   if(t.id==='scn2'||t.id==='scd2'){var z=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z){if(t.id==='scn2'){var v2=t.value.trim();if(v2)z.n=v2.slice(0,60)}else z.d=t.value;saveBud(c);render()}return}
   if(d.s==='fc'){c.state=c.state||{};(c.state.fc=c.state.fc||{})[d.k]=t.value;keepFocus(render);return}
   if(t.id==='nt1'){c.notes=t.value;put(c,{notes:c.notes})}
-  else if(t.id==='stg'){if(+t.value===3&&!confirm('לשחרר את הזוג? אחרי השחרור לא תוכלי לראות מה הם מילאו, לעדכן להם תקציב או לשלוח הודעות, והפעולה אינה ניתנת לביטול.')){render();return}put(c,{stage:+t.value}).then(function(){if(+t.value===3){c.state={};c.budget={};c.msgs=[]}render()})}
+  else if(t.id==='stg'){if(+t.value===2&&c.stage!==2&&!confirm('מעבר לשלב התקציב: הזוג יראה את התקציב, הסימולטור והמעקב החודשי, והמאזן ייעלם מהם. להמשיך?')){render();return}if(+t.value===1&&c.stage>1&&!confirm('חזרה לשלב המאזן: הזוג יחזור לראות את המאזן, והתקציב והמעקב החודשי יוסתרו מהם. להמשיך?')){render();return}if(+t.value===3&&!confirm('לשחרר את הזוג? אחרי השחרור לא תוכלי לראות מה הם מילאו, לעדכן להם תקציב או לשלוח הודעות, והפעולה אינה ניתנת לביטול.')){render();return}put(c,{stage:+t.value}).then(function(){if(+t.value===3){c.state={};c.budget={};c.msgs=[]}render()})}
   else if(t.id==='rn'){var v=t.value.trim();if(v)put(c,{name:v}).then(render)}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='pw')doLogin()});
