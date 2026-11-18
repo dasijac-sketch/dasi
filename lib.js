@@ -124,8 +124,8 @@ function fmUI(){var f=S.fm||{},k=S.L.kd||[],ag=k.filter(function(x){return x.a!=
   return '<div class="c"><b>הסיפור המשפחתי שלנו</b><p class="hint">גילאי ההורים והילדים עוזרים לתכנן יעדים לאורך השנים, כמו בר מצווה, חתונה ופרישה.</p><div class="dt">'+inp('a','גיל בן הזוג')+inp('b','גיל בת הזוג')+'</div>'+
   (k.length?'<div class="hint" style="margin:8px 0 0">'+(k.length===1?'ילד אחד':k.length+' ילדים')+(ag.length>1?' · הגדול בן '+ag[0]+', הקטן בן '+ag[ag.length-1]:ag.length?' · בן '+ag[0]:'')+' · '+(2+k.length)+' נפשות בבית</div>':'')+'</div>'+
   lst('kd','הילדים','שם וגיל של כל ילד. אפשר להוסיף כמה שצריך.')}
-function rtTxt(k){var r=S.rt[k]||{},a=n(r.a),b=n(r.b);if(!a&&!b)return '';return ' · דירוג'+(a?' בן '+a:'')+(b?' בת '+b:'')+(a&&b?' · ממוצע '+((a+b)/2).toFixed(1):'')}
-function ctxUI(){var f=S.fm||{},k=S.L.kd||[],ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
+function rtTxt(k){if(!n(S.dn))return '';var r=S.rt[k]||{},a=n(r.a),b=n(r.b);if(!a&&!b)return '';return ' · דירוג'+(a?' בן '+a:'')+(b?' בת '+b:'')+(a&&b?' · ממוצע '+((a+b)/2).toFixed(1):'')}
+function ctxUI(){if(!n(S.dn))return '<div class="c"><b>תמונת מצב לבניית התקציב</b><div class="hint" style="margin:6px 0 0">הסיפור המשפחתי, היעדים, הביטוחים ודירוגי בני הזוג יופיעו כאן ברגע שהזוג יסמן "הושלם".</div></div>';var f=S.fm||{},k=S.L.kd||[],ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
   var ag=k.map(function(x){return esc(x.n||'ילד')+(x.a!==''&&x.a!=null?' ('+esc(x.a)+')':'')}).join(', ');
   var gl=S.L.gl.filter(function(x){return x.n||n(x.t)}).map(function(x){var t=n(x.t),m=gm(x.d),r=t-n(x.s);return esc(x.n||'יעד')+': '+fm(t)+(m>0&&r>0?' · כדאי '+fm(r/m)+' בחודש':'')}).join('<br>');
   var low=[];G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(i){var r=S.rt[g.n+'|'+i]||{},a=n(r.a),b=n(r.b);if(a&&b&&Math.abs(a-b)>=2)low.push(esc(i)+' (בן '+a+', בת '+b+')')})});
