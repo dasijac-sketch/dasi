@@ -20,7 +20,7 @@ function typing(){var a=document.activeElement;return a&&/^(INPUT|TEXTAREA|SELEC
 function cs(c){
   c.budget=c.budget||{};c.budget.bud=c.budget.bud||{};
   var s=Object.assign(newState(),c.state||{});
-  s.L=Object.assign({sv:[],ln:[],ins:[],gl:[]},(c.state&&c.state.L)||{});
+  s.L=Object.assign(defL(),(c.state&&c.state.L)||{});
   s.sc=(c.budget.sc||[]);s.bud0=c.budget.bud;s.vs=s.sc.some(function(z){return z.id===A.sc})?A.sc:'';s.scb={};
   s.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});s.bud=(s.sc.filter(function(z){return z.id===s.vs})[0]||{bud:c.budget.bud}).bud;s.fam=c.name;s.y=A.y;s.m=A.m;s.tab='';s.open=A.open;
   return s;
@@ -72,7 +72,7 @@ function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
   var h='<div class="c"><b>טעינה מאקסל</b><p class="hint">'+(t==='bal'?'בחרי את קובץ המאזן של הזוג. הסכומים, החודשים, הדירוגים, החסכונות וההלוואות ימולאו, ואפשר יהיה לראות הכל לפני האישור.':'בחרי את קובץ התקציב. הסכומים ימולאו בתקציב של הזוג, ואפשר יהיה לראות הכל לפני האישור.')+'</p><input type="file" id="xf" class="fcin" data-t="'+t+'" accept=".xlsx,.xlsm,.xls" aria-label="בחירת קובץ אקסל">';
   if(A.impErr&&A.imp&&A.imp.t===t)h+='<div class="err">'+esc(A.impErr)+'</div>';
   if(R){var nv=Object.keys(R.vals).length;h+='<div style="margin-top:10px"><b>נמצא בגיליון "'+esc(R.sheet)+'"</b><div class="hint">'+nv+' סעיפים עם סכום ('+R.matched+' זוהו לפי שם)'+(R.L?' · '+R.L.sv.length+' חסכונות · '+R.L.ln.length+' הלוואות':'')+'</div>'+
-    (R.added.length?'<div class="hint">סעיפים שלא קיימים אצל הזוג ויתווספו כתתי קטגוריות:<br>'+R.added.map(esc).join('<br>')+'</div>':'')+(R.skipped.length?'<div class="hint">לא זוהו: '+R.skipped.map(esc).join(', ')+'</div>':'')+
+    (R.cs?'<div class="hint"><b>הקטגוריות והסעיפים של הזוג יותאמו לקובץ</b>: '+R.nitems+' סעיפים'+(R.hidden?', יוסתרו '+R.hidden+' סעיפים שאינם בקובץ':'')+'.</div>':'')+(R.added.length?'<div class="hint">שונה מברירת המחדל, יתווסף:<br>'+R.added.map(esc).join('<br>')+'</div>':'')+(R.skipped.length?'<div class="hint">לא זוהו: '+R.skipped.map(esc).join(', ')+'</div>':'')+
     '<div class="hint">הסכומים שבקובץ יחליפו את הקיימים באותם סעיפים'+(R.L?', והחסכונות וההלוואות יוחלפו ברשימות מהקובץ':'')+'.</div><div class="f"><button class="btn" data-a="xa">מילוי</button><button class="btn sec" data-a="xc">ביטול</button></div></div>'}
   return h+'</div>'}
 function scView(c){
@@ -108,6 +108,7 @@ function sumView(c){
     (st2?'<div class="g">'+tile(fm(s.ai),'הכנסות (תקציב '+fm(s.pi)+')')+tile(fm(s.ae),'הוצאות (תקציב '+fm(s.pe)+')',s.pe&&s.ae>s.pe?'neg':'')+tile(fm(s.ai-s.ae),'יתרה',s.ai-s.ae<0?'neg':'')+'</div>'
       :'<div class="g">'+tile(fm(s.bi),'הכנסות חודשיות')+tile(fm(s.be),'הוצאות חודשיות')+tile(fm(s.bi-s.be),'יתרה חודשית',s.bi-s.be<0?'neg':'')+'</div>')+
     '<div class="c"><b>'+(st2?'מול התקציב':'פירוט ההוצאות במאזן')+'</b>'+(rows||'<p class="hint" style="margin:6px 0 0">אין עדיין נתונים.</p>')+'</div>'+
+    ((S.fm&&(S.fm.a||S.fm.b)||S.L.kd.length)?'<div class="c"><b>הסיפור המשפחתי</b><div class="hint" style="margin:4px 0 0">'+((S.fm.a||S.fm.b)?'בן זוג '+(S.fm.a||'?')+' · בת זוג '+(S.fm.b||'?'):'')+(S.L.kd.length?'<br>ילדים: '+S.L.kd.map(function(k){return esc(k.n||'ילד')+(k.a!==''&&k.a!=null?' ('+esc(k.a)+')':'')}).join(', '):'')+'</div></div>':'')+
     '<div class="g">'+tile(fm(sm('sv','v')),'שווי חסכונות')+tile(fm(sm('ln','b')),'יתרת הלוואות')+tile(fm(ins),'ביטוחים בחודש')+'</div>'+
     (S.note[ym()]?'<div class="c"><b>הערת הזוג לחודש</b><div style="white-space:pre-wrap;margin-top:6px;font-size:14px">'+esc(S.note[ym()])+'</div></div>':'')+
     (chT?'<div class="c">'+chD+' מתוך '+chT+' אתגרים סומנו כבוצעו</div>':'');
@@ -228,7 +229,7 @@ document.addEventListener('click',function(e){
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
-  else if(a==='xa'&&A.imp&&A.imp.R){var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});
+  else if(a==='xa'&&A.imp&&A.imp.R){var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));
     Object.keys(R.ni).forEach(function(g){var l=k.ni[g]=k.ni[g]||[];R.ni[g].forEach(function(i){if(l.indexOf(i)<0)l.push(i);var hx=k.hid.indexOf(g+'|'+i);if(hx>=0)k.hid.splice(hx,1)})});
     if(t2==='bud'){var zt=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0];if(zt)zt.bud=Object.assign({},zt.bud,R.vals);else c.budget.bud=Object.assign({},c.budget.bud||{},R.vals);A.imp=null;saveBud(c);render()}
     else{var st0=c.state=c.state||{},body={pm:Object.assign({},st0.pm||{},R.pm||{}),bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
