@@ -39,6 +39,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS couples(
   const cols = db.prepare('PRAGMA table_info(couples)').all().map(c => c.name);
   if (!cols.includes('code')) db.exec('ALTER TABLE couples ADD COLUMN code TEXT');
   if (!cols.includes('cmsgs')) db.exec("ALTER TABLE couples ADD COLUMN cmsgs TEXT NOT NULL DEFAULT '[]'");
+  if (!cols.includes('profile')) db.exec("ALTER TABLE couples ADD COLUMN profile TEXT NOT NULL DEFAULT '{}'");
+  if (!cols.includes('rst')) db.exec("ALTER TABLE couples ADD COLUMN rst TEXT NOT NULL DEFAULT '{}'");
   if (!cols.includes('cown')) db.exec('ALTER TABLE couples ADD COLUMN cown INTEGER NOT NULL DEFAULT 0');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_couples_code ON couples(code)');
 }
@@ -70,6 +72,34 @@ const tokenOk = t => typeof t === 'string' && /^[A-Za-z0-9_-]{20,64}$/.test(t);
 const parse = (s, d) => { try { return JSON.parse(s); } catch (e) { return d; } };
 const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
 const sha = s => crypto.createHash('sha256').update(String(s)).digest();
+const digits = v => String(v || '').replace(/\D/g, '');
+function cleanProfile(p) {
+  if (!isObj(p)) return null;
+  const o = {};
+  for (const k of ['n1', 'n2', 'ph', 'em']) {
+    const v = p[k] == null ? '' : String(p[k]).trim();
+    if (v.length > 80) return null;
+    o[k] = v;
+  }
+  if (o.em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.em)) return null;
+  if (o.ph && (digits(o.ph).length < 7 || digits(o.ph).length > 15)) return null;
+  return o;
+}
+async function sendMail(to, subject, text) {
+  const from = process.env.MAIL_FROM, nm = process.env.MAIL_FROM_NAME || 'נקודת איזון';
+  try {
+    if (process.env.BREVO_API_KEY && from) {
+      const r = await fetch('https://api.brevo.com/v3/smtp/email', { method: 'POST', headers: { 'api-key': process.env.BREVO_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: { name: nm, email: from }, to: [{ email: to }], subject, textContent: text }) });
+      return r.ok;
+    }
+    if (process.env.RESEND_API_KEY && from) {
+      const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: nm + ' <' + from + '>', to: [to], subject, text }) });
+      return r.ok;
+    }
+  } catch (e) { console.error('mail failed', e.message); }
+  return false;
+}
+const mailOn = () => !!((process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) && process.env.MAIL_FROM);
 
 /* הגבלת קצב פשוטה בזיכרון: מפתח -> {n, until} */
 const buckets = new Map();
@@ -157,7 +187,7 @@ function budgetFrom(b, cur) {
   return { value: { bud, cs, sc } };
 }
 
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o', sd: 'n' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o', sd: 'n', aic: 'o' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
@@ -165,6 +195,7 @@ app.get('/api/c/:token', (req, res) => {
   res.json({
     name: row.name,
     pwset: row.cown ? 1 : 0,
+    profile: parse(row.profile, {}),
     stage: row.stage,
     state: parse(row.state, {}),
     bud: (parse(row.budget, {}).bud) || {},
@@ -208,6 +239,63 @@ app.post('/api/c/:token/code', (req, res) => {
   res.json({ ok: true });
 });
 
+app.put('/api/c/:token/profile', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  const p = cleanProfile(req.body && req.body.profile);
+  if (!p) return res.status(400).json({ error: 'bad_profile' });
+  db.prepare('UPDATE couples SET profile = ? WHERE id = ?').run(JSON.stringify(p), row.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/c/:token/rotate', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  const t = newToken();
+  q.setToken.run(t, row.id);
+  res.json({ ok: true, token: t });
+});
+
+app.post('/api/forgot', async (req, res) => {
+  const ip = req.ip || 'x';
+  if (limited('fg:' + ip, 5, 10 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
+  hit('fg:' + ip, 10 * 60 * 1000);
+  const c = String((req.body && req.body.contact) || '').trim().toLowerCase();
+  const dg = digits(c);
+  if (c.length < 5 || c.length > 80) return res.status(400).json({ error: 'bad_contact' });
+  const rows = db.prepare('SELECT * FROM couples').all().filter(r => {
+    const p = parse(r.profile, {});
+    return (c.includes('@') && p.em && p.em.toLowerCase() === c) || (dg.length >= 7 && p.ph && digits(p.ph).slice(-9) === dg.slice(-9));
+  });
+  res.json({ ok: true, auto: mailOn() });
+  for (const row of rows) try {
+    const p = parse(row.profile, {});
+    const tok = crypto.randomBytes(24).toString('base64url');
+    db.prepare('UPDATE couples SET rst = ? WHERE id = ?').run(JSON.stringify({ h: sha(tok).toString('hex'), exp: Date.now() + 3600 * 1000 }), row.id);
+    const base = (process.env.PUBLIC_URL || (req.protocol + '://' + req.get('host'))).replace(/\/$/, '');
+    let sent = false;
+    if (p.em && mailOn()) sent = await sendMail(p.em, 'איפוס סיסמה לנקודת איזון', 'שלום,\nהתקבלה בקשה לאיפוס הסיסמה שלכם.\nלבחירת סיסמה חדשה (הקישור תקף לשעה):\n' + base + '/#r=' + tok + '\n\nאם לא ביקשתם, אפשר להתעלם מההודעה.');
+    if (!sent) {
+      const list = parse(row.cmsgs, []);
+      list.push({ id: String(Date.now()), x: 'הזוג ביקש איפוס סיסמה (' + (p.ph || p.em || '') + '). שליחה אוטומטית לא מוגדרת, אפשר לאפס מכרטיס "סיסמה" ולשלוח להם קישור חדש.', ts: Date.now(), read: 0 });
+      db.prepare('UPDATE couples SET cmsgs = ? WHERE id = ?').run(JSON.stringify(list.slice(-50)), row.id);
+    }
+  } catch (e) { console.error('forgot failed', e.message); }
+});
+
+app.post('/api/reset', (req, res) => {
+  const ip = req.ip || 'x';
+  if (limited('rs:' + ip, 10, 10 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
+  hit('rs:' + ip, 10 * 60 * 1000);
+  const tok = req.body && req.body.token, pw = req.body && req.body.password;
+  if (typeof tok !== 'string' || !codeOk(pw)) return res.status(400).json({ error: 'bad_request' });
+  const hh = sha(tok).toString('hex');
+  const row = db.prepare('SELECT * FROM couples').all().find(r => { const x = parse(r.rst, {}); return x.h === hh && x.exp > Date.now(); });
+  if (!row) return res.status(404).json({ error: 'expired' });
+  const nc = normCode(pw), ex = q.byCode(nc);
+  if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
+  db.prepare("UPDATE couples SET code = ?, cown = 1, rst = '{}' WHERE id = ?").run(hcode(nc), row.id);
+  res.json({ ok: true, token: row.token });
+});
+
 app.put('/api/c/:token/state', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
   if (limited('put:' + row.id, 120, 60 * 1000)) return res.status(429).json({ error: 'too_many' });
@@ -246,11 +334,11 @@ app.get('/api/admin/me', (req, res) => res.json({ auth: validSession(cookie(req,
 
 /* זוג ששוחרר (שלב 3): המאמנת לא רואה יותר את הנתונים שלו */
 const shape = r => r.stage === 3 ? ({
-  id: r.id, token: '', code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, cmsgs: parse(r.cmsgs, []), name: r.name, stage: 3, released: true,
+  id: r.id, token: '', code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, profile: parse(r.profile, {}), cmsgs: parse(r.cmsgs, []), name: r.name, stage: 3, released: true,
   state: {}, budget: {}, notes: r.notes, tasks: parse(r.tasks, []), msgs: [],
   created_at: r.created_at, updated_at: 0, seen_at: 0
 }) : ({
-  id: r.id, token: r.token, code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, cmsgs: parse(r.cmsgs, []), name: r.name, stage: r.stage,
+  id: r.id, token: r.token, code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, profile: parse(r.profile, {}), cmsgs: parse(r.cmsgs, []), name: r.name, stage: r.stage,
   state: parse(r.state, {}), budget: parse(r.budget, {}),
   notes: r.notes, tasks: parse(r.tasks, []), msgs: parse(r.msgs, []),
   created_at: r.created_at, updated_at: r.updated_at || 0, seen_at: r.seen_at || 0
@@ -304,6 +392,7 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
     sets.push('code = ?'); vals.push(nc);
     if (row.cown) { sets.push('cown = 0'); }
   }
+  if ('profile' in b) { const p = cleanProfile(b.profile); if (!p) return res.status(400).json({ error: 'bad_profile' }); sets.push('profile = ?'); vals.push(JSON.stringify(p)); }
   if ('cmsgs' in b) {
     if (!Array.isArray(b.cmsgs) || b.cmsgs.length > 50 || b.cmsgs.some(m => !isObj(m) || typeof m.x !== 'string' || m.x.length > 2000)) return res.status(400).json({ error: 'bad_cmsgs' });
     sets.push('cmsgs = ?'); vals.push(JSON.stringify(b.cmsgs.map(m => ({ id: String(m.id), x: m.x, ts: Number(m.ts) || Date.now(), read: m.read ? 1 : 0 }))));

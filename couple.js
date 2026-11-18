@@ -19,14 +19,15 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
+function payload(){return{aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
-  PWSET=d.pwset?1:0;
+  PWSET=d.pwset?1:0;PROF=d.profile||{};
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
   S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();LASTB=bdJ();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<2;INBOX=d.msgs||[];
   if(!PINIT){var P1=perNow(S.sd);S.y=P1.y;S.m=P1.m;PINIT=true}
+  if(autoInc())save();
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
@@ -54,6 +55,7 @@ document.addEventListener('change',function(e){
   if(d.s==='bud'&&RO)return;
   if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
+  if(d.s==='prof'){PROF[d.k]=t.value.trim();var pr=document.getElementById('pfr');fetch(API+'/profile',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:PROF})}).then(function(r){if(pr)pr.textContent=r.ok?'✓ נשמר':'הפרט לא תקין (בדקו מייל וטלפון)'}).catch(function(){if(pr)pr.textContent='השמירה נכשלה'});return}
   if(t.id==='sdd'){S.sd=+t.value;var P2=perNow(S.sd);S.y=P2.y;S.m=P2.m;save();render();return}
   if(t.id==='yr'){if(t.value){S.y=+t.value;render()}return}
   if(d.s==='envl'||d.s==='envm'){var ee=S.env=S.env||{};ee[d.e]=ee[d.e]||{};if(d.s==='envl'){(ee[d.e].left=ee[d.e].left||{})[d.k]=t.value===''?'':Math.max(0,n(t.value))}else{(ee[d.e].mv=ee[d.e].mv||{})[d.k]=t.value}save();return}
@@ -105,6 +107,7 @@ document.addEventListener('click',function(e){
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
+  else if(a==='dvc'){if(!confirm('לנתק את כל המכשירים האחרים? הם ייכנסו שוב עם הסיסמה.'))return;fetch(API+'/rotate',{method:'POST'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){location.href='/c/'+encodeURIComponent(j.token)}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='pws'){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value,re=document.getElementById('ccr');
     if(!/^[\x21-\x7e\u05d0-\u05ea]{6,40}$/.test(p1)){re.textContent='הסיסמה צריכה להיות באורך 6 עד 40 תווים, בלי רווחים.';return}
     if(p1!==p2){re.textContent='שתי הסיסמאות לא זהות.';return}

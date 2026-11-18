@@ -161,3 +161,17 @@ nav:empty{display:none!important}
 .lnk{border:0;background:none;color:#8C3B3B;font-weight:500;font-size:13px;cursor:pointer;padding:0}
 .fab{position:fixed;bottom:88px;left:18px;width:58px;height:58px;border-radius:50%;border:0;background:#C9A23F;color:#fff;box-shadow:0 10px 24px rgba(201,162,63,.5);display:flex;align-items:center;justify-content:center;z-index:25;cursor:pointer}
 @media (min-width:900px){.fab{bottom:28px}}
+
+/* דף בית א1 */
+body{background:#F6F7FB!important}
+.hr1{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px}
+.hr1 .hm2{align-self:stretch;text-align:right}
+.lgd{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#6B778C;margin-top:6px}.lgd i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px}
+.sg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 16px}
+.sk{background:#fff;border-radius:22px;padding:14px 16px;box-shadow:0 2px 12px rgba(31,58,95,.06);display:flex;flex-direction:column;gap:2px}
+.sk small{font-size:12px;color:#6B778C}.sk b{font-size:20px;font-weight:700;color:#1B2A41}.sk b.pos{color:#1F6F50}.sk b.neg{color:#8C3B3B}
+.sk .lnk{align-self:flex-start;margin-top:2px}
+.gcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.gk{background:#fff;border-radius:22px;padding:14px;box-shadow:0 2px 12px rgba(31,58,95,.06);display:flex;flex-direction:column;gap:6px}
+.gkn{font-weight:600;font-size:14px}.gkb{height:6px;border-radius:6px;background:#EEF1F7}.gkb i{display:block;height:100%;border-radius:6px}
+.gk small{font-size:12px;color:#6B778C}
