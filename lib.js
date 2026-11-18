@@ -139,6 +139,13 @@ function pmChart(m){var ks=Object.keys(m).sort(function(a,b){return m[b]-m[a]}),
 function pmData(sn){var m={},s=st(sn),any=0;G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(i){var x=n(s[g.n+'|'+i]);if(!x)return;var p=pmv(g,i)||'אחר';m[p]=(m[p]||0)+x;any=1})});return any?m:null}
 function pmSum(sn){var m=pmData(sn);if(!m)return '';
   return '<div class="c"><b>לאן הולכות ההוצאות</b><div class="hint" style="margin:2px 0 6px">לפי אמצעי תשלום</div>'+pmChart(m)+(m['מזומן']?'<div class="tot" style="color:#0f6b52;margin-top:8px"><span>מזומן להוצאה החודש</span><span>'+fm(m['מזומן'])+'</span></div>':'')+'</div>'}
+function openTk(){return INBOX.filter(function(m){return(m.k==='tk'||m.k==='ch')&&!S.chd[m.id]}).length}
+function dueTxt(m){return m.due?' · עד '+new Date(m.due+'T00:00').toLocaleDateString('he-IL'):''}
+function tasksView(){var K={tk:'משימה',ch:'אתגר',msg:'הודעה'},ms=INBOX.slice().sort(function(a,b){var da=(a.k!=='msg'&&S.chd[a.id])?1:0,db=(b.k!=='msg'&&S.chd[b.id])?1:0;return da-db||b.ts-a.ts});
+  if(!ms.length)return '<div class="c"><b>משימות ואתגרים</b><p class="hint" style="margin:6px 0 0">כשהמאמנת תוסיף לכם משימות, אתגרים או הודעות, הם יופיעו כאן.</p></div>';
+  var item=function(m){var dn=m.k!=='msg'&&S.chd[m.id];return '<div class="it"><small>'+K[m.k]+' · '+new Date(m.ts).toLocaleDateString('he-IL')+dueTxt(m)+'</small><div style="white-space:pre-wrap;'+(dn?'text-decoration:line-through;color:var(--mu)':'')+'">'+esc(m.x)+'</div>'+(m.k!=='msg'?'<label style="font-size:14px"><input type="checkbox" style="width:auto" data-s="chd" data-k="'+esc(m.id)+'"'+(dn?' checked':'')+'> בוצע</label>':'')+'</div>'};
+  var sec=function(t,k){var l=ms.filter(function(m){return m.k===k});return l.length?'<div class="c"><b>'+t+'</b>'+l.map(item).join('')+'</div>':''};
+  return '<p class="hint">'+(openTk()?'נשארו '+openTk()+' משימות ואתגרים פתוחים.':'הכל בוצע, כל הכבוד.')+'</p>'+sec('משימות','tk')+sec('אתגרים','ch')+sec('הודעות מהמאמנת','msg')}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
