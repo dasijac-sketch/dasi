@@ -32,13 +32,13 @@ function sumC(c){
     return{ai:ts('act','i'),ae:ex('act'),pi:ts('bud','i'),pe:ex('bud'),bi:ts('bal','i'),be:ex('bal'),over:over,ok:!!(ts('act','i')||ex('act'))};
   });
 }
-function famBar(c){var t=STL[stat(c,c.stage===3?null:sumC(c))]||['',''];return '<div class="fam"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><div class="fam-n"><small>את נמצאת במשפחה</small><h2>'+esc(c.name)+'</h2></div><span class="bdg '+t[1]+'">'+t[0]+'</span></div>'}
+function famBar(c){var t=STL[stat(c,c.stage===3?null:sumC(c))]||['',''],nm=(c.name||'').trim();return '<div class="fam"><button class="fam-b" data-a="bk" aria-label="חזרה לרשימה">→</button><span class="fam-av">'+esc(nm.charAt(0))+'</span><div class="fam-n"><h2>'+esc(nm)+'</h2><span class="bdg '+t[1]+'">'+t[0]+'</span></div></div>'}
 function stat(c,s){if(c.stage===3)return 'fin';if(c.stage===2)return 'bud';if(n(c.state&&c.state.dn))return 'done';return s&&(s.be>0||s.bi>0)?'fill':'new'}
 var STL={new:['ממתינים למאזן','wn'],fill:['בתהליך מילוי','wn'],done:['השלימו מאזן','ok'],bud:['בשלב התקציב','ok'],fin:['סיימו את התהליך','mut']};
 function badge(c,s){var t=STL[stat(c,s)];return '<span class="bdg '+t[1]+'">'+t[0]+'</span>'}
 function unread(c){return (c.cmsgs||[]).filter(function(m){return !m.read}).length}
 function link(c){return location.origin+'/c/'+c.token}
-function invText(c){return 'שלום משפחת '+c.name+',\nזה הקישור האישי שלכם לניהול התקציב: '+link(c)+'\nאפשר להיכנס גם דרך '+location.origin+' עם הקוד האישי שלכם: '+(c.code||'')+'\nכדאי לשמור אותם ולא להעביר הלאה.\nבכניסה הראשונה מלאו את המאזן החודשי.'}
+function invText(c){return 'שלום משפחת '+c.name+',\nזה הקישור האישי שלכם לניהול התקציב: '+link(c)+(c.code?'\nאפשר להיכנס גם דרך '+location.origin+' עם הקוד האישי שלכם: '+c.code:'')+'\nכדאי לשמור אותם ולא להעביר הלאה.\nבכניסה הראשונה מלאו את המאזן החודשי.'}
 
 /* ---------- תצוגות ---------- */
 function loginView(){
@@ -108,7 +108,7 @@ function mgView(c){
   var tasks=c.tasks.map(function(t,i){return '<div class="r"><input type="checkbox" style="width:auto" data-a="tt" data-i="'+i+'"'+(t.d?' checked':'')+'><label'+(t.d?' style="text-decoration:line-through;color:var(--mu)"':'')+'>'+esc(t.t)+(t.dt?' <small>· עד '+new Date(t.dt+'T00:00').toLocaleDateString('he-IL')+'</small>':'')+'</label><button class="gh" style="width:30px;color:var(--bd)" data-a="td" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'}).join('');
   var sent=c.msgs.slice().sort(function(a,b){return b.ts-a.ts}).map(function(m){return '<div class="it"><div class="tot" style="padding:0;font-weight:400"><small>'+({ch:'אתגר',tk:'משימה',msg:'הודעה'}[m.k]||'הודעה')+' · '+new Date(m.ts).toLocaleDateString('he-IL')+dueTxt(m)+(m.k!=='msg'?(S.chd[m.id]?' · ✓ בוצע':' · ממתין'):'')+'</small><button class="gh" style="width:30px;color:var(--bd)" data-a="md" data-id="'+esc(m.id)+'" aria-label="מחיקה">✕</button></div><div style="white-space:pre-wrap;font-size:14px">'+esc(m.x)+'</div></div>'}).join('');
   var wa='https://wa.me/?text='+encodeURIComponent(invText(c));
-  var out=((c.cmsgs||[]).length?'<div class="c"'+(unread(c)?' style="border-color:var(--bd)"':'')+'><b>עדכונים מהזוג</b>'+cmUI(c)+'</div>':'')+'<div class="c"><b>קוד כניסה</b><p class="hint" style="margin:4px 0 8px">הזוג מקליד את הקוד בכתובת האתר ונכנס לאזור האישי שלו. אפשר לשנות אותו בכל עת, והקוד הקודם יפסיק לעבוד.</p><div class="cdb">'+esc(c.code||'')+'</div><div class="f" style="margin-top:8px"><input id="cdn" placeholder="קוד חדש (6 עד 24 תווים)" maxlength="24" autocapitalize="characters"><button class="btn" data-a="cds">שמירה</button><button class="btn sec" data-a="cdg">קוד אקראי</button></div><div class="err" id="cder"></div></div>'+'<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
+  var out=((c.cmsgs||[]).length?'<div class="c"'+(unread(c)?' style="border-color:var(--bd)"':'')+'><b>עדכונים מהזוג</b>'+cmUI(c)+'</div>':'')+(c.cown?'<div class="c"><b>קוד כניסה</b><p class="hint" style="margin:4px 0 8px">הזוג בחר קוד אישי משלו, והוא אינו גלוי לך. אם הזוג שכח אותו, אפשר לאפס לקוד חדש (הקוד הנוכחי יפסיק לעבוד).</p><button class="btn sec" data-a="cdr">איפוס קוד</button></div>':'<div class="c"><b>קוד כניסה</b><p class="hint" style="margin:4px 0 8px">הזוג מקליד את הקוד בכתובת האתר ונכנס לאזור האישי שלו. אפשר לשנות אותו בכל עת, והקוד הקודם יפסיק לעבוד.</p><div class="cdb">'+esc(c.code||'')+'</div><div class="f" style="margin-top:8px"><input id="cdn" placeholder="קוד חדש (6 עד 24 תווים)" maxlength="24" autocapitalize="characters"><button class="btn" data-a="cds">שמירה</button><button class="btn sec" data-a="cdg">קוד אקראי</button></div><div class="err" id="cder"></div></div>')+'<div class="c"><b>הקישור האישי של הזוג</b><p class="hint" style="margin:4px 0 8px">הקישור פותח את האתר ישירות, בלי חשבון ובלי סיסמה.</p>'+
     '<textarea id="itx" rows="5" readonly style="width:100%">'+esc(invText(c))+'</textarea>'+
     '<div class="f" style="margin-top:8px"><button class="btn" data-a="cp">העתקה</button><a class="btn" style="text-decoration:none;text-align:center" href="'+wa+'" target="_blank" rel="noopener noreferrer">שליחה בוואטסאפ</a></div>'+
     '<div class="f" style="margin-top:8px"><button class="btn sec" data-a="rg">קישור חדש (מבטל את הישן)</button></div></div>'+
@@ -220,7 +220,7 @@ document.addEventListener('click',function(e){
   else if(a==='ss'){A.sc=x.id;render()}
   else if(a==='se'){A.sc=x.id;A.tab='bud';render()}
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
-  else if(a==='la'||a==='ld'){c.state=c.state||{};var L3=c.state.L=Object.assign(defL(),c.state.L||{}),ll=b.dataset.l;L3[ll]=L3[ll]||[];if(a==='la')L3[ll].push({});else L3[ll].splice(+b.dataset.i,1);saveL(c);render()}
+  else if(a==='la'||a==='ld'){c.state=c.state||{};var L3=c.state.L=Object.assign(defL(),c.state.L||{}),ll=b.dataset.l;L3[ll]=L3[ll]||[];if(a==='la')L3[ll].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});else L3[ll].splice(+b.dataset.i,1);saveL(c);render()}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
   else if(a==='xa'&&A.imp&&A.imp.R){if(!confirm('טעינת אקסל תמחק את כל הנתונים הקודמים של הזוג (סכומים, חודשים, דירוגים, חסכונות והלוואות) ותחליף אותם בנתוני הקובץ. האם ברצונך להמשיך?'))return;var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));
@@ -229,6 +229,7 @@ document.addEventListener('click',function(e){
     else{var st0=c.state=c.state||{},body={pm:Object.assign({},R.pm||{}),bal:Object.assign({},R.vals),mo:Object.assign({},R.mo),rt:Object.assign({},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');
+  else if(a==='cdr'){if(!confirm('לאפס את הקוד של הזוג לקוד אקראי חדש? הקוד הנוכחי שלהם יפסיק לעבוד.'))return;var rv=(function(){var al='ABCDEFGHJKMNPQRSTUVWXYZ23456789',o='',i;for(i=0;i<6;i++)o+=al[Math.floor(Math.random()*al.length)];return o})();api('PUT','/api/admin/couples/'+c.id,{code:rv,reset:true}).then(function(r){c.code=r.code;c.cown=0;render();status('✓ הקוד אופס')}).catch(function(){status('האיפוס נכשל')})}
   else if(a==='cds'||a==='cdg'){var nv=a==='cdg'?(function(){var al='ABCDEFGHJKMNPQRSTUVWXYZ23456789',o='',i;for(i=0;i<6;i++)o+=al[Math.floor(Math.random()*al.length)];return o})():(document.getElementById('cdn').value||'').trim();
     if(!/^[A-Za-z0-9\u05d0-\u05ea-]{6,24}$/.test(nv)){var ce=document.getElementById('cder');if(ce)ce.textContent='הקוד צריך להיות באורך 6 עד 24 תווים: אותיות ומספרים בלבד.';return}
     if(a==='cds'&&!confirm('לשנות את הקוד ל-'+nv+'? הקוד הישן יפסיק לעבוד.'))return;

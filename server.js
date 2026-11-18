@@ -39,6 +39,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS couples(
   const cols = db.prepare('PRAGMA table_info(couples)').all().map(c => c.name);
   if (!cols.includes('code')) db.exec('ALTER TABLE couples ADD COLUMN code TEXT');
   if (!cols.includes('cmsgs')) db.exec("ALTER TABLE couples ADD COLUMN cmsgs TEXT NOT NULL DEFAULT '[]'");
+  if (!cols.includes('cown')) db.exec('ALTER TABLE couples ADD COLUMN cown INTEGER NOT NULL DEFAULT 0');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_couples_code ON couples(code)');
 }
 const CODE_AL = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -192,6 +193,18 @@ app.post('/api/c/:token/update', (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/c/:token/code', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  if (limited('cc:' + row.id, 10, 60 * 60 * 1000)) return res.status(429).json({ error: 'too_many' });
+  hit('cc:' + row.id, 60 * 60 * 1000);
+  const c = req.body && req.body.code;
+  if (!codeOk(c)) return res.status(400).json({ error: 'bad_code' });
+  const nc = normCode(c), ex = q.byCode.get(nc);
+  if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
+  db.prepare('UPDATE couples SET code = ?, cown = 1 WHERE id = ?').run(nc, row.id);
+  res.json({ ok: true, code: nc.toUpperCase() });
+});
+
 app.put('/api/c/:token/state', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
   if (limited('put:' + row.id, 120, 60 * 1000)) return res.status(429).json({ error: 'too_many' });
@@ -230,11 +243,11 @@ app.get('/api/admin/me', (req, res) => res.json({ auth: validSession(cookie(req,
 
 /* זוג ששוחרר (שלב 3): המאמנת לא רואה יותר את הנתונים שלו */
 const shape = r => r.stage === 3 ? ({
-  id: r.id, token: '', code: (r.code || '').toUpperCase(), cmsgs: parse(r.cmsgs, []), name: r.name, stage: 3, released: true,
+  id: r.id, token: '', code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, cmsgs: parse(r.cmsgs, []), name: r.name, stage: 3, released: true,
   state: {}, budget: {}, notes: r.notes, tasks: parse(r.tasks, []), msgs: [],
   created_at: r.created_at, updated_at: 0, seen_at: 0
 }) : ({
-  id: r.id, token: r.token, code: (r.code || '').toUpperCase(), cmsgs: parse(r.cmsgs, []), name: r.name, stage: r.stage,
+  id: r.id, token: r.token, code: r.cown ? '' : (r.code || '').toUpperCase(), cown: r.cown ? 1 : 0, cmsgs: parse(r.cmsgs, []), name: r.name, stage: r.stage,
   state: parse(r.state, {}), budget: parse(r.budget, {}),
   notes: r.notes, tasks: parse(r.tasks, []), msgs: parse(r.msgs, []),
   created_at: r.created_at, updated_at: r.updated_at || 0, seen_at: r.seen_at || 0
@@ -281,10 +294,12 @@ app.put('/api/admin/couples/:id', requireAdmin, (req, res) => {
   if ('name' in b) { if (typeof b.name !== 'string' || !b.name.trim() || b.name.length > 80) return res.status(400).json({ error: 'bad_name' }); sets.push('name = ?'); vals.push(b.name.trim()); }
   if ('stage' in b) { if (![1, 2, 3].includes(b.stage)) return res.status(400).json({ error: 'bad_stage' }); sets.push('stage = ?'); vals.push(b.stage); }
   if ('code' in b) {
+    if (row.cown && !b.reset) return res.status(403).json({ error: 'couple_owned' });
     if (!codeOk(b.code)) return res.status(400).json({ error: 'bad_code' });
     const nc = normCode(b.code), ex = q.byCode.get(nc);
     if (ex && ex.id !== row.id) return res.status(409).json({ error: 'code_taken' });
     sets.push('code = ?'); vals.push(nc);
+    if (row.cown) { sets.push('cown = 0'); }
   }
   if ('cmsgs' in b) {
     if (!Array.isArray(b.cmsgs) || b.cmsgs.length > 50 || b.cmsgs.some(m => !isObj(m) || typeof m.x !== 'string' || m.x.length > 2000)) return res.status(400).json({ error: 'bad_cmsgs' });

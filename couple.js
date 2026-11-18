@@ -59,7 +59,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='yc'){S.yc=S.yc||{};S.yc[d.k]=n(t.value)}
   else if(d.s==='ppl')S.ppl=n(t.value);
   else if(d.s==='act'){var k=ym();S.act[k]=S.act[k]||{};S.act[k][d.k]=n(t.value)}
-  else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value}
+  else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value;if(p[2]==='y'){save();render();return}}
   else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
   else if(d.s==='bud'){S.bud[d.k]=n(t.value)}
   else if(d.s==='fm'){S.fm=S.fm||{};S.fm[d.k]=n(t.value)}
@@ -103,7 +103,11 @@ document.addEventListener('click',function(e){
   else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
-  else if(a==='la'){S.L[b.dataset.l].push({});save()}
+  else if(a==='ccs'){var nv=(document.getElementById('ccn').value||'').trim(),re=document.getElementById('ccr');
+    if(!/^[A-Za-z0-9\u05d0-\u05ea-]{6,24}$/.test(nv)){re.textContent='הקוד צריך להיות באורך 6 עד 24 תווים: אותיות ומספרים בלבד.';return}
+    if(!confirm('לשנות את הקוד ל-'+nv+'? הקוד הקודם יפסיק לעבוד, והמאמנת לא תוכל לראות את הקוד החדש.'))return;
+    fetch(API+'/code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:nv})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})}).then(function(o){if(o.ok){CODE=o.j.code;render();status('✓ הקוד שונה')}else re.textContent=o.s===409?'הקוד כבר בשימוש, בחרו אחר.':o.s===429?'יותר מדי ניסיונות, נסו מאוחר יותר.':'השינוי נכשל'}).catch(function(){re.textContent='השינוי נכשל'})}
+  else if(a==='la'){S.L[b.dataset.l].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});save()}
   else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}
   else if(a==='add'){var g=document.getElementById('cg').value,nm=document.getElementById('cn').value.trim();if(!nm)return;S.cx[g]=(S.cx[g]||[]).concat(nm);S.open[g]=true;save()}
