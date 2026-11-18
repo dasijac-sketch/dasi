@@ -17,14 +17,15 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים']);return t}
-function budgetBody(){return STAGE>=3?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
+var LASTB='';function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
+function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
 function apply(d){
   CODE=d.code||'';
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
-  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<3;INBOX=d.msgs||[];
+  S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();LASTB=bdJ();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<2;INBOX=d.msgs||[];
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
@@ -36,10 +37,10 @@ function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);statu
 function flush(){
   clearTimeout(timer);timer=null;
   if(busy){timer=setTimeout(flush,400);return}
-  busy=true;dirty=false;
-  fetch(API+'/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:payload(),budget:budgetBody()})})
+  busy=true;dirty=false;var bb=budgetBody(),sent=bdJ();
+  fetch(API+'/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({state:payload(),budget:bb})})
     .then(function(r){if(!r.ok)throw 0;return r.json()})
-    .then(function(){busy=false;if(dirty)flush();else status('✓ נשמר')})
+    .then(function(){busy=false;if(bb)LASTB=sent;if(dirty)flush();else status('✓ נשמר')})
     .catch(function(){busy=false;dirty=true;status('השמירה נכשלה, מנסה שוב...');timer=setTimeout(flush,5000)});
 }
 function typing(){var a=document.activeElement;return a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)}

@@ -206,7 +206,7 @@ app.put('/api/c/:token/state', (req, res) => {
     clean[k] = incoming[k];
   }
   const now = Date.now();
-  if (row.stage === 3 && isObj(req.body.budget)) {
+  if (row.stage >= 2 && isObj(req.body.budget)) {
     const r2 = budgetFrom(req.body.budget, parse(row.budget, {}));
     if (r2.error) return res.status(400).json({ error: r2.error });
     db.prepare('UPDATE couples SET budget = ? WHERE id = ?').run(JSON.stringify(r2.value), row.id);
