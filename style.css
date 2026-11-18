@@ -72,3 +72,13 @@ h3{color:#16233b}
 
 .ob{background:#16233b;color:#fff}.ob p{margin:8px 0 14px;color:#e1e8f5}.obs{display:flex;gap:6px;margin-bottom:10px}.obs i{width:22px;height:5px;border-radius:3px;background:#3a4a6a}.obs i.on{background:#ffb84d}.ob .btn.sec{color:#fff;border-color:#4a5a7a}
 .rul summary{cursor:pointer;list-style:none}.rl{margin-top:10px}.rr{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--ln)}.rr>span{flex:none;width:24px;height:24px;border-radius:50%;background:var(--bg);color:var(--pr);font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.ic{flex:none;display:block}.ni{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;line-height:1.2}
+nav button{padding:8px 2px}nav button.on .ic{color:#ffb84d}
+.gh{display:flex;align-items:center;justify-content:space-between;gap:8px}.gn{display:flex;align-items:center;gap:10px;font-weight:600}.gn .ar{font-style:normal;color:var(--mu);font-size:12px}
+.gi{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.hero{background-image:radial-gradient(circle at 12% 0,rgba(255,184,77,.22),transparent 45%)}
+.c{border-radius:16px}.k{border-radius:16px}.btn{border-radius:12px}
+@media (min-width:900px){.ni{flex-direction:row;gap:12px;font-size:15px}}
+.sh h2{display:flex;align-items:center;gap:8px}
+@media (min-width:900px){.w>.sub{justify-self:end;align-self:center;margin:0}}

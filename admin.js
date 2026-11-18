@@ -62,9 +62,9 @@ function listView(){
 }
 function detailView(c){
   S=cs(c);bG();
-  if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+t[1]+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
+  if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+navLbl(t[0],t[1])+'</button>'}).join('');return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div><div class="c"><b>הזוג שוחרר</b><p class="hint" style="margin:4px 0 0">הזוג מנהל את התקציב בעצמו. אין לך גישה למה שמילאו, ואי אפשר לעדכן להם תקציב או לשלוח הודעות. השחרור אינו ניתן לביטול.</p></div>'+mgView(c)}
   var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['mg','ניהול']];
-  nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+t[1]+'</button>'}).join('');
+  nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
   return '<div class="top"><button class="btn sec" data-a="bk">→ חזרה לרשימה</button><b>'+esc(c.name)+'</b></div>'+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(sum|bud|mon|yr)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
