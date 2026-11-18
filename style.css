@@ -103,3 +103,37 @@ body{background:#f6f2ea}
 .c,.k,.ev,.gc,.tk{border:0;box-shadow:0 1px 2px rgba(31,58,95,.08)}
 .pmr{flex-basis:100%;display:flex;align-items:center;gap:8px;margin-top:4px}.pmr small{color:var(--mu);font-size:12px}.pmr select{max-width:none;flex:1}
 .r:has(.pmr){flex-wrap:wrap}
+
+/* ===== עיצוב מודרני ונקי: רקע לבן, כרטיסים רכים ===== */
+:root{--bg:#fff;--soft:#f4f6fa;--ln:#e8ebf1;--tx:#1f3a5f;--mu:#6b7385;--card:#fff;--rad:20px}
+html,body{background:#fff}
+body{font-feature-settings:"tnum";-webkit-font-smoothing:antialiased}
+.w{padding:16px 16px 110px}
+.c,.k,.ev,.gc,.tk{background:#fff;border:1px solid var(--ln);border-radius:var(--rad);box-shadow:0 2px 10px rgba(31,58,95,.05)}
+.c{padding:18px}
+.hero,.ob,.cashc{border:0}
+.ob{background:linear-gradient(135deg,#1f3a5f,#2b4a75)}
+.cashc{background:linear-gradient(135deg,#eef6f1,#f7fbf8);border:1px solid #d9eadf}
+.hero{background:linear-gradient(140deg,#1f3a5f 0%,#2b4a75 70%);background-image:radial-gradient(circle at 10% -10%,rgba(201,162,63,.35),transparent 50%),linear-gradient(140deg,#1f3a5f,#2b4a75);border-radius:0 0 32px 32px}
+h3{font-size:14px;letter-spacing:.02em;color:var(--mu);font-weight:600;margin:22px 0 8px}
+.btn{border-radius:14px;padding:12px 20px;font-weight:600;transition:transform .08s,box-shadow .15s;box-shadow:0 2px 8px rgba(31,58,95,.18)}
+.btn:active{transform:scale(.97)}.btn.sec{box-shadow:none;background:#fff;border:1px solid var(--ln);color:var(--tx)}
+input,select,textarea{background:var(--soft);border:1px solid transparent;border-radius:12px;padding:10px 12px;font:inherit;color:var(--tx);transition:border-color .15s,background .15s}
+input:focus,select:focus,textarea:focus{outline:0;background:#fff;border-color:#1f3a5f;box-shadow:0 0 0 3px rgba(31,58,95,.12)}
+.r{padding:10px 0}.gh{padding:4px 0}
+.bar{height:10px;border-radius:8px;background:#eef0f5}.bar i{border-radius:8px}
+.chip,.bdg{border-radius:999px}
+.sg{border-radius:14px;border:1px solid var(--ln)}.sg.on{box-shadow:0 4px 12px rgba(31,58,95,.25)}
+/* ניווט */
+nav:empty{display:none!important}
+@media (max-width:899px){
+ nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex!important;gap:2px;overflow-x:auto;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--ln);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));margin:0;scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav button{flex:1 0 auto;min-width:68px;border:0!important;background:none!important;color:var(--mu)!important;border-radius:14px;padding:6px 8px;box-shadow:none!important}
+ nav button.on{color:#1f3a5f!important;background:#eef1f7!important;font-weight:700}
+ nav button.on .ic{color:#c9a23f}
+ .ni{font-size:11px}
+}
+@media (min-width:900px){nav{background:#fff!important;border:1px solid var(--ln);box-shadow:0 2px 10px rgba(31,58,95,.05)}nav button{color:var(--tx)!important;border-radius:14px!important}nav button.on{background:#1f3a5f!important;color:#fff!important;box-shadow:none!important}nav button.on .ic{color:#c9a23f}}
+.brand{margin:6px 0 4px}
+.ftr{margin:20px 0 0}
