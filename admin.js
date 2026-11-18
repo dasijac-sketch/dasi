@@ -71,7 +71,7 @@ function detailView(c){
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
   var h='<div class="c"><b>טעינה מאקסל</b><p class="hint">'+(t==='bal'?'בחרי את קובץ המאזן של הזוג. הסכומים, החודשים, הדירוגים, החסכונות וההלוואות ימולאו, ואפשר יהיה לראות הכל לפני האישור.':'בחרי את קובץ התקציב. הסכומים ימולאו בתקציב של הזוג, ואפשר יהיה לראות הכל לפני האישור.')+'</p><input type="file" id="xf" class="fcin" data-t="'+t+'" accept=".xlsx,.xlsm,.xls" aria-label="בחירת קובץ אקסל">';
   if(A.impErr&&A.imp&&A.imp.t===t)h+='<div class="err">'+esc(A.impErr)+'</div>';
-  if(R){var nv=Object.keys(R.vals).length;h+='<div style="margin-top:10px"><b>נמצא בגיליון "'+esc(R.sheet)+'"</b><div class="hint">'+nv+' סעיפים עם סכום ('+R.matched+' זוהו לפי שם)'+(R.L?' · '+R.L.sv.length+' חסכונות · '+R.L.ln.length+' הלוואות':'')+'</div>'+
+  if(R){var nv=Object.keys(R.vals).length;h+='<div style="margin-top:10px"><b>נמצא בגיליון "'+esc(R.sheet)+'"</b><div class="hint">'+nv+' סעיפים עם סכום ('+R.matched+' זוהו לפי שם)'+(R.L?' · '+R.L.sv.length+' חסכונות · '+R.L.ln.length+' הלוואות':'')+'</div>'+(R.L&&R.L.ln.length?'<div class="hint">הלוואות: '+R.L.ln.map(function(l){return esc(l.n)+(l.b?' ('+l.b.toLocaleString('he-IL')+' ₪)':'')}).join(', ')+'</div>':'')+
     (R.cs?'<div class="hint"><b>הקטגוריות והסעיפים של הזוג יותאמו לקובץ</b>: '+R.nitems+' סעיפים'+(R.hidden?', יוסתרו '+R.hidden+' סעיפים שאינם בקובץ':'')+'.</div>':'')+(R.added.length?'<div class="hint">שונה מברירת המחדל, יתווסף:<br>'+R.added.map(esc).join('<br>')+'</div>':'')+(R.skipped.length?'<div class="hint">לא זוהו: '+R.skipped.map(esc).join(', ')+'</div>':'')+
     '<div class="hint">הסכומים שבקובץ יחליפו את הקיימים באותם סעיפים'+(R.L?', והחסכונות וההלוואות יוחלפו ברשימות מהקובץ':'')+'.</div><div class="f"><button class="btn" data-a="xa">מילוי</button><button class="btn sec" data-a="xc">ביטול</button></div></div>'}
   return h+'</div>'}
@@ -229,10 +229,10 @@ document.addEventListener('click',function(e){
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
-  else if(a==='xa'&&A.imp&&A.imp.R){var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));
+  else if(a==='xa'&&A.imp&&A.imp.R){if(!confirm('טעינת אקסל תמחק את כל הנתונים הקודמים של הזוג (סכומים, חודשים, דירוגים, חסכונות והלוואות) ותחליף אותם בנתוני הקובץ. האם ברצונך להמשיך?'))return;var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));
     Object.keys(R.ni).forEach(function(g){var l=k.ni[g]=k.ni[g]||[];R.ni[g].forEach(function(i){if(l.indexOf(i)<0)l.push(i);var hx=k.hid.indexOf(g+'|'+i);if(hx>=0)k.hid.splice(hx,1)})});
-    if(t2==='bud'){var zt=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0];if(zt)zt.bud=Object.assign({},zt.bud,R.vals);else c.budget.bud=Object.assign({},c.budget.bud||{},R.vals);A.imp=null;saveBud(c);render()}
-    else{var st0=c.state=c.state||{},body={pm:Object.assign({},st0.pm||{},R.pm||{}),bal:Object.assign({},st0.bal||{},R.vals),mo:Object.assign({},st0.mo||{},R.mo),rt:Object.assign({},st0.rt||{},R.rt)};if(R.L)body.L=R.L;
+    if(t2==='bud'){var zt=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0];if(zt)zt.bud=Object.assign({},zt.bud,R.vals);else c.budget.bud=Object.assign({},R.vals);A.imp=null;saveBud(c);render()}
+    else{var st0=c.state=c.state||{},body={pm:Object.assign({},R.pm||{}),bal:Object.assign({},R.vals),mo:Object.assign({},R.mo),rt:Object.assign({},R.rt)};if(R.L)body.L=R.L;
       status('שומרת...');api('PUT','/api/admin/couples/'+c.id+'/state',body).then(function(r){c.state=r.state;A.imp=null;saveBud(c);status('✓ המאזן מולא');render()}).catch(function(){status('השמירה נכשלה, נסי שוב')})}}
   else if(a==='cp')copyText('itx');
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0,dt:(document.getElementById('tdt')||{}).value||''});put(c,{tasks:c.tasks}).then(render)}}

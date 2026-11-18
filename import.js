@@ -40,7 +40,7 @@ function xparseSav(rows){var L={sv:[],ln:[]},mode='';
     if(f<0||XSKIP.test(c[f]))return;var nums=r.map(xnum);
     if(mode==='sv'){var hd=function(k){return null};var m=nums[f+2],v=nums[f+3];if(m==null&&v==null)return;L.sv.push({n:c[f],m:m||0,v:v||0,q:''})}
     else if(mode==='mg'){var mb=nums[f+1],mp=nums[f+3];if(!mb&&!mp)return;L.ln.push({n:'משכנתא - '+c[f],b:mb||0,c:0,p:mp||0})}
-    else if(mode==='ln'){var b=nums[f+1],mo=nums[f+2],p=nums[f+4]!=null?nums[f+4]:nums[f+3];if(!b&&!p)return;L.ln.push({n:c[f],b:b||0,c:mo||0,p:p||0})}});
+    else if(mode==='ln'){var b=nums[f+1],mo=nums[f+2],p=nums[f+4]!=null?nums[f+4]:nums[f+3];L.ln.push({n:c[f],b:b||0,c:mo||0,p:p||0})}});
   return L}
 /* מחזיר תוצאה לתצוגה מקדימה והחלה: {bal,mo,rt,bud,ni,L,matched,added,skipped} */
 function xplan(wb,target){
