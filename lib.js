@@ -61,7 +61,7 @@ function grp(g,mode){
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"'+(g.auto?' disabled':'')+'></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
       '<small>'+(g.auto?'נוסף אוטומטית מלשונית הביטוחים':fl>1?'ממוצע של '+fl+' חודשים':'מלאו חודשיים והממוצע יחושב לבד')+'</small>'+
       (ex2?'<div class="dt"><span><small>אמצעי תשלום</small>'+pmSel(g,i,false)+'</span><span><small>דירוג בן זוג</small>'+sel('a')+'</span><span><small>דירוג בת זוג</small>'+sel('b')+'</span>'+(rav?'<span><small>ממוצע דירוג</small><b>'+rav.toFixed(1)+'</b></span>':'')+'</div>':'')+'</div>'}
-    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+(ADM?rtTxt(k):'')+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(mode==='bud'&&g.t!=='i'?pmSel(g,i,!!S.vs):'')+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
+    return '<div class="r"><label>'+esc(i)+(mode==='bud'?'<small>במאזן '+fm(n(S.bal[k]))+''+'</small>':mode==='scb'?'<small>בתקציב הנוכחי '+fm(n(S.bud[k]))+'</small>':'')+'</label>'+inp+(mode==='bud'&&g.t!=='i'?pmSel(g,i,!!S.vs):'')+(ADM&&mode==='bud'?'<button class="gh" style="width:30px;color:var(--bd)" data-a="xi" data-g="'+esc(g.n)+'" data-i="'+esc(i)+'" aria-label="הסרת תת קטגוריה '+esc(i)+'">✕</button>':'')+'</div>'}).join(''):'';
   return '<div class="c"><button class="gh" data-a="tg" data-id="'+esc(g.n)+'"><span class="gn">'+gic(g.n)+'<span>'+esc(g.n)+'</span><i class="ar">'+(o?'▾':'◂')+'</i></span><span>'+meta+'</span></button>'+bar+rows+(ADM&&mode==='bud'&&o&&ecs().ng.some(function(z){return z.n===g.n})?'<div class="r"><button class="btn sec" style="color:var(--bd)" data-a="xg" data-g="'+esc(g.n)+'">הסרת הקטגוריה "'+esc(g.n)+'"</button></div>':'')+'</div>'}
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
 function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return (sn==='bud'||sn==='bal'?pmSum(sn):'')+'<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
@@ -280,6 +280,23 @@ function monBar(){var P=perNow(S.sd),cur=S.y===P.y&&S.m===P.m;return '<div class
 function newsUI(){var sn=n(S.sn),lim=Date.now()-14*864e5,l=INBOX.filter(function(m){return m.ts>sn&&m.ts>lim}).sort(function(a,b){return b.ts-a.ts});if(!l.length)return '';
   var K={msg:'הודעה חדשה מהמאמנת',tk:'משימה חדשה מהמאמנת',ch:'אתגר חדש מהמאמנת'};
   return '<div class="nw" role="status"><b>'+(l.length===1?K[l[0].k]||'הודעה חדשה מהמאמנת':l.length+' עדכונים חדשים מהמאמנת')+'</b>'+l.slice(0,3).map(function(m){return '<div class="nwi">'+esc(m.x)+'</div>'}).join('')+'<div class="f"><button class="btn" data-a="nsn">קראתי</button>'+(l.some(function(m){return m.k!=='msg'})?'<button class="btn sec" data-a="tab" data-id="tasks">למשימות</button>':'')+'</div></div>'}
+
+var MIND=[
+['קודם מבינים איפה אנחנו, ורק אחר כך מחליטים. אין כאן אשמים, יש נתונים.','הוצאה שחשובה לכם באמת היא לא בזבוז. מקצצים קודם במה שלא מורגש.','כסף בלי תפקיד נעלם. כשלכל שקל יש מקום, הוא כבר לא נעלם.'],
+['התקציב הוא הסכמה בין שניכם, לא עונש.','כל הוצאה קבועה נבדקת פעם בחודש, בלי הפתעות ובלי התנצלויות.','פער שלילי הוא מידע. סוגרים אותו תוך 30 יום ונרגעים.'],
+['מעטפה ריקה בסוף החודש היא סימן שהתכנון עובד, לא כישלון.','כסף שנשאר במעטפה נשמר לחודשים הבאים ולא עובר לסעיף אחר.','כשנכנס כסף חדש, 70% מיועד לעתיד ו-30% להנאה.'],
+['הרגל נבנה מחזרה. ישיבה חודשית אחת קצרה שומרת על הכל.','אתם כבר יודעים איפה הכסף שלכם. עכשיו הוא עובד בשבילכם.']];
+function phIdx(){return STAGE>=3?3:STAGE>=2?2:(n(S.dn)?1:0)}
+function mindUI(){var i=phIdx(),l=MIND[i],d=new Date(),x=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return '<div class="mnd">'+esc(l[x%l.length])+'</div>'}
+var PRE=['דפי חשבון בנק של שלושת החודשים האחרונים','פירוט כרטיסי האשראי','פירוט הלוואות ומשכנתא: יתרה, ריבית ותאריך סיום','דוחות חסכונות, פנסיה וביטוחים','רשימת יעדים: מה, כמה עולה ועד מתי'];
+var MTG=['עברנו על כל החשבונות שהגיעו והזנו את ההוצאה בפועל','השווינו לתקציב ומצאנו את הפער','משכנו מזומן וחילקנו למעטפות','פער שלילי? קבענו איך סוגרים אותו תוך 30 יום'];
+function chkRow(id,t){var dn=!!S.chd[id];return '<button class="stp" data-a="tkd" data-id="'+id+'"><span><b>'+esc(t)+'</b></span><span class="ck'+(dn?' ok':'')+'">'+(dn?'✓':'')+'</span></button>'}
+function journeyUI(){var i=phIdx(),L=['הכנה ומאזן','בניית התקציב','מעקב חודשי','עצמאות'],h='<div class="c jr"><b>איפה אנחנו בתהליך</b><div class="jt">'+L.map(function(t,k){return '<span class="'+(k<i?'dn':k===i?'on':'')+'"><i>'+(k<i?'✓':k+1)+'</i>'+t+'</span>'}).join('')+'</div>'+mindUI();
+ if(i===0)h+='<details class="jd"'+(Object.keys(S.bal||{}).length?'':' open')+'><summary>לקראת המפגש: מה כדאי להכין</summary>'+PRE.map(function(t,k){return chkRow('pre'+k,t)}).join('')+'</details>';
+ if(i===1)h+='<div class="hint" style="margin:10px 0 0">המאמנת בונה עכשיו את התקציב. עד אז אפשר להשלים חסרים במאזן.</div>';
+ if(i===2){var mk='mt'+ym()+'_';h+='<details class="jd"><summary>ישיבת התקציב החודשית (מומלץ ב-1 לחודש)</summary>'+MTG.map(function(t,k){return chkRow(mk+k,t)}).join('')+'</details>'}
+ return h+'</div>'}
+function r37UI(){var ai=ts('act','i'),pi=ts('bud','i'),ex2=pi>0&&ai>pi?ai-pi:0;return '<details class="c jd2"><summary><b>נכנס כסף חדש?</b></summary><div class="hint" style="margin:6px 0">הכנסה חד-פעמית עד 10,000 ₪, עליית שכר או הלוואה שנסגרה: 70% הולכים לחיסכון ו-30% להעלאת רמת החיים.'+(ex2?' החודש נכנסו '+fm(ex2)+' מעל התקציב. לפי הכלל: '+fm(ex2*.7)+' לחיסכון ו-'+fm(ex2*.3)+' להנאה.':'')+'</div><div class="f"><input id="r37" type="number" inputmode="decimal" min="0" placeholder="סכום בשקלים"><button class="btn" data-a="r37">חישוב</button></div><div id="r37o" class="hint" style="margin-top:8px"></div></details>'}
 function home(){
   var ai=ts('act','i'),ae=ex('act'),pi=ts('bud','i'),pe=ex('bud'),bi=ts('bal','i'),be=ex('bal'),over=[],near=[],st2=STAGE>=2;
   if(st2)G.forEach(function(g){if(g.t==='i')return;var a=gs('act',g),b=gs('bud',g);if(b&&a>b)over.push(g.n+' · חריגה של '+fm(a-b));else if(b&&a>=.85*b)near.push(g.n+' · '+Math.round(a/b*100)+'% מהתקציב')});
@@ -291,7 +308,9 @@ function home(){
    var ph=st2?phase():'';
    var h=st2?((ph==='start'||ph==='mid')?planUI(ph,pi,pe,cT,ev0.length):(ph==='end'?endUI():'')+heroUI(ai,ae,pi,pe,cT,ev0.length)):'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
   h=newsUI()+(st2?monBar():'')+h;
+  h+=journeyUI();
   h+=remUI();
+  if(st2)h+=r37UI();
   if(st2||done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
   if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
