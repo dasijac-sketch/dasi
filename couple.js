@@ -84,7 +84,7 @@ document.addEventListener('click',function(e){
   var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a;
   if(a==='tab')S.tab=b.dataset.id;
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
-  else if(a==='fill'){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
+  else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='md'){S.md=S.md||{};S.md[ym()]=Date.now();save()}
   else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
   else if(a==='gt'){S.tab='tasks'}
