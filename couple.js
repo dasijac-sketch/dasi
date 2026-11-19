@@ -27,7 +27,7 @@ function apply(d){
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
   S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();LASTB=bdJ();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<2;INBOX=d.msgs||[];
   if(!PINIT){var P1=perNow(S.sd);S.y=P1.y;S.m=P1.m;PINIT=true}
-  var chg=autoInc();chg=stampU()||chg;chg=snapNw()||chg;if(chg)save();
+  var chg=autoInc();chg=stampU()||chg;chg=snapNw()||chg;chg=autoYr()||chg;if(chg)save();
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
 function render(){
@@ -88,6 +88,7 @@ document.addEventListener('click',function(e){
   else if(a==='md'){S.md=S.md||{};S.md[ym()]=Date.now();save()}
   else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
   else if(a==='gt'){S.tab='tasks'}
+  else if(a==='t37'){S.mt=S.mt||{};S.mt['x37'+ym()]={x:('להעביר '+fm(n(b.dataset.v))+' מההכנסה החריגה של החודש לחיסכון').slice(0,200),ts:Date.now()};save();render()}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
   else if(a==='yxa'){var ys=document.getElementById('yxs').value,yn=document.getElementById('yxn').value.trim();if(!yn)return;S.yx=S.yx||{};S.yx[ys]=(S.yx[ys]||[]).concat(yn.slice(0,80));save()}
   else if(a==='envw'){S.env=S.env||{};(S.env[b.dataset.e]=S.env[b.dataset.e]||{}).w=Date.now();save()}
@@ -104,7 +105,7 @@ document.addEventListener('click',function(e){
   else if(a==='inst'&&DEFP){DEFP.prompt();DEFP=null;INSTH=true}
   else if(a==='insx'){INSTH=true;try{localStorage.setItem('insx','1')}catch(e){}}
   else if(a==='tkd'){S.chd[b.dataset.id]=S.chd[b.dataset.id]?0:1;save()}
-  else if(a==='mtd'){if(S.mt)delete S.mt[b.dataset.id];save()}
+  else if(a==='mtd'){var tid=b.dataset.id;if(S.mt&&S.mt[tid])delete S.mt[tid];else S.chd['hid:'+tid]=1;delete S.chd[tid];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
   else if(a==='gocash'){S.seg='מזומן';S.tab='mon';render()}
@@ -112,7 +113,7 @@ document.addEventListener('click',function(e){
   else if(a==='mnx'){S.m++;if(S.m>12){S.m=1;S.y++}render()}
   else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;render()}
   else if(a==='r37'){var v=Math.min(1e9,n(document.getElementById('r37').value)),o=document.getElementById('r37o');o.textContent=v>0?(v>10000?'מעל 10,000 ₪ כדאי להתייעץ עם המאמנת. לפי הכלל, ':'')+'לחיסכון '+fm(v*.7)+' · להעלאת רמת חיים '+fm(v*.3):'הזינו סכום'}
-  else if(a==='yrk'){S.chd.yrk=Date.now();save();render()}
+  else if(a==='yrk'){S.chd.yrk=Date.now();S.chd['yk'+new Date().getFullYear()]=1;save();render()}
   else if(a==='nsn'){S.sn=Date.now();save();render()}
   else if(a==='dvc'){if(!confirm('לנתק את כל המכשירים האחרים? הם ייכנסו שוב עם הסיסמה.'))return;fetch(API+'/rotate',{method:'POST'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){location.href='/c/'+encodeURIComponent(j.token)}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='pws'){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value,re=document.getElementById('ccr');
