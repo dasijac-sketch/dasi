@@ -182,7 +182,7 @@ function budgetFrom(b, cur) {
   if ('cs' in b) {
     const c = b.cs, strs = a => Array.isArray(a) && a.length <= 2000 && a.every(x => typeof x === 'string' && x.length <= 130 && x.trim());
     if (!isObj(c) || !strs(c.hid || []) || !strs(c.hg || []) || !Array.isArray(c.ng || []) || (c.ng || []).length > 100 || (c.ng || []).some(x => !isObj(x) || !['i', 'f', 'v'].includes(x.t) || typeof x.n !== 'string' || !x.n.trim() || x.n.length > 60 || x.n.includes('|')) || !isObj(c.ni || {}) || Object.values(c.ni || {}).some(a => !strs(a))) return { error: 'bad_cs' };
-    cs = { hid: c.hid || [], hg: c.hg || [], ng: (c.ng || []).map(x => ({ t: x.t, n: x.n })), ni: c.ni || {} };
+    cs = { hid: c.hid || [], hg: c.hg || [], ng: (c.ng || []).map(x => ({ t: x.t, n: x.n })), ni: c.ni || {}, mtg: Math.max(0, Math.min(99, parseInt(c.mtg) || 0)) };
   }
   return { value: { bud, cs, sc } };
 }

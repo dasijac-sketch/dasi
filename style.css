@@ -193,3 +193,4 @@ body{background:#F6F7FB!important}
 .jr .jt .on{color:#1F3A5F;font-weight:600}.jr .jt .on i{background:#1F3A5F;color:#fff}.jr .jt .dn i{background:#1F6F50;color:#fff}
 .mnd{background:#FBF3DD;color:#5C4A14;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.5}
 .jd{margin-top:10px}.jd summary{cursor:pointer;font-weight:600;color:#1F3A5F;font-size:14px}.jd2 summary{cursor:pointer}
+.rl2{border:1px solid var(--ok)}.rl2.bd2{border-color:var(--bd)}
