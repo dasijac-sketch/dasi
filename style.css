@@ -195,3 +195,4 @@ body{background:#F6F7FB!important}
 .jd{margin-top:10px}.jd summary{cursor:pointer;font-weight:600;color:#1F3A5F;font-size:14px}.jd2 summary{cursor:pointer}
 .rl2{border:1px solid var(--ok)}.rl2.bd2{border-color:var(--bd)}
 .est{display:inline-block;background:#FBF3DD;color:#6B5412;border-radius:8px;padding:0 6px;font-size:11px;font-weight:600}.insl{margin-top:6px;font-size:12.5px;color:#46597A;line-height:1.5}.insl div:before{content:"• "}
+.rlr{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--ln,#EEF1F6)}.rlr:first-of-type{border-top:0}.rln{flex:none;width:26px;height:26px;border-radius:50%;background:#E8EEF8;color:#1F3A5F;display:flex;align-items:center;justify-content:center;font-size:13px}.rlt{font-weight:600;font-size:15px}.rld{font-size:13.5px;color:#46597A;line-height:1.55;margin-top:2px}

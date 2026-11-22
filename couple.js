@@ -16,7 +16,7 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['rl','הכללים'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{}}}
@@ -32,7 +32,7 @@ function apply(d){
 }
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
-  var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
+  var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
   app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'');
 }
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
