@@ -286,6 +286,7 @@ function planUI(ph,pi,pe,cT,hasCash){var st=ph==='start',pl=pi-pe,left=dLeft();
   '<div class="sg2"><div class="sk"><small>הכנסות צפויות החודש</small><b>'+fm(pi)+'</b></div><div class="sk"><small>הוצאות מתוכננות</small><b>'+fm(pe)+'</b></div><div class="sk"><small>יתרה מתוכננת</small><b class="'+(pl<0?'neg':'pos')+'">'+fm(pl)+'</b></div>'+(hasCash?'<div class="sk"><small>מזומן למשיכה</small><b>'+fm(cT)+'</b></div>':'')+'</div>'}
 function endUI(){if((S.md||{})[ym()])return '';return '<div class="hero2 plan"><div class="hb2" style="font-size:24px">סוגרים את החודש</div><div class="hm2" style="margin-top:6px;line-height:1.5">נשארו '+dLeft()+' ימים. מדווחים הוצאות בפועל, מאשרים שההכנסות נכונות וסוגרים מעטפות.</div><div class="f" style="margin-top:12px"><button class="btn" data-a="tab" data-id="mon">למעקב החודשי</button></div></div>'}
 function monBar(){var P=perNow(S.sd),cur=S.y===P.y&&S.m===P.m;return '<div class="mb'+(cur?'':' offm')+'"><button class="mbb" data-a="mpv" aria-label="חודש קודם">→</button><div class="mbt"><div class="mbn">'+MN[S.m-1]+' '+S.y+'</div><div class="mbs'+(cur?'':' off')+'">'+(cur?'החודש הנוכחי':'<button class="lnk" data-a="mcu">חזרה לחודש הנוכחי</button>')+'</div></div><button class="mbb" data-a="mnx" aria-label="חודש הבא">←</button></div>'}
+function rmUI(){if(STAGE<2||phase()!=='end')return '';var k='rm5'+ym();if((S.chd||{})[k])return '';var d=dLeft();return '<div class="c rl2"><b>'+(d>1?'נשארו '+d+' ימים לסגירת החודש':'מחר סוגרים את החודש')+'</b><div class="hint" style="margin:4px 0 8px">זה הזמן להתחיל להתכונן: לאסוף חיובי אשראי וחשבונות שהגיעו, ולבדוק שהוראות הקבע נכנסו. אין צורך לעשות הכול עכשיו.</div><button class="btn sec" data-a="rmd">הבנתי</button></div>'}
 function newsUI(){var sn=n(S.sn),lim=Date.now()-14*864e5,l=INBOX.filter(function(m){return m.ts>sn&&m.ts>lim}).sort(function(a,b){return b.ts-a.ts});if(!l.length)return '';
   var K={msg:'הודעה חדשה מהמאמנת',tk:'משימה חדשה מהמאמנת',ch:'אתגר חדש מהמאמנת'};
   return '<div class="nw" role="status"><b>'+(l.length===1?K[l[0].k]||'הודעה חדשה מהמאמנת':l.length+' עדכונים חדשים מהמאמנת')+'</b>'+l.slice(0,3).map(function(m){return '<div class="nwi">'+esc(m.x)+'</div>'}).join('')+'<div class="f"><button class="btn" data-a="nsn">קראתי</button>'+(l.some(function(m){return m.k!=='msg'})?'<button class="btn sec" data-a="tab" data-id="tasks">למשימות</button>':'')+'</div></div>'}
@@ -316,7 +317,7 @@ function home(){
    var ev0=st2?envKs():[],cT=0;ev0.forEach(function(x){cT+=n(S.bud[x.k])});
    var ph=st2?phase():'';
    var h=st2?((ph==='start'||ph==='mid')?planUI(ph,pi,pe,cT,ev0.length):(ph==='end'?endUI():'')+heroUI(ai,ae,pi,pe,cT,ev0.length)):'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
-  h=newsUI()+(st2?monBar():'')+h;
+  h=newsUI()+(st2?monBar():'')+rmUI()+h;
   h+=journeyUI();
   h+=remUI();
   if(st2)h+=yrkUI();

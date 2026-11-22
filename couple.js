@@ -114,6 +114,7 @@ document.addEventListener('click',function(e){
   else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;render()}
   else if(a==='r37'){var v=Math.min(1e9,n(document.getElementById('r37').value)),o=document.getElementById('r37o');o.textContent=v>0?(v>10000?'מעל 10,000 ₪ כדאי להתייעץ עם המאמנת. לפי הכלל, ':'')+'לחיסכון '+fm(v*.7)+' · להעלאת רמת חיים '+fm(v*.3):'הזינו סכום'}
   else if(a==='yrk'){S.chd.yrk=Date.now();S.chd['yk'+new Date().getFullYear()]=1;save();render()}
+  else if(a==='rmd'){S.chd['rm5'+ym()]=1;save()}
   else if(a==='nsn'){S.sn=Date.now();save();render()}
   else if(a==='dvc'){if(!confirm('לנתק את כל המכשירים האחרים? הם ייכנסו שוב עם הסיסמה.'))return;fetch(API+'/rotate',{method:'POST'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){location.href='/c/'+encodeURIComponent(j.token)}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='pws'){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value,re=document.getElementById('ccr');
