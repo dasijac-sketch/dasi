@@ -55,7 +55,7 @@ function grp(g,mode){
     if(mode==='mon'){var bv=n(S.bud[k]),av=n(s[k]),d=g.t==='i'?av-bv:bv-av;return '<div class="r"><label>'+esc(i)+'<small>תקציב '+fm(bv)+(g.t!=='i'&&pmv(g,i)?' · '+esc(pmv(g,i)):'')+'</small></label>'+inp+'<span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}
     if(mode==='bal'){var mo=(S.mo[k]||[]).slice(),fl=mo.filter(function(v){return v!==''&&v!=null}).length,rt=S.rt[k]||{},ex2=g.t!=='i';
       while(mo.length<2)mo.push('');
-      var sel=function(w){return '<select data-s="rt" data-k="'+esc(k)+'" data-w="'+w+'" aria-label="דירוג"><option value="">—</option>'+[1,2,3,4,5].map(function(v){return '<option'+(String(rt[w])===String(v)?' selected':'')+'>'+v+'</option>'}).join('')+'</select>'};
+      var sel=function(w){return '<select data-s="rt" data-k="'+esc(k)+'" data-w="'+w+'" aria-label="דירוג"><option value="">—</option>'+[1,2,3,4,5,6,7,8,9,10].map(function(v){return '<option'+(String(rt[w])===String(v)?' selected':'')+'>'+v+'</option>'}).join('')+'</select>'};
       var ra=n(rt.a),rb=n(rt.b),rav=ra&&rb?(ra+rb)/2:0;
       return '<div class="it bl"><div class="tot" style="padding:0"><span>'+esc(i)+'</span><span>'+(s[k]!==undefined&&s[k]!==''?fm(n(s[k])):'—')+'</span></div>'+
       '<div class="dt">'+Array.from(mo,function(v,j){return '<span><small>חודש '+(j+1)+'</small><input type="number" inputmode="decimal" min="0" data-s="mo" data-k="'+esc(k)+'" data-j="'+j+'" value="'+(v===undefined||v===null?'':v)+'"'+(g.auto?' disabled':'')+'></span>'}).join('')+'<button class="btn sec" data-a="mo" data-id="'+esc(k)+'" aria-label="הוספת חודש">+ חודש</button></div>'+
