@@ -151,7 +151,7 @@ function txSum(){var gl=txGroups(),e={},i={},te=0,ti=0,m={},ot=0;
     Object.keys(m).forEach(function(k){Object.keys(m[k]).forEach(function(p){m[k][p]=Math.round(m[k][p])})});return{m:m,ot:Math.round(ot),e:e,i:i,te:0,ti:0}}
   gl.forEach(function(g){var v=TX.as[g.k];if(!v||v==='x'||v==='__env')return;v=txVK(v);var t=Math.round(g.t);if(g.inc){i[v]=(i[v]||0)+t;ti+=t}else{e[v]=(e[v]||0)+t;te+=t}});
   return{e:e,i:i,te:te,ti:ti,m:m,ot:0}}
-function txHas(){var a=S.act[ym()]||{};return Object.keys(a).some(function(x){return n(a[x])>0})}
+function txHas(){var a=S.act[ym()]||{};return Object.keys(a).some(function(x){var g=G.filter(function(q){return q.n===x.split('|')[0]})[0];if(g&&g.t==='i'&&n(a[x])===n(S.bud[x]))return false;return n(a[x])>0})}
 function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
   if(TX.bal){var ps=Object.keys(TX.pm).filter(function(p){return TX.pm[p]}).map(Number).sort(function(a,b){return a-b});
     Object.keys(sm.m).forEach(function(k){S.mo[k]=ps.map(function(p){return n(sm.m[k][p])});rc(k)});
