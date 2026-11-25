@@ -89,6 +89,7 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='mf'){MF=b.dataset.id}
+  else if(a==='gofc'){S.tab='sv';render();setTimeout(function(){var f=document.getElementById('fcc');if(f)f.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
   else if(a==='blk'){S.bl=Date.now();save()}
   else if(a==='bul'){S.bl=0;save()}
   else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:S.y+'-'+(S.m<10?'0':'')+S.m,bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
