@@ -353,14 +353,13 @@ function home(){
   var pk=(S.m===1?(S.y-1)+'-12':S.y+'-'+(S.m-1)),pv=ts('act','i',pk)-ex('act',pk),cv=ai-ae,dl=(ts('act','i',pk)>0||ex('act',pk)>0)?cv-pv:null;
    var ev0=st2?envKs():[],cT=0;ev0.forEach(function(x){cT+=n(S.bud[x.k])});
    var ph=st2?phase():'';
-   var h=st2?trendUI():'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
-  h=newsUI()+rmUI()+h;
+   var h=st2?trendUI()+pmChart():'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
+  h=greet()+remUI()+newsUI()+rmUI()+h;
   h+=journeyUI();
-  h+=remUI();
   if(st2)h+=yrkUI();
   if(st2&&ph==='start')h+=mtgUI();
   if(!st2&&done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
-  if(st2)h+=pmChart()+rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
+  if(st2)h+=rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
   if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
@@ -462,18 +461,23 @@ function rptUI(){var ms=lastMs();
 
 function mSum(k){var i=0,e=0;G.forEach(function(g){its(g).forEach(function(it){var v=n((S.act[k]||{})[g.n+'|'+it]);if(g.t==='i')i+=v;else if(segOf(g,it)!=='sv')e+=v})});return{i:i,e:e}}
 function trendUI(){var ms=lastMs().slice().reverse();
-  if(!ms.length)return '<div class="hero2"><div class="hm2">מגמות</div><div class="hb2" style="font-size:22px">שלום משפחת '+esc(S.fam)+'</div><div class="hm2" style="margin-top:6px">אחרי שתסגרו את החודש הראשון יופיעו כאן מגמות של 3 החודשים האחרונים.</div></div>';
+  if(!ms.length)return '<div class="c"><div class="rph" style="color:#1F3A5F">'+ic('trend',20)+'<b>מגמות</b></div><div class="hint" data-hf="1" style="margin:6px 0 0">אחרי שתסגרו את החודש הראשון יופיעו כאן מגמות של 3 החודשים האחרונים.</div></div>';
   var d=ms.map(function(x){var t=mSum(x.k);return{l:MN[x.m-1],i:t.i,e:t.e,b:t.i-t.e}}),mx=Math.max.apply(null,d.map(function(x){return Math.max(x.i,x.e)}))||1,av=d.reduce(function(s,x){return s+x.b},0)/d.length;
   var tr='';if(d.length>1){var a=d[0].e,b=d[d.length-1].e;if(a>0){var p=Math.round((b-a)/a*100);tr=p>3?'ההוצאות עלו ב-'+p+'% מ'+d[0].l+' ל'+d[d.length-1].l:p<-3?'ההוצאות ירדו ב-'+(-p)+'% מ'+d[0].l+' ל'+d[d.length-1].l:'ההוצאות יציבות'}}
   return '<div class="c trd"><div class="rph" style="color:#1F3A5F">'+ic('trend',20)+'<b>מגמות '+(d.length>1?d.length+' החודשים האחרונים':'החודש האחרון')+'</b></div>'+
-   '<div class="trb">'+d.map(function(x){return '<div class="trc"><div class="trbars"><i class="ti" style="height:'+Math.round(x.i/mx*100)+'%" title="הכנסות '+fm(x.i)+'"></i><i class="te" style="height:'+Math.round(x.e/mx*100)+'%" title="הוצאות '+fm(x.e)+'"></i></div><span>'+x.l+'</span><b class="'+(x.b<0?'neg':'pos')+'">'+fm(x.b)+'</b></div>'}).join('')+'</div>'+
-   '<div class="trl"><span><i class="ti"></i>הכנסות</span><span><i class="te"></i>הוצאות</span></div>'+
+   '<div class="rgs">'+d.map(function(x){var r=x.i>0?x.e/x.i:1,c=r>1?'#b23b3b':r>.9?'#C9A23F':'#1f7a3a';return '<div class="rgc">'+donut([{v:Math.min(r,1),c:c},{v:Math.max(0,1-Math.min(r,1)),c:'#e8edf3'}],84,10,'<b>'+Math.round(r*100)+'%</b>')+'<span>'+x.l+'</span><b class="'+(x.b<0?'neg':'pos')+'">'+fm(x.b)+'</b></div>'}).join('')+'</div>'+
+   '<div class="hint" data-hf="1" style="text-align:center;margin:2px 0 6px">כמה מההכנסה הלך להוצאות בכל חודש</div>'+
    '<div class="csl">'+ic('dot',16)+'<span>יתרה ממוצעת: <b class="'+(av<0?'neg':'')+'">'+fm(av)+'</b> בחודש'+(tr?' · '+tr:'')+'</span></div></div>'}
-function pmChart(){var ms=lastMs().slice().reverse();if(!ms.length)return '';var SG=[['אשראי','אשראי','#1F3A5F'],['מזומן','מזומן','#C9A23F'],['הו"ק','הוראות קבע','#2c6e91'],['sv','חיסכון','#9bbf3a']];
-  var d=ms.map(function(x){var o={};SG.forEach(function(s){o[s[0]]=0});G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(it){var sg=segOf(g,it);if(o[sg]!=null)o[sg]+=n(x.a[g.n+'|'+it])})});var t=0;SG.forEach(function(s){t+=o[s[0]]});return{l:MN[x.m-1],o:o,t:t}}),mx=Math.max.apply(null,d.map(function(x){return x.t}))||1;
-  return '<div class="c"><div class="rph" style="color:#1F3A5F">'+ic('card',20)+'<b>לאן הלך הכסף</b></div><div class="hint" data-hf="1" style="margin:4px 0 10px">הוצאות לפי אמצעי תשלום ב'+(d.length>1?d.length+' החודשים האחרונים':'חודש האחרון')+'.</div>'+
-   d.map(function(x){return '<div class="pmr"><span class="pml">'+x.l+'</span><div class="pmb" style="width:'+Math.max(8,Math.round(x.t/mx*100))+'%">'+SG.map(function(s){var v=x.o[s[0]];return v?'<i style="flex:'+v+';background:'+s[2]+'" title="'+s[1]+' '+fm(v)+'"></i>':''}).join('')+'</div><b>'+fm(x.t)+'</b></div>'}).join('')+
-   '<div class="trl" style="flex-wrap:wrap;margin-top:8px">'+SG.map(function(s){var t=d.reduce(function(a,x){return a+x.o[s[0]]},0);return t?'<span><i style="background:'+s[2]+'"></i>'+s[1]+' '+fm(t/d.length)+' בממוצע</span>':''}).join('')+'</div></div>'}
+function pmChart(){var ms=lastMs();if(!ms.length)return '';var SG=[['אשראי','אשראי','#1F3A5F'],['מזומן','מזומן','#C9A23F'],['הו"ק','הוראות קבע','#5b8fb0'],['sv','חיסכון','#9bbf3a']],o={},t=0;SG.forEach(function(s){o[s[0]]=0});
+  ms.forEach(function(x){G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(it){var sg=segOf(g,it);if(o[sg]!=null)o[sg]+=n(x.a[g.n+'|'+it])})})});SG.forEach(function(s){t+=o[s[0]]});if(!t)return '';
+  var av=t/ms.length;
+  return '<div class="c"><div class="rph" style="color:#1F3A5F">'+ic('card',20)+'<b>לאן הלך הכסף</b></div><div class="pmw">'+donut(SG.map(function(s){return{v:o[s[0]],c:s[2]}}),132,18,'<small>ממוצע לחודש</small><b>'+fm(av)+'</b>')+
+   '<div class="pml2">'+SG.filter(function(s){return o[s[0]]}).map(function(s){return '<div><i style="background:'+s[2]+'"></i><span>'+s[1]+'</span><b>'+Math.round(o[s[0]]/t*100)+'%</b><small>'+fm(o[s[0]]/ms.length)+'</small></div>'}).join('')+'</div></div>'+
+   '<div class="hint" data-hf="1" style="margin:8px 0 0">חלוקת ההוצאות לפי אמצעי תשלום ב'+(ms.length>1?ms.length+' החודשים האחרונים':'חודש האחרון')+'.</div></div>'}
+function donut(seg,sz,th,ctr){var r=(sz-th)/2,C=2*Math.PI*r,t=seg.reduce(function(a,x){return a+x.v},0)||1,off=0,cs='';
+  seg.forEach(function(x){if(!x.v)return;var l=x.v/t*C;cs+='<circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r+'" fill="none" stroke="'+x.c+'" stroke-width="'+th+'" stroke-dasharray="'+l+' '+(C-l)+'" stroke-dashoffset="'+(-off)+'"/>';off+=l});
+  return '<div class="dnt" style="width:'+sz+'px;height:'+sz+'px"><svg viewBox="0 0 '+sz+' '+sz+'" width="'+sz+'" height="'+sz+'" style="transform:rotate(-90deg)"><circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r+'" fill="none" stroke="#eef2f7" stroke-width="'+th+'"/>'+cs+'</svg><div class="dnc">'+ctr+'</div></div>'}
+function greet(){var hr=new Date().getHours(),g=hr<5?'לילה טוב':hr<12?'בוקר טוב':hr<17?'צהריים טובים':hr<21?'ערב טוב':'לילה טוב';return '<div class="mhd"><h2 class="mtt">'+g+(S.fam?' משפחת '+esc(S.fam):'')+'</h2></div>'}
 function svChUI(){var ms=lastMs();if(ms.length<2)return '';var cur=ms[0],prv=ms[1],out=[];
   G.forEach(function(g){its(g).forEach(function(it){if(segOf(g,it)!=='sv')return;var kk=g.n+'|'+it,a=n(cur.a[kk]),b=n(prv.a[kk]);
     if(b>0&&a===0)out.push([it,'הופסק','הופקדו '+fm(b)+' ב'+MN[prv.m-1]+', ובחודש '+MN[cur.m-1]+' לא הופקד כלום']);
