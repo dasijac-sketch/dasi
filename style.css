@@ -269,3 +269,6 @@ i.ti{background:#9bbf3a}i.te{background:#1F3A5F}.trc span{font-size:13px;color:v
 .gkn{display:flex;align-items:center;gap:8px}.gki{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;flex:none}.gcta{text-align:center}
 
 .scb{display:flex;justify-content:flex-end;margin:-4px 0 10px}.scd{border:1px solid #e3b4b4;background:#fcf3f3}.btn.dng{background:#b23b3b}
+
+.rgv{display:grid;grid-template-columns:auto auto;gap:0 6px;font-size:12px;align-items:baseline}.rgv small{color:var(--mu);text-align:right}.rgv b{font-size:13px;text-align:left}
+.pmt{display:grid;gap:8px 6px;align-items:center;margin-top:10px;font-variant-numeric:tabular-nums}.pmt>small{text-align:center;color:var(--mu);font-size:12px}.pmt>b{text-align:center;font-size:14px;font-weight:600}.pmt .pav{background:#f2f4f8;border-radius:6px;padding:2px 0}.pmn{display:flex;align-items:center;gap:6px;font-size:14px}.pmn .ic{color:#2c6e91}.pmtt{grid-column:1/-1;border-top:1px solid var(--ln);height:0}
