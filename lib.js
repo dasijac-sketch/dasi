@@ -75,7 +75,16 @@ function bal(){
   (p&&food?'<div class="tot"><span>מזון לנפש לשבוע</span><span>'+fm(food/p/4.2)+'</span></div>':'')+'</div>'+
   '<div class="c"><b>הוספת סעיף</b><div class="f" style="margin-top:8px"><select id="cg">'+opts+'</select><input id="cn" placeholder="שם הסעיף"><button class="btn" data-a="add">הוספה</button></div></div>'}
 function structUI(){var o=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');return '<div class="c"><b>ניהול קטגוריות</b><p class="hint">שינוי כאן מתעדכן אצל הזוג במאזן, בתקציב, במעקב ובסיכומים. אפשר להוסיף ולהסיר תתי קטגוריות, ולהוסיף קטגוריה חדשה (רק קטגוריה שהוספת אפשר להסיר). הסרה מסתירה את הסעיף, והנתונים נשמרים.</p><div class="f"><select id="sg">'+o+'</select><input id="sn" placeholder="שם תת קטגוריה"><button class="btn" data-a="ai">הוספת תת קטגוריה</button></div><div class="f" style="margin-top:8px"><select id="ct"><option value="f">הוצאה קבועה (אשראי)</option><option value="v">הוצאה משתנה (מעטפה)</option><option value="i">הכנסה</option></select><input id="cn2" placeholder="שם קטגוריה חדשה"><button class="btn" data-a="ag">הוספת קטגוריה</button></div></div>'}
-function bud(){return '<p class="hint">'+(RO?'התקציב נקבע עבורכם על ידי המאמנת, ומוצג כאן לצפייה.':ADM?'התקציב נבנה מהמאזן. אפשר להעתיק אותו ואז לשנות סעיפים.':'התקציב נבנה יחד עם המאמנת. אפשר לעדכן סכומים בכל עת.')+'</p>'+(ADM&&!RO?'<button class="btn" data-a="fill" style="margin-bottom:6px">העתק מהמאזן</button>':'')+secs('bud')+bottom('bud')+(ADM?structUI():'')}
+function budLocked(){return !ADM&&!RO&&!!n(S.bl)&&!S.vs}
+function budLock(){if(ADM||RO||S.vs)return '';return n(S.bl)?'<button class="lkb on" data-a="bul" title="לחיצה לפתיחת התקציב לעריכה" aria-label="פתיחת התקציב">'+ic('lock',18)+'<span>נעול</span></button>':'<button class="lkb" data-a="blk" title="לחיצה לנעילת התקציב" aria-label="נעילת התקציב">'+ic('unlock',18)+'<span>פתוח</span></button>'}
+function pgHead(t,r){return '<div class="mhd"><h2 class="mtt">'+esc(t)+'</h2><span style="flex:1"></span>'+(r||'')+'</div>'}
+function scBar(){if(ADM||STAGE<2)return '';var l=S.sc||[];
+  return '<div class="mft">'+'<button class="'+(!S.vs?'on':'')+'" data-a="vs0" data-id="">התקציב הנוכחי</button>'+l.map(function(z){return '<button class="'+(S.vs===z.id?'on':'')+'" data-a="vs0" data-id="'+esc(z.id)+'">'+esc(z.n)+'</button>'}).join('')+'</div>'+
+   (RO?'':'<details class="c nsc"><summary>'+ic('plus',18)+'<span>תסריט חדש</span></summary><div class="hint" style="margin:6px 0">התסריט מעתיק את התקציב הנוכחי, ואפשר לשנות בו סכומים בלי לגעת בתקציב עצמו.</div><div class="f"><input id="scn" maxlength="60" placeholder="שם התסריט, למשל: אחרי עליית שכר" style="flex:1 1 160px"><button class="btn" data-a="nsc" title="יצירת תסריט">'+ic('check',18)+'<span>יצירה</span></button></div></details>')}
+function budSum(){var i=ts('bud','i'),e=ex('bud');return '<div class="s3"><div><span>הכנסות ₪</span><b>'+fm(i).replace(' ₪','')+'</b></div><div><span>הוצאות ₪</span><b>'+fm(e).replace(' ₪','')+'</b></div><div><span>יתרה ₪</span><b class="'+(i-e<0?'neg':'pos')+'">'+fm(i-e).replace(' ₪','')+'</b></div></div>'}
+function budRO(){var h='';G.forEach(function(g){var rows=its(g).map(function(i){return{i:i,v:n(S.bud[g.n+'|'+i])}}).filter(function(r){return r.v});if(!rows.length)return;var t=rows.reduce(function(s,r){return s+r.v},0);
+  h+='<div class="c lkg"><div class="lkh">'+gic(g.n)+'<b>'+esc(g.n)+'</b></div>'+rows.map(function(r){return '<div class="brr"><span>'+mic(g,r.i)+' '+esc(r.i)+'</span><b>'+fm(r.v)+'</b></div>'}).join('')+'<div class="brr lks"><span>סה"כ</span><b>'+fm(t)+'</b></div></div>'});return h}
+function bud(){if(budLocked())return scBar()+budSum()+budRO();return (ADM?'':scBar()+budSum())+'<p class="hint">'+(RO?'התקציב נקבע עבורכם על ידי המאמנת, ומוצג כאן לצפייה.':ADM?'התקציב נבנה מהמאזן. אפשר להעתיק אותו ואז לשנות סעיפים.':(S.vs?'אתם עורכים תסריט. התקציב הנוכחי לא משתנה.':'התקציב נבנה יחד עם המאמנת. אפשר לעדכן סכומים, ולנעול במנעול למעלה כשמסיימים.'))+'</p>'+(ADM&&!RO?'<button class="btn" data-a="fill" style="margin-bottom:6px">העתק מהמאזן</button>':'')+secs('bud')+bottom('bud')+(ADM?structUI():'')}
 function mgmtRulesUI(){var cT=0,dy=Math.min(28,Math.max(1,n(S.sd)||1));envKs().forEach(function(x){cT+=n(S.bud[x.k])});
  function R(i,t,d){return '<div class="rlr"><b class="rln">'+i+'</b><div><div class="rlt">'+t+'</div><div class="rld">'+d+'</div></div></div>'}
  return '<div class="c"><b style="font-size:17px">כללי ניהול התקציב</b><div class="hint" style="margin:4px 0 0">מעט כללים פשוטים שמחזיקים את התקציב לאורך זמן. כדאי לחזור אליהם מדי פעם.</div></div>'+
@@ -351,7 +360,7 @@ function home(){
   if(st2)h+=yrkUI();
   if(st2&&ph==='start')h+=mtgUI();
   if(!st2&&done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
-  if(st2)h+=rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
+  if(st2)h+=pmChart()+rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
   if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
@@ -460,6 +469,11 @@ function trendUI(){var ms=lastMs().slice().reverse();
    '<div class="trb">'+d.map(function(x){return '<div class="trc"><div class="trbars"><i class="ti" style="height:'+Math.round(x.i/mx*100)+'%" title="הכנסות '+fm(x.i)+'"></i><i class="te" style="height:'+Math.round(x.e/mx*100)+'%" title="הוצאות '+fm(x.e)+'"></i></div><span>'+x.l+'</span><b class="'+(x.b<0?'neg':'pos')+'">'+fm(x.b)+'</b></div>'}).join('')+'</div>'+
    '<div class="trl"><span><i class="ti"></i>הכנסות</span><span><i class="te"></i>הוצאות</span></div>'+
    '<div class="csl">'+ic('dot',16)+'<span>יתרה ממוצעת: <b class="'+(av<0?'neg':'')+'">'+fm(av)+'</b> בחודש'+(tr?' · '+tr:'')+'</span></div></div>'}
+function pmChart(){var ms=lastMs().slice().reverse();if(!ms.length)return '';var SG=[['אשראי','אשראי','#1F3A5F'],['מזומן','מזומן','#C9A23F'],['הו"ק','הוראות קבע','#2c6e91'],['sv','חיסכון','#9bbf3a']];
+  var d=ms.map(function(x){var o={};SG.forEach(function(s){o[s[0]]=0});G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(it){var sg=segOf(g,it);if(o[sg]!=null)o[sg]+=n(x.a[g.n+'|'+it])})});var t=0;SG.forEach(function(s){t+=o[s[0]]});return{l:MN[x.m-1],o:o,t:t}}),mx=Math.max.apply(null,d.map(function(x){return x.t}))||1;
+  return '<div class="c"><div class="rph" style="color:#1F3A5F">'+ic('card',20)+'<b>לאן הלך הכסף</b></div><div class="hint" data-hf="1" style="margin:4px 0 10px">הוצאות לפי אמצעי תשלום ב'+(d.length>1?d.length+' החודשים האחרונים':'חודש האחרון')+'.</div>'+
+   d.map(function(x){return '<div class="pmr"><span class="pml">'+x.l+'</span><div class="pmb" style="width:'+Math.max(8,Math.round(x.t/mx*100))+'%">'+SG.map(function(s){var v=x.o[s[0]];return v?'<i style="flex:'+v+';background:'+s[2]+'" title="'+s[1]+' '+fm(v)+'"></i>':''}).join('')+'</div><b>'+fm(x.t)+'</b></div>'}).join('')+
+   '<div class="trl" style="flex-wrap:wrap;margin-top:8px">'+SG.map(function(s){var t=d.reduce(function(a,x){return a+x.o[s[0]]},0);return t?'<span><i style="background:'+s[2]+'"></i>'+s[1]+' '+fm(t/d.length)+' בממוצע</span>':''}).join('')+'</div></div>'}
 function svChUI(){var ms=lastMs();if(ms.length<2)return '';var cur=ms[0],prv=ms[1],out=[];
   G.forEach(function(g){its(g).forEach(function(it){if(segOf(g,it)!=='sv')return;var kk=g.n+'|'+it,a=n(cur.a[kk]),b=n(prv.a[kk]);
     if(b>0&&a===0)out.push([it,'הופסק','הופקדו '+fm(b)+' ב'+MN[prv.m-1]+', ובחודש '+MN[cur.m-1]+' לא הופקד כלום']);

@@ -19,7 +19,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['rl','הכללים'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{},tx:S.tx||{},nwi:S.nwi||{}}}
+function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{},tx:S.tx||{},nwi:S.nwi||{},bl:n(S.bl)}}
 function apply(d){
   PWSET=d.pwset?1:0;PROF=d.profile||{};
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
@@ -33,7 +33,8 @@ function apply(d){
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
-  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+fabUI();
+  var tl=(tabs().filter(function(t){return t[0]===S.tab})[0]||[])[1]||'';tl=tl.replace(/\s*\(\d+\)$/,'');
+  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+fabUI();
   hintFold(app);
 }
 window.render=render;window.save=save;
@@ -88,6 +89,10 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='mf'){MF=b.dataset.id}
+  else if(a==='blk'){S.bl=Date.now();save()}
+  else if(a==='bul'){S.bl=0;save()}
+  else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:S.y+'-'+(S.m<10?'0':'')+S.m,bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
+  else if(a==='vs0'){S.vs=b.dataset.id||'';try{localStorage.setItem('vs',S.vs)}catch(e){}useVs()}
   else if(a==='eye'){var ek2=b.dataset.k;EYE[ek2]=!EYE[ek2]}
   else if(a==='xpdf'){window.print();return}
   else if(a==='xcsv'){xCsv();return}
