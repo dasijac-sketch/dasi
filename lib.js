@@ -478,7 +478,7 @@ function gIc(nm){nm=nm||'';return /חופש|טיול|נופש|חו"ל/.test(nm)?
 function goalsUI(){var h='';
 var gl=S.L.gl.filter(function(x){return n(x.t)>0});
   if(gl.length)h+='<div class="sh"><h2>'+ic('trend',20)+' היעדים שלנו</h2></div><div class="gcs">'+gl.map(function(x,i){var t=n(x.t),p=Math.min(100,Math.round(n(x.s)/t*100)),c=['#C9A23F','#1F6F50','#1F3A5F','#8C3B3B'][i%4],m=gm(x.d);
-    return '<div class="gk"><div class="gkn"><span class="gki" style="color:'+c+';background:'+c+'1f">'+ic(gIc(x.n),18)+'</span>'+esc(x.n||'יעד')+'</div><div class="gkb"><i style="width:'+p+'%;background:'+c+'"></i></div><small>'+fm(n(x.s))+' מתוך '+fm(t)+' · '+p+'%</small>'+(p>=100?'<small class="ms">היעד הושג, כל הכבוד!</small>':p>=50?'<small class="ms">עברתם חצי מהדרך</small>':'')+(m>0&&t>n(x.s)?'<small>כדאי לחסוך '+fm((t-n(x.s))/m)+' בחודש</small>':'')+'</div>'}).join('')+'</div>';
+    return '<div class="gk"><div class="gkn"><span class="gki" style="color:'+c+';background:'+c+'1f">'+ic(gIc(x.n),18)+'</span>'+esc(x.n||'יעד')+'</div><div class="gkb"><i style="width:'+p+'%;background:'+c+'"></i></div><small>'+fm(n(x.s))+' מתוך '+fm(t)+' <span style="opacity:.7">(משוער)</span></small></div>'}).join('')+'</div>';
   if(gl.length)h+='<div class="c gcta"><div class="hint" data-hf="1" style="margin:0 0 10px">כדי לדעת כמה כדאי לחסוך בכל חודש כדי להגיע ליעד, היכנסו למחשבון ריבית דריבית.</div><button class="btn sec" data-a="gofc" title="מחשבון ריבית דריבית">'+ic('trend',18)+'<span>מחשבון ריבית דריבית</span></button></div>';
   return h}
 function greet(){var hr=new Date().getHours(),g=hr<5?'לילה טוב':hr<12?'בוקר טוב':hr<17?'צהריים טובים':hr<21?'ערב טוב':'לילה טוב';return '<div class="mhd"><h2 class="mtt">'+g+(S.fam?' משפחת '+esc(S.fam):'')+'</h2></div>'}
