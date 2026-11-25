@@ -267,3 +267,5 @@ i.ti{background:#9bbf3a}i.te{background:#1F3A5F}.trc span{font-size:13px;color:v
 .pml3{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.pml3 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
 
 .gkn{display:flex;align-items:center;gap:8px}.gki{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;flex:none}.gcta{text-align:center}
+
+.scb{display:flex;justify-content:flex-end;margin:-4px 0 10px}.scd{border:1px solid #e3b4b4;background:#fcf3f3}.btn.dng{background:#b23b3b}

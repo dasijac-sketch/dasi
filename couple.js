@@ -93,7 +93,10 @@ document.addEventListener('click',function(e){
   else if(a==='blk'){S.bl=Date.now();save()}
   else if(a==='bul'){S.bl=0;save()}
   else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:S.y+'-'+(S.m<10?'0':'')+S.m,bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
-  else if(a==='vs0'){S.vs=b.dataset.id||'';try{localStorage.setItem('vs',S.vs)}catch(e){}useVs()}
+  else if(a==='dsc'){SCDEL=S.vs}
+  else if(a==='dscn'){SCDEL=''}
+  else if(a==='dscy'){var did=SCDEL;SCDEL='';S.sc=(S.sc||[]).filter(function(z){return z.id!==did});S.vs='';try{localStorage.setItem('vs','')}catch(e){}useVs();save()}
+  else if(a==='vs0'){SCDEL='';S.vs=b.dataset.id||'';try{localStorage.setItem('vs',S.vs)}catch(e){}useVs()}
   else if(a==='eye'){var ek2=b.dataset.k;EYE[ek2]=!EYE[ek2]}
   else if(a==='xpdf'){window.print();return}
   else if(a==='xcsv'){xCsv();return}
