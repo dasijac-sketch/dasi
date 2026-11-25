@@ -61,7 +61,9 @@ function txFind(frs,inc){var it=txItems().filter(function(x){return inc?x.g.t===
   for(var a=0;a<frs.length;a++)for(var b=0;b<it.length;b++)if(it[b].i.indexOf(frs[a])>=0||it[b].g.n.indexOf(frs[a])>=0)return it[b].k;return ''}
 function txValid(k){return txItems().some(function(x){return x.k===k})}
 function txOtG(){var g=G.filter(function(x){return x.n==='שונות משתנות'})[0]||G.filter(function(x){return x.t==='v'})[0]||G.filter(function(x){return x.t!=='i'})[0];return g?g.n:'שונות משתנות'}
-function txVK(v){return v&&v.indexOf('__ot:')===0?txOtG()+'|חד-פעמי: '+v.slice(5):v}
+function txIsOt(v){return !!v&&(v.indexOf('__ot:')===0||v.indexOf('__oi:')===0)}
+function txOtI(){var g=G.filter(function(x){return x.t==='i'})[0];return g?g.n:'הכנסות'}
+function txVK(v){return v&&v.indexOf('__ot:')===0?txOtG()+'|חד-פעמי: '+v.slice(5):v&&v.indexOf('__oi:')===0?txOtI()+'|חד-פעמי: '+v.slice(5):v}
 var TXGEN=/^(הוראת קבע|העברה|העברה דיגיטל|העברה בנקאית|שיק|הפקדת שיק|ביט|פייבוקס|paybox|זיכוי|חיוב|הפקדה|משיכה|העברה מחשבון|העברה לחשבון)$/i;
 function txEK(e,i){var inc=e.b&&e.a<0,base=(inc?'i':'e')+'|'+e.nm;return TX.spm&&TX.spm[base]?base+'#'+i:base}
 function txGroups(){var gs={},cardAny=TX.ents.some(function(e){return !e.b}),cnt={};TX.sp=TX.sp||{};
@@ -71,24 +73,24 @@ function txGroups(){var gs={},cardAny=TX.ents.some(function(e){return !e.b}),cnt
     g.n++;g.t+=inc?-e.a:e.a;if(e.d<g.d1)g.d1=e.d;if(e.d>g.d2)g.d2=e.d;if(e.b&&!inc){if(TXCARD.test(e.nm)&&cardAny)g.sk='card';else if(TXCASH.test(e.nm))g.sk='cash'}});
   var l=Object.keys(gs).map(function(k){return gs[k]});
   l.forEach(function(g){if(TX.as[g.k]===undefined){var v='',ur=S.ur||{};
-    if(g.sk)v='x';else{var rk=g.sub?'':ur[g.k];if(rk&&(rk==='x'||txValid(rk)))v=rk;
+    if(g.sk)v=g.sk==='cash'&&!TX.bal&&envKs().length?'__env':'x';else{var rk=g.sub?'':ur[g.k];if(rk&&(rk==='x'||rk==='__env'||txValid(rk)))v=rk;
       if(!v)for(var i=0;i<TXD.length&&!v;i++)if(TXD[i][0].test(g.nm)&&!g.inc)v=txFind(TXD[i][1],false);
       if(!v&&g.ct&&!g.inc)for(var j=0;j<TXC.length&&!v;j++)if(TXC[j][0].test(g.ct))v=txFind(TXC[j][1],false)}
     TX.as[g.k]=v}});
   return l.sort(function(a,b){return b.t-a.t})}
 function txOpts(inc){var s='<option value="">בחירה…</option>';
   G.forEach(function(g){if((g.t==='i')!==inc)return;var it=its(g);if(!it.length)return;s+='<optgroup label="'+esc(g.n)+'">'+it.map(function(i){return '<option value="'+esc(g.n+'|'+i)+'">'+esc(i)+'</option>'}).join('')+'</optgroup>'});
-  if(inc)return s+'<option value="x">לא נספר כהכנסה</option><option value="__new">+ סעיף חדש…</option>';
-  return s+'<option value="x">לא נספר (העברה/חיוב כפול)</option><option value="__ot">הוצאה חד-פעמית…</option><option value="__new">+ קטגוריה חדשה…</option>'}
+  if(inc)return s+'<option value="x">לא נספר כהכנסה</option><option value="__ot">הכנסה חד-פעמית…</option><option value="__new">+ סעיף חדש…</option>';
+  return s+'<option value="x">לא נספר (העברה/חיוב כפול)</option>'+(!TX.bal&&envKs().length?'<option value="__env">משיכה למעטפות</option>':'')+'<option value="__ot">הוצאה חד-פעמית…</option><option value="__new">+ קטגוריה חדשה…</option>'}
 function txBtn(){if(STAGE<2||RO)return '';var done=n((S.md||{})[ym()]);
   return '<div class="c"><b>העלאת פירוט אשראי ועו"ש</b><div class="hint" style="margin:4px 0 8px">'+(done?'אפשר להעלות שוב ולעדכן את הסיווג.':'בסוף החודש מעלים את קבצי האקסל מחברת האשראי ומהבנק, מסווגים את ההוצאות לקטגוריות התקציב, וממשיכים לדיווח על המעטפות.')+'</div><button class="btn" data-tx="open">להעלאת קבצים וסיווג</button></div>'}
 function txBtnBal(){if(typeof ADM!=='undefined'&&ADM)return '';
   return '<div class="c"><b>מילוי המאזן מקבצים</b><div class="hint" style="margin:4px 0 8px">מעלים פירוט אשראי ודפי בנק של חודשיים, מסווגים, והממוצע נכנס למאזן. אחר כך אפשר לעדכן כל סכום ידנית.</div><button class="btn" data-tx="openb">להעלאת קבצים</button></div>'}
 function txBack(){return '<button class="btn sec" data-tx="close">'+(TX.bal?'חזרה למאזן':'חזרה למעקב')+'</button>'}
-function txOtForm(g){return '<div class="otf"><b>הוצאה חד-פעמית · '+fm(g.t)+'</b><div class="hint" style="margin:2px 0 6px">'+(TX.bal?'לא נכללת בממוצע של המאזן.':'נרשמת תחת "שונות משתנות" ונספרת רק בחודש הזה.')+'</div><input id="txot" placeholder="על מה הלך הכסף?" value="'+esc(g.nm)+'" style="width:100%"><div class="f" style="margin-top:8px"><button class="btn" data-tx="otok" data-g="'+esc(g.k)+'">הוספה</button><button class="btn sec" data-tx="otno">ביטול</button></div></div>'}
+function txOtForm(g){return '<div class="otf"><b>'+(g.inc?'הכנסה':'הוצאה')+' חד-פעמית · '+fm(g.t)+'</b><div class="hint" style="margin:2px 0 6px">'+(TX.bal?'לא נכללת בממוצע של המאזן.':'נרשמת תחת "'+(g.inc?txOtI():txOtG())+'" ונספרת רק בחודש הזה.')+'</div><input id="txot" placeholder="על מה הלך הכסף?" value="'+esc(g.nm)+'" style="width:100%"><textarea id="txotd" rows="2" placeholder="פירוט נוסף (לא חובה), יישמר בהערות החודש" style="width:100%;margin-top:6px"></textarea><div class="f" style="margin-top:8px"><button class="btn" data-tx="otok" data-g="'+esc(g.k)+'">הוספה</button><button class="btn sec" data-tx="otno">ביטול</button></div></div>'}
 function txAddForm(g){var gs=G.filter(function(x){return (x.t==='i')===!!g.inc}).map(function(x){return '<option value="'+esc(x.n)+'">'+esc(x.n)+'</option>'}).join('');
   return '<div style="flex:1 1 100%;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><select id="txng">'+gs+'</select><input id="txnn" placeholder="שם הסעיף החדש" style="flex:1 1 120px"><button class="btn" data-tx="addok" data-g="'+esc(g.k)+'">הוספה</button><button class="btn sec" data-tx="addno">ביטול</button></div>'}
-function txAsLbl(v){return v==='x'?'לא נספר':v&&v.indexOf('__ot:')===0?'חד-פעמי: '+v.slice(5):v?v.split('|')[1]:''}
+function txAsLbl(v){return v==='x'?'לא נספר':v==='__env'?'משיכה למעטפות':txIsOt(v)?'חד-פעמי: '+v.slice(5):v?v.split('|')[1]:''}
 function txCard(gl){var ty=TX.ty||'',q=gl.filter(function(g){return !TX.ok[g.k]&&(!ty||(ty==='i')===!!g.inc)}),sk=TX.sk||[];
   q=q.filter(function(g){return sk.indexOf(g.k)<0}).concat(q.filter(function(g){return sk.indexOf(g.k)>=0}));
   var rem=gl.filter(function(g){return !TX.ok[g.k]}).length,tot=gl.length,pc=tot?Math.round((tot-rem)*100/tot):100;
@@ -102,12 +104,12 @@ function txCard(gl){var ty=TX.ty||'',q=gl.filter(function(g){return !TX.ok[g.k]&
    (TX.det?'<div class="tdt">'+TX.ents.filter(function(e){return txIn(e)&&e.nm===g.nm&&((e.b&&e.a<0)===!!inc)}).slice(0,15).map(function(e){return '<div><span>'+fd(e.d)+'</span><span>'+fm(Math.abs(e.a))+'</span></div>'}).join('')+'</div>':'')+'</div>';
   if(TX.otFor===g.k)return h+'<div class="c">'+txOtForm(g)+'</div>';
   if(TX.addFor===g.k)return h+'<div class="c"><b>קטגוריה חדשה</b>'+txAddForm(g)+'</div>';
-  if(cur)h+='<div class="c" style="text-align:center"><div class="hint" style="margin:0 0 6px">הצעה</div><button class="btn" data-tx="pick" data-v="'+esc(cur)+'" style="width:100%">'+esc(txAsLbl(cur))+(cur!=='x'&&cur.indexOf('__ot:')!==0?' <small>('+esc(cur.split('|')[0])+')</small>':'')+' ✓</button></div>';
+  if(cur)h+='<div class="c" style="text-align:center"><div class="hint" style="margin:0 0 6px">הצעה</div><button class="btn" data-tx="pick" data-v="'+esc(cur)+'" style="width:100%">'+esc(txAsLbl(cur))+(cur!=='x'&&!txIsOt(cur)&&cur!=='__env'?' <small>('+esc(cur.split('|')[0])+')</small>':'')+' ✓</button></div>';
   var gg=G.filter(function(x){return (x.t==='i')===!!inc&&its(x).length}),sel=TX.cg&&gg.some(function(x){return x.n===TX.cg})?TX.cg:(cur&&cur.indexOf('|')>0?cur.split('|')[0]:'');
   h+='<div class="c"><b>'+(cur?'או לבחור קטגוריה אחרת':'לאיזו קטגוריה?')+'</b><div class="chs">'+gg.map(function(x){return '<button class="chp gp'+(sel===x.n?' on':'')+'" data-tx="grp" data-v="'+esc(x.n)+'">'+esc(x.n)+'</button>'}).join('')+'</div>';
   var gx=gg.filter(function(x){return x.n===sel})[0];
   if(gx)h+='<div class="chs">'+its(gx).map(function(i){return '<button class="chp" data-tx="pick" data-v="'+esc(gx.n+'|'+i)+'">'+esc(i)+'</button>'}).join('')+'</div>';
-  h+='<div class="chs" style="margin-top:8px"><button class="chp sc" data-tx="pick" data-v="x">'+(inc?'לא נספר כהכנסה':'לא נספר')+'</button>'+(!inc?'<button class="chp sc" data-tx="ot" data-g="'+esc(g.k)+'">הוצאה חד-פעמית</button>':'')+'<button class="chp sc" data-tx="nw" data-g="'+esc(g.k)+'">+ חדשה</button></div></div>';
+  h+='<div class="chs" style="margin-top:8px"><button class="chp sc" data-tx="pick" data-v="x">'+(inc?'לא נספר כהכנסה':'לא נספר')+'</button>'+(!inc&&!TX.bal&&envKs().length?'<button class="chp sc" data-tx="pick" data-v="__env">משיכה למעטפות</button>':'')+'<button class="chp sc" data-tx="ot" data-g="'+esc(g.k)+'">'+(inc?'הכנסה חד-פעמית':'הוצאה חד-פעמית')+'</button>'+'<button class="chp sc" data-tx="nw" data-g="'+esc(g.k)+'">+ חדשה</button></div></div>';
   h+='<div class="f"><button class="btn sec" data-tx="skp">דילוג</button>'+((TX.hist||[]).length?'<button class="btn sec" data-tx="prv">חזרה</button>':'')+(gl.some(function(x){return !TX.ok[x.k]&&TX.as[x.k]})?'<button class="btn sec" data-tx="okall">אישור כל ההצעות</button>':'')+'</div>';
   return h}
 function TXUI(){var h='<div class="c"><b>'+(TX.bal?'מילוי המאזן מקבצים':'סיווג הוצאות '+MN[S.m-1]+' '+S.y)+'</b><div class="hint" style="margin:4px 0 0">הקבצים נקראים רק במכשיר שלכם. נשמרים רק הסכומים לכל סעיף וכללי הסיווג, לא פירוט העסקאות.</div></div>';
@@ -126,7 +128,7 @@ function TXUI(){var h='<div class="c"><b>'+(TX.bal?'מילוי המאזן מקב
     (out?'<label class="hint"><input type="checkbox" data-tx="all"'+(TX.all?' checked':'')+'> כולל '+out+' תנועות מחוץ לתקופה</label>':'')+
     '<div class="f" style="margin-top:8px"><button class="sg'+(TX.view==='u'?' on':'')+'" data-tx="vu"><span>לא משויכים</span><small>'+un.length+'</small></button><button class="sg'+(TX.view==='a'?' on':'')+'" data-tx="va"><span>הכל</span><small>'+gl2.length+'</small></button></div></div>';
     var show=(TX.view==='u'?un:gl2).filter(function(g){return !ty||(ty==='i')===!!g.inc});
-    h+='<div class="c">'+(show.length?show.map(function(g){var cur=TX.as[g.k]||'',o=(g.inc?oi:oe);if(cur.indexOf('__ot:')===0)o=o.replace('<option value="__ot">','<option value="'+esc(cur)+'" selected>'+esc(txAsLbl(cur))+'</option><option value="__ot">');else o=o.replace('value="'+esc(cur)+'"','value="'+esc(cur)+'" selected');
+    h+='<div class="c">'+(show.length?show.map(function(g){var cur=TX.as[g.k]||'',o=(g.inc?oi:oe);if(txIsOt(cur))o=o.replace('<option value="__ot">','<option value="'+esc(cur)+'" selected>'+esc(txAsLbl(cur))+'</option><option value="__ot">');else o=o.replace('value="'+esc(cur)+'"','value="'+esc(cur)+'" selected');
       var f2=TX.addFor===g.k?txAddForm(g):TX.otFor===g.k?txOtForm(g):'';
       return '<div class="r" style="flex-wrap:wrap"><label style="flex:1 1 140px">'+esc(g.nm)+'<small>'+(g.sub?new Date(g.d1).toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})+' · ':g.n+' תנועות · ')+fm(g.t)+(g.inc?' · הכנסה':'')+(g.sk==='card'?' · נראה כחיוב כרטיס':g.sk==='cash'?' · נראה כמשיכת מזומן':!g.sk&&!g.inc&&TXCARD.test(g.nm)?' · חיוב כרטיס אשראי: כדאי להעלות גם את פירוט האשראי':'')+'</small></label><select data-tx="as" data-g="'+esc(g.k)+'" style="flex:1 1 150px">'+o+'</select>'+(g.can&&!g.sub?'<button class="lk" data-tx="spl" data-g="'+esc(g.base)+'">לשייך כל תנועה בנפרד</button>':g.sub?'<button class="lk" data-tx="mrg" data-g="'+esc(g.base)+'">איחוד</button>':'')+f2+'</div>'}).join(''):'<p class="hint" style="margin:0">אין כאן שורות.</p>')+'</div>';
     return h+'<div class="f"><button class="btn" data-tx="sum"'+(un.length?' disabled':'')+'>לסיכום</button><button class="btn sec" data-tx="back">חזרה</button></div>'+(un.length?'<p class="hint">כדי להמשיך צריך לשייך כל שורה, או לבחור "לא נספר".</p>':'')}
@@ -142,9 +144,9 @@ function TXUI(){var h='<div class="c"><b>'+(TX.bal?'מילוי המאזן מקב
   return h+'<div class="f"><button class="btn" data-tx="fin">אישור וסיום החודש, מעבר למעטפות</button><button class="btn sec" data-tx="go">חזרה לסיווג</button></div>'}
 function txSum(){var gl=txGroups(),e={},i={},te=0,ti=0,m={},ot=0;
   if(TX.bal){var gm={};gl.forEach(function(g){gm[g.k]=g});
-    TX.ents.forEach(function(en,ix){if(!txIn(en))return;var inc=en.b&&en.a<0,gk=txEK(en,ix),v=TX.as[gk];if(!v||v==='x')return;var a=inc?-en.a:en.a;if(v.indexOf('__ot:')===0){ot+=a;return}var p=txPer(en);(m[v]=m[v]||{})[p]=(m[v][p]||0)+a});
+    TX.ents.forEach(function(en,ix){if(!txIn(en))return;var inc=en.b&&en.a<0,gk=txEK(en,ix),v=TX.as[gk];if(!v||v==='x'||v==='__env')return;var a=inc?-en.a:en.a;if(txIsOt(v)){ot+=inc?-a:a;return}var p=txPer(en);(m[v]=m[v]||{})[p]=(m[v][p]||0)+a});
     Object.keys(m).forEach(function(k){Object.keys(m[k]).forEach(function(p){m[k][p]=Math.round(m[k][p])})});return{m:m,ot:Math.round(ot),e:e,i:i,te:0,ti:0}}
-  gl.forEach(function(g){var v=TX.as[g.k];if(!v||v==='x')return;v=txVK(v);var t=Math.round(g.t);if(g.inc){i[v]=(i[v]||0)+t;ti+=t}else{e[v]=(e[v]||0)+t;te+=t}});
+  gl.forEach(function(g){var v=TX.as[g.k];if(!v||v==='x'||v==='__env')return;v=txVK(v);var t=Math.round(g.t);if(g.inc){i[v]=(i[v]||0)+t;ti+=t}else{e[v]=(e[v]||0)+t;te+=t}});
   return{e:e,i:i,te:te,ti:ti,m:m,ot:0}}
 function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
   if(TX.bal){var ps=Object.keys(TX.pm).filter(function(p){return TX.pm[p]}).map(Number).sort(function(a,b){return a-b});
@@ -152,7 +154,9 @@ function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
     TX.ents.forEach(function(){});}
   else{var k=ym(),a=S.act[k]=S.act[k]||{};
     [sm.e,sm.i].forEach(function(o){Object.keys(o).forEach(function(x){a[x]=o[x];if(x.indexOf('|חד-פעמי: ')>0){var p=x.split('|');S.cx=S.cx||{};var l=S.cx[p[0]]=S.cx[p[0]]||[];if(l.indexOf(p[1])<0)l.push(p[1])}})})}
-  txGroups().forEach(function(g){if(g.sub)return;var v=TX.as[g.k];if(v&&v!=='__new'&&v.indexOf('__ot:')!==0){delete ur[g.k];ur[g.k]=v}});
+  if(!TX.bal){var wd=0;txGroups().forEach(function(g){if(TX.as[g.k]==='__env'&&g.d2>wd)wd=g.d2});if(wd){S.env=S.env||{};var ev=S.env[ym()]=S.env[ym()]||{};if(!ev.w)ev.w=wd}}
+  if(!TX.bal){var nl=[];txGroups().forEach(function(g){var v=TX.as[g.k];if(txIsOt(v)){var t=v.slice(5);nl.push('חד-פעמי: '+t+' ('+fm(g.t)+')'+(TX.od&&TX.od[t]?' - '+TX.od[t]:''))}});if(nl.length){S.note=S.note||{};var k2=ym();S.note[k2]=((S.note[k2]?S.note[k2]+'\n':'')+nl.join('\n'))}}
+  txGroups().forEach(function(g){if(g.sub)return;var v=TX.as[g.k];if(v&&v!=='__new'&&!txIsOt(v)){delete ur[g.k];ur[g.k]=v}});
   var ks=Object.keys(ur);while(ks.length>500)delete ur[ks.shift()];
   var wasBal=TX.bal;if(!wasBal){S.md=S.md||{};S.md[ym()]=Date.now();S.seg='מזומן'}else S.tab='bal';
   TX.open=false;TX.bal=false;TX.ents=[];TX.files=[];TX.as={};TX.ok={};TX.hist=[];TX.sk=[];TX.pm=null;TX.step=1;save();render();window.scrollTo(0,0)}
@@ -194,7 +198,7 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]'
   else if(a==='ot'){TX.otFor=g;TX.addFor='';R(1)}
   else if(a==='nw'){TX.addFor=g;TX.otFor='';R(1)}
   else if(a==='otno'||a==='addno'){TX.otFor='';TX.addFor='';R(1)}
-  else if(a==='otok'){var tx=((document.getElementById('txot')||{}).value||'').trim().slice(0,40);if(!tx){TX.err='נא לכתוב על מה הלך הכסף';R(1);return}TX.err='';txAssign(g,'__ot:'+tx);R(1)}
+  else if(a==='otok'){var tx=((document.getElementById('txot')||{}).value||'').trim().slice(0,40);if(!tx){TX.err='נא לכתוב על מה הלך הכסף';R(1);return}TX.err='';var og=txGroups().filter(function(x){return x.k===g})[0];var dt=((document.getElementById('txotd')||{}).value||'').trim().slice(0,200);TX.od=TX.od||{};if(dt)TX.od[tx]=dt;txAssign(g,(og&&og.inc?'__oi:':'__ot:')+tx);R(1)}
   else if(a==='addok'){var gn=(document.getElementById('txng')||{}).value,nn=((document.getElementById('txnn')||{}).value||'').trim();
     if(!gn||!nn){TX.err='נא למלא את שם הסעיף';R(1);return}TX.err='';S.cx=S.cx||{};var l=S.cx[gn]=S.cx[gn]||[];if(l.indexOf(nn)<0)l.push(nn);
     txAssign(g,gn+'|'+nn);save();R(1)}});
