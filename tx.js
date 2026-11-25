@@ -18,6 +18,13 @@ function txLoad(cb){if(window.XLSX)return cb();var s=document.createElement('scr
 function txDate(v){if(v instanceof Date)return v.getTime();if(typeof v==='number'&&v>20000&&v<80000)return Math.round((v-25569)*864e5)+432e5;
   var m=String(v||'').match(/(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);if(m){var y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1],12).getTime()}return 0}
 function txNum(v){if(typeof v==='number')return v;var s=String(v==null?'':v).replace(/[₪,\s‎‏]/g,'');var neg=/^\(.*\)$/.test(s)||/-$/.test(s);s=s.replace(/[()]/g,'').replace(/-$/,'');var x=parseFloat(s);if(isNaN(x))return 0;return neg?-Math.abs(x):x}
+function txGuess(rows){var dc={},tc={},nc={},cnt=0,first=-1;
+  rows.forEach(function(r,i){var has=false;r.forEach(function(v,j){if(txDate(v)&&(v instanceof Date||/\d[\/\.\-]\d/.test(String(v))||typeof v==='number'&&v>20000&&v<80000)&&typeof v!=='boolean'){dc[j]=(dc[j]||0)+1;has=true}});
+    if(has){cnt++;if(first<0)first=i;r.forEach(function(v,j){if(dc[j]&&txDate(v))return;if(typeof v==='number')nc[j]=(nc[j]||0)+1;else if(/[\u05d0-\u05eaA-Za-z]{2,}/.test(String(v)))tc[j]=(tc[j]||0)+1;else if(v!==''&&!isNaN(txNum(v)))nc[j]=(nc[j]||0)+1})}});
+  if(cnt<2)return null;var top=function(o){var b=-1,m=0;for(var k in o)if(o[k]>m){m=o[k];b=+k}return b},dcol=top(dc),ncols=Object.keys(nc).filter(function(k){return nc[k]>=cnt/3&&+k!==dcol}).map(Number).sort(function(a,b){return a-b});
+  if(!ncols.length)return null;var tcol=top(tc),c={h:first-1,d:dcol,n:tcol,ct:-1,db:-1,cr:-1,ch:ncols[0]};
+  if(ncols.length>=2){var a=ncols[0],b=ncols[1],ex=0,both=0;rows.forEach(function(r){var x=txNum(r[a]),y=txNum(r[b]);if(x&&y)both++;else if(x||y)ex++});if(ex>=cnt*0.7&&both<=cnt*0.2){c.db=a;c.cr=b}}
+  return c}
 function txFile(wb,fname){var out=[];
   wb.SheetNames.forEach(function(sn){var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''}),h=-1,c={};
     for(var i=0;i<Math.min(rows.length,40)&&h<0;i++){var r=rows[i].map(function(x){return String(x).replace(/\s+/g,' ').trim()});
@@ -28,11 +35,14 @@ function txFile(wb,fname){var out=[];
         var db=-1,cr=-1,ch=-1,am=-1,ct=-1;
         r.forEach(function(t,j){if(/חובה/.test(t))db=j;else if(/זכות/.test(t))cr=j;else if(/סכום חיוב|חיוב בש/.test(t)&&ch<0)ch=j;else if(/סכום/.test(t)&&am<0)am=j;if(/ענף|קטגוריה/.test(t))ct=j});
         c.db=db;c.cr=cr;c.ch=ch>=0?ch:am;c.ct=ct}}
-    if(h<0)return;var bank=c.db>=0||c.cr>=0;
+    if(h<0){c=txGuess(rows);if(!c)return;h=c.h}
+    var bank=c.db>=0||c.cr>=0,sh=[];
     for(var k=h+1;k<rows.length;k++){var r2=rows[k],d=txDate(r2[c.d]);if(!d)continue;var a;
       if(bank){a=txNum(r2[c.db])-txNum(r2[c.cr])}else a=txNum(r2[c.ch]);if(!a)continue;
       var nm2=txNorm(c.n>=0?r2[c.n]:'');if(!nm2)nm2='ללא שם';
-      out.push({d:d,nm:nm2,a:a,b:bank?1:0,ct:c.ct>=0?String(r2[c.ct]||'').trim():''})}});
+      sh.push({d:d,nm:nm2,a:a,b:bank?1:0,ct:c.ct>=0?String(r2[c.ct]||'').trim():''})}
+    if(!bank){var ng=sh.filter(function(x){return x.a<0}).length;if(ng>sh.length/2)sh.forEach(function(x){x.a=-x.a})}
+    out=out.concat(sh)});
   return out}
 function txRng(){var sd=Math.min(28,Math.max(1,n(S.sd)||1));return[new Date(S.y,S.m-1,sd).getTime(),new Date(S.y,S.m,sd).getTime()-1]}
 function txItems(){var o=[];G.forEach(function(g){its(g).forEach(function(i){o.push({k:g.n+'|'+i,g:g,i:i})})});return o}
