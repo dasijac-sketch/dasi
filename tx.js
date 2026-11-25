@@ -25,8 +25,15 @@ function txGuess(rows){var dc={},tc={},nc={},cnt=0,first=-1;
   if(!ncols.length)return null;var tcol=top(tc),c={h:first-1,d:dcol,n:tcol,ct:-1,db:-1,cr:-1,ch:ncols[0]};
   if(ncols.length>=2){var a=ncols[0],b=ncols[1],ex=0,both=0;rows.forEach(function(r){var x=txNum(r[a]),y=txNum(r[b]);if(x&&y)both++;else if(x||y)ex++});if(ex>=cnt*0.7&&both<=cnt*0.2){c.db=a;c.cr=b}}
   return c}
+function txHtml(buf){var u=new Uint8Array(buf),head=new TextDecoder('utf-8').decode(u.subarray(0,3000));if(!/<\s*(html|table|!doctype)/i.test(head))return null;
+  var cs=(head.match(/charset=["']?([\w-]+)/i)||[])[1]||'utf-8',tx;try{tx=new TextDecoder(cs).decode(u)}catch(e){tx=new TextDecoder('utf-8').decode(u)}
+  var doc=new DOMParser().parseFromString(tx,'text/html'),R={},names=[];
+  Array.prototype.forEach.call(doc.querySelectorAll('table'),function(t,i){if(t.querySelector('table'))return;var rows=Array.prototype.map.call(t.querySelectorAll('tr'),function(tr){return Array.prototype.map.call(tr.children,function(c){return c.textContent.replace(/[\u200e\u200f\u202a-\u202e]/g,'').replace(/\s+/g,' ').trim()})});
+    if(rows.length>1){R['t'+i]=rows;names.push('t'+i)}});
+  var am=tx.replace(/<[^>]*>/g,' ').match(/חשבון\s*:?[\s\u200e\u200f\u202a-\u202e]*([\d][\d\-\/]{4,})/);
+  return names.length?{SheetNames:names,R:R,acc:am?am[1]:''}:null}
 function txFile(wb,fname){var out=[];
-  wb.SheetNames.forEach(function(sn){var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''}),h=-1,c={};
+  wb.SheetNames.forEach(function(sn){var rows=wb.R?wb.R[sn]:XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''}),h=-1,c={};
     for(var i=0;i<Math.min(rows.length,40)&&h<0;i++){var r=rows[i].map(function(x){return String(x).replace(/\s+/g,' ').trim()});
       var di=-1,ai=-1;r.forEach(function(t,j){if(/תאריך/.test(t)&&(di<0||/עסקה/.test(t)))di=j});
       r.forEach(function(t,j){if(/חובה|סכום|חיוב/.test(t)&&!/תאריך/.test(t)&&ai<0)ai=j});
@@ -70,17 +77,17 @@ function TXUI(){var h='<div class="c"><b>סיווג הוצאות '+MN[S.m-1]+' '
   if(TX.err)h+='<div class="c" style="border:1px solid var(--bd)">'+esc(TX.err)+'</div>';
   if(TX.step===1){
     h+='<div class="c"><b>שלב 1: בחירת קבצים</b><div class="hint" style="margin:4px 0 8px">אפשר לבחור כמה קבצים יחד: פירוט אשראי של כל הכרטיסים ודף חשבון בנק (Excel או CSV).</div><label id="txdz" class="dz"><b>גוררים לכאן את הקבצים</b><small>או לוחצים לבחירה</small><input type="file" id="txf" accept=".xls,.xlsx,.csv" multiple hidden></label>'+(TX.busy?'<p class="hint">קורא קבצים…</p>':'')+
-    (TX.files.length?'<ul style="margin:10px 0 0;padding-inline-start:18px">'+TX.files.map(function(f){return '<li>'+esc(f.nm)+' <small class="hint">('+f.n+' תנועות)</small></li>'}).join('')+'</ul>':'')+'</div>';
+    (TX.files.length?'<ul style="margin:10px 0 0;padding-inline-start:18px">'+TX.files.map(function(f){return '<li>'+esc(f.nm)+' <small class="hint">('+f.n+' תנועות'+(f.acc?' · חשבון '+esc(f.acc):'')+')</small></li>'}).join('')+'</ul>':'')+'</div>';
     if(TX.ents.length){var gl=txGroups();h+='<div class="f"><button class="btn" data-tx="go">המשך לסיווג ('+gl.length+' בתי עסק)</button><button class="btn sec" data-tx="clr">ניקוי</button></div>'}
     return h+'<div class="f" style="margin-top:8px">'+txBack()+'</div>'}
   if(TX.step===2){var gl2=txGroups(),un=gl2.filter(function(g){return !TX.as[g.k]}),r=txRng(),out=TX.ents.filter(function(e){return e.d<r[0]||e.d>r[1]}).length,oe=txOpts(false),oi=txOpts(true);
     h+='<div class="c"><b>שלב 2: שיוך לקטגוריות</b><div class="hint" style="margin:4px 0">'+(un.length?'נותרו '+un.length+' בתי עסק לשיוך':'הכל משויך')+'. מה שנלמד כאן יוצע אוטומטית בחודש הבא.</div>'+
     (out?'<label class="hint"><input type="checkbox" data-tx="all"'+(TX.all?' checked':'')+'> כולל '+out+' תנועות מחוץ לתקופה ('+new Date(r[0]).toLocaleDateString('he-IL')+' עד '+new Date(r[1]).toLocaleDateString('he-IL')+')</label>':'')+
-    '<div class="f" style="margin-top:8px"><button class="sg'+(TX.view==='u'?' on':'')+'" data-tx="vu"><span>לא משויכים</span><small>'+un.length+'</small></button><button class="sg'+(TX.view==='a'?' on':'')+'" data-tx="va"><span>הכל</span><small>'+gl2.length+'</small></button></div></div>';
-    var show=TX.view==='u'?un:gl2;
+    '<div style="height:6px;border-radius:3px;background:var(--ln);margin:8px 0"><div style="height:6px;border-radius:3px;background:#1F3A5F;width:'+pc+'%"></div></div><div class="f" style="margin-top:4px"><button class="sg'+(ty===''?' on':'')+'" data-tx="ty" data-v=""><span>הכל</span></button><button class="sg'+(ty==='e'?' on':'')+'" data-tx="ty" data-v="e"><span>הוצאות</span><small>'+gl2.filter(function(g){return !g.inc}).length+'</small></button><button class="sg'+(ty==='i'?' on':'')+'" data-tx="ty" data-v="i"><span>הכנסות</span><small>'+gl2.filter(function(g){return g.inc}).length+'</small></button></div><div class="f" style="margin-top:8px"><button class="sg'+(TX.view==='u'?' on':'')+'" data-tx="vu"><span>לא משויכים</span><small>'+un.length+'</small></button><button class="sg'+(TX.view==='a'?' on':'')+'" data-tx="va"><span>הכל</span><small>'+gl2.length+'</small></button></div></div>';
+    var tot=gl2.length,pc=tot?Math.round((tot-un.length)*100/tot):100,ty=TX.ty||'',show=(TX.view==='u'?un:gl2).filter(function(g){return !ty||(ty==='i')===!!g.inc});
     h+='<div class="c">'+(show.length?show.map(function(g){var cur=TX.as[g.k]||'',o=(g.inc?oi:oe).replace('value="'+esc(cur)+'"','value="'+esc(cur)+'" selected'),
       f2=TX.addFor===g.k?txAddForm(g):'';
-      return '<div class="r" style="flex-wrap:wrap"><label style="flex:1 1 140px">'+esc(g.nm)+'<small>'+g.n+' תנועות · '+fm(g.t)+(g.inc?' · הכנסה':'')+(g.sk==='card'?' · נראה כחיוב כרטיס':g.sk==='cash'?' · נראה כמשיכת מזומן':'')+'</small></label><select data-tx="as" data-g="'+esc(g.k)+'" style="flex:1 1 150px">'+o+'</select>'+f2+'</div>'}).join(''):'<p class="hint" style="margin:0">אין כאן שורות.</p>')+'</div>';
+      return '<div class="r" style="flex-wrap:wrap"><label style="flex:1 1 140px">'+esc(g.nm)+'<small>'+g.n+' תנועות · '+fm(g.t)+(g.inc?' · הכנסה':'')+(g.sk==='card'?' · נראה כחיוב כרטיס':!g.sk&&!g.inc&&TXCARD.test(g.nm)?' · חיוב כרטיס אשראי: כדאי להעלות גם את פירוט האשראי':g.sk==='cash'?' · נראה כמשיכת מזומן':'')+'</small></label><select data-tx="as" data-g="'+esc(g.k)+'" style="flex:1 1 150px">'+o+'</select>'+f2+'</div>'}).join(''):'<p class="hint" style="margin:0">אין כאן שורות.</p>')+'</div>';
     return h+'<div class="f"><button class="btn" data-tx="sum"'+(un.length?' disabled':'')+'>לסיכום</button><button class="btn sec" data-tx="back">חזרה</button></div>'+(un.length?'<p class="hint">כדי להמשיך צריך לשייך כל שורה, או לבחור "לא נספר".</p>':'')}
   var sm=txSum(),ks=Object.keys(sm.e).concat(Object.keys(sm.i)),rows='';
   h+='<div class="c"><b>שלב 3: סיכום וסיום חודש</b><div class="hint" style="margin:4px 0 8px">הסכומים יירשמו כביצוע בפועל בסעיפים. סעיפים שכבר הוזנו בהם סכום יתעדכנו.</div>';
@@ -98,8 +105,8 @@ function txFin(){var sm=txSum(),k=ym(),a=S.act[k]=S.act[k]||{},ur=S.ur=S.ur||{};
   var ks=Object.keys(ur);while(ks.length>500)delete ur[ks.shift()];
   S.md=S.md||{};S.md[k]=Date.now();S.seg='מזומן';TX.open=false;TX.ents=[];TX.files=[];TX.as={};TX.step=1;save();render();window.scrollTo(0,0)}
 function txRead(fl){fl=Array.prototype.slice.call(fl||[]);if(!fl.length)return;TX.busy=true;TX.err='';render();
-    txLoad(function(){var left=fl.length,bad=[];fl.forEach(function(f){var fr=new FileReader();fr.onload=function(){try{var wb=XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true}),en=txFile(wb,f.name);
-        if(!en.length)bad.push(f.name);else{TX.ents=TX.ents.concat(en);TX.files.push({nm:f.name,n:en.length})}}catch(x){bad.push(f.name)}
+    txLoad(function(){var left=fl.length,bad=[];fl.forEach(function(f){var fr=new FileReader();fr.onload=function(){try{var wb=txHtml(fr.result)||XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true}),en=txFile(wb,f.name);
+        if(!en.length)bad.push(f.name);else{TX.ents=TX.ents.concat(en);TX.files.push({nm:f.name,n:en.length,acc:wb.acc||''})}}catch(x){bad.push(f.name)}
         if(!--left){TX.busy=false;if(bad.length)TX.err='לא זוהו תנועות בקבצים: '+bad.join(', ')+'. ודאו שזה פירוט עסקאות עם עמודות תאריך וסכום.';TX.as={};render()}};fr.onerror=function(){bad.push(f.name);if(!--left){TX.busy=false;render()}};fr.readAsArrayBuffer(f)})})}
 document.addEventListener('dragover',function(e){var z=e.target.closest&&e.target.closest('#txdz');if(z){e.preventDefault();z.classList.add('dzo')}});
 document.addEventListener('dragleave',function(e){var z=e.target.closest&&e.target.closest('#txdz');if(z)z.classList.remove('dzo')});
@@ -116,6 +123,7 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]'
   else if(a==='go'){TX.step=2;render();window.scrollTo(0,0)}
   else if(a==='back'){TX.step=1;render()}
   else if(a==='vu'||a==='va'){TX.view=a==='vu'?'u':'a';render();window.scrollTo(0,y)}
+  else if(a==='ty'){TX.ty=b.dataset.v;render();window.scrollTo(0,y)}
   else if(a==='sum'){TX.step=3;render();window.scrollTo(0,0)}
   else if(a==='fin')txFin();
   else if(a==='addno'){TX.addFor='';render();window.scrollTo(0,y)}
