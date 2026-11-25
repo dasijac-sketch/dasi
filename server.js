@@ -187,7 +187,7 @@ function budgetFrom(b, cur) {
   return { value: { bud, cs, sc } };
 }
 
-const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o', sd: 'n', aic: 'o', sn: 'n', nw: 'o' };
+const COUPLE_KEYS = { bal: 'o', mo: 'o', rt: 'o', fc: 'o', fm: 'o', pm: 'o', dn: 'n', cx: 'o', L: 'o', act: 'o', note: 'o', chd: 'o', ppl: 'n', md: 'o', mt: 'o', yc: 'o', yx: 'o', env: 'o', sd: 'n', aic: 'o', sn: 'n', nw: 'o', ur: 'o' };
 
 app.get('/api/c/:token', (req, res) => {
   const row = coupleFromToken(req, res); if (!row) return;
@@ -446,7 +446,7 @@ dailyBackup(); setInterval(dailyBackup, 6 * 60 * 60 * 1000).unref();
 /* ---------- דפים ---------- */
 const PUB_DIR = path.join(__dirname, 'public');
 const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
-const ASSETS = new Set(['enter.js','favicon.svg','icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
+const ASSETS = new Set(['enter.js','favicon.svg','icon-180.png','icon-192.png','icon-512.png','xlsx.js','import.js','tx.js','lib.js', 'couple.js', 'admin.js', 'style.css']);
 const page = f => (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(pub, f)); };
 app.get('/', page('enter.html'));
 app.get('/admin', page('admin.html'));

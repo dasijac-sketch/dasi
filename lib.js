@@ -93,11 +93,12 @@ function monRules(){if(STAGE<2||!n((S.md||{})[ym()]))return '';var ai=ts('act','
   if(ai>0&&ae>ai){h+='<div class="c rl2 bd2"><b>פער שלילי של '+fm(ae-ai)+'</b><div class="hint" style="margin:4px 0 0">פער שלילי חובה לסגור תוך 30 יום. לא מלווים ממעטפה למעטפה, וחוזרים למסגרת בחודש הבא.</div></div>'}
   return h}
 function mon(){
+  if(window.TX&&TX.open)return TXUI();
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
   return '<div class="f" style="margin-bottom:10px"><select id="ms">'+ms+'</select><input id="yr" type="number" value="'+S.y+'" style="max-width:100px"></div>'+
   '<div class="g"><div class="k"><b>'+fm(ai)+'</b><span>הכנסות (תקציב '+fm(pi)+')</span></div><div class="k"><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae)+'</b><span>הוצאות (תקציב '+fm(pe)+')</span></div><div class="k"><b class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</b><span>יתרה בפועל</span></div></div>'+
-  monRules()+overUI()+'<div class="c" style="padding:4px 12px">'+rlLink()+'</div>'+'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>'+monSeg()+
+  monRules()+overUI()+'<div class="c" style="padding:4px 12px">'+rlLink()+'</div>'+(typeof txBtn==='function'?txBtn():'')+'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>'+monSeg()+
   '<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI()}
 function yr(){
   var rows='',TI=0,TE=0,TP=0;
