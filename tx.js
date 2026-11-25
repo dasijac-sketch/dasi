@@ -1,5 +1,5 @@
 /* סיווג הוצאות מקבצי אשראי ועו"ש - עיבוד מקומי בדפדפן, נשמרים רק סכומים וכללי סיווג */
-var TX={open:false,bal:false,step:1,ents:[],files:[],as:{},ok:{},hist:[],sk:[],pm:null,all:false,view:'u',mode:'card',ty:'',cg:'',det:false,addFor:'',otFor:'',err:'',busy:false};
+var TX={ei:-1,wT:0,wn:0,wD:0,open:false,bal:false,step:1,ents:[],files:[],as:{},ok:{},hist:[],sk:[],pm:null,all:false,view:'u',mode:'card',ty:'',cg:'',det:false,addFor:'',otFor:'',err:'',busy:false};
 var TXD=[[/סופר|שופרסל|רמי לוי|יוחננוף|מגה|ויקטורי|טיב טעם|מכולת|אושר עד|פרש מרקט|חצי חינם/,['סופר','מזון','מכולת']],
 [/דלק|פז |סונול|דור אלון|טן |רב.?קו|כביש 6|חניה|פנגו|סלופארק|גט טקסי|אוטובוס|רכבת/,['דלק','רכב','תחבורה','חניה']],
 [/סלקום|פרטנר|הוט|יס |בזק|פלאפון|גולן טלקום|רמי לוי תקשורת|אינטרנט/,['תקשורת','טלפון','סלולר','אינטרנט']],
@@ -47,7 +47,8 @@ function txFile(wb,fname){var out=[];
     for(var k=h+1;k<rows.length;k++){var r2=rows[k],d=txDate(r2[c.d]);if(!d)continue;var a;
       if(bank){a=txNum(r2[c.db])-txNum(r2[c.cr])}else a=txNum(r2[c.ch]);if(!a)continue;
       var nm2=txNorm(c.n>=0?r2[c.n]:'');if(!nm2)nm2='ללא שם';
-      sh.push({d:d,nm:nm2,a:a,b:bank?1:0,ct:c.ct>=0?String(r2[c.ct]||'').trim():''})}
+      var xs=[];(rows[h]||[]).forEach(function(hn,j){hn=String(hn).trim();if(!hn||j===c.d||j===c.n||j===c.db||j===c.cr||j===c.ch||j===c.ct||/יתרה|תאריך|סכום|חובה|זכות|חיוב/.test(hn))return;var v=String(r2[j]==null?'':r2[j]).replace(/\s+/g,' ').trim();if(v&&v!=='0'&&v!=='0.00'&&xs.length<4)xs.push(hn+': '+v)});
+      sh.push({d:d,nm:nm2,a:a,b:bank?1:0,ct:c.ct>=0?String(r2[c.ct]||'').trim():'',x:xs.join(' · ')})}
     if(!bank){var ng=sh.filter(function(x){return x.a<0}).length;if(ng>sh.length/2)sh.forEach(function(x){x.a=-x.a})}
     out=out.concat(sh)});
   return out}
@@ -77,7 +78,7 @@ function txGroups(){var gs={},cardAny=TX.ents.some(function(e){return !e.b}),cnt
       if(!v)for(var i=0;i<TXD.length&&!v;i++)if(TXD[i][0].test(g.nm)&&!g.inc)v=txFind(TXD[i][1],false);
       if(!v&&g.ct&&!g.inc)for(var j=0;j<TXC.length&&!v;j++)if(TXC[j][0].test(g.ct))v=txFind(TXC[j][1],false)}
     TX.as[g.k]=v}});
-  return l.sort(function(a,b){return b.t-a.t})}
+  return l.sort(function(a,b){return (b.inc?1:0)-(a.inc?1:0)||b.t-a.t})}
 function txOpts(inc){var s='<option value="">בחירה…</option>';
   G.forEach(function(g){if((g.t==='i')!==inc)return;var it=its(g);if(!it.length)return;s+='<optgroup label="'+esc(g.n)+'">'+it.map(function(i){return '<option value="'+esc(g.n+'|'+i)+'">'+esc(i)+'</option>'}).join('')+'</optgroup>'});
   if(inc)return s+'<option value="x">לא נספר כהכנסה</option><option value="__ot">הכנסה חד-פעמית…</option><option value="__new">+ סעיף חדש…</option>';
@@ -98,10 +99,10 @@ function txCard(gl){var ty=TX.ty||'',q=gl.filter(function(g){return !TX.ok[g.k]&
    '<div class="f"><button class="sg'+(ty===''?' on':'')+'" data-tx="ty" data-v=""><span>הכל</span></button><button class="sg'+(ty==='e'?' on':'')+'" data-tx="ty" data-v="e"><span>הוצאות</span><small>'+gl.filter(function(g){return !g.inc&&!TX.ok[g.k]}).length+'</small></button><button class="sg'+(ty==='i'?' on':'')+'" data-tx="ty" data-v="i"><span>הכנסות</span><small>'+gl.filter(function(g){return g.inc&&!TX.ok[g.k]}).length+'</small></button></div></div>';
   if(!q.length)return h+'<div class="c" style="text-align:center"><b>'+(rem?'אין עוד פריטים בסוג הזה':'סיימתם לסווג הכל')+'</b><p class="hint">אפשר לעבור על הרשימה לפני הסיכום.</p><div class="f" style="justify-content:center"><button class="btn" data-tx="sum">לסיכום</button><button class="btn sec" data-tx="mlist">לרשימה</button></div></div>';
   var g=q[0],cur=TX.as[g.k]||'',inc=g.inc,fd=function(t){return new Date(t).toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})};
-  h+='<div class="tcard '+(inc?'ti':'te')+'"><span class="tbd">'+(inc?'הכנסה':'הוצאה')+'</span><div class="tam">'+(inc?'+':'')+fm(g.t)+'</div><div class="tnm">'+esc(g.nm)+'</div><div class="hint">'+(g.n>1?g.n+' תנועות · ':'')+fd(g.d1)+(g.d2!==g.d1?' – '+fd(g.d2):'')+'</div>'+
+  h+='<div class="tcard '+(inc?'ti':'te')+'"><span class="tbd">'+(inc?'הכנסה':'הוצאה')+'</span><div class="tam">'+(inc?'+':'')+fm(g.t)+'</div><div class="tnm">'+esc(g.nm)+'</div><div class="hint">'+(g.n>1?g.n+' תנועות · ':'')+fd(g.d1)+(g.d2!==g.d1?' – '+fd(g.d2):'')+(g.ct?' · ענף: '+esc(g.ct):'')+'</div>'+
    (g.sk==='card'?'<div class="hint">נראה כחיוב כרטיס אשראי שכבר מפורט בקובץ האשראי</div>':g.sk==='cash'?'<div class="hint">נראה כמשיכת מזומן: המעטפות מדווחות בנפרד</div>':!inc&&TXCARD.test(g.nm)?'<div class="hint">חיוב כרטיס אשראי: כדאי להעלות גם את פירוט האשראי</div>':'')+
    (g.can&&!g.sub?'<button class="lk" data-tx="spl" data-g="'+esc(g.base)+'">לשייך כל תנועה בנפרד ('+g.n+')</button> ':'')+(g.sub?'<button class="lk" data-tx="mrg" data-g="'+esc(g.base)+'">לאחד עם שאר התנועות באותו שם</button> ':'')+'<button class="lk" data-tx="det">'+(TX.det?'הסתרת פרטים':'פרטים')+'</button>'+
-   (TX.det?'<div class="tdt">'+TX.ents.filter(function(e){return txIn(e)&&e.nm===g.nm&&((e.b&&e.a<0)===!!inc)}).slice(0,15).map(function(e){return '<div><span>'+fd(e.d)+'</span><span>'+fm(Math.abs(e.a))+'</span></div>'}).join('')+'</div>':'')+'</div>';
+   (TX.det?'<div class="tdt">'+TX.ents.filter(function(e){return txIn(e)&&e.nm===g.nm&&((e.b&&e.a<0)===!!inc)}).slice(0,15).map(function(e){return '<div><span>'+fd(e.d)+(e.x?'<small class="hint" style="display:block">'+esc(e.x)+'</small>':'')+'</span><span>'+fm(Math.abs(e.a))+'</span></div>'}).join('')+'</div>':'')+'</div>';
   if(TX.otFor===g.k)return h+'<div class="c">'+txOtForm(g)+'</div>';
   if(TX.addFor===g.k)return h+'<div class="c"><b>קטגוריה חדשה</b>'+txAddForm(g)+'</div>';
   if(cur)h+='<div class="c" style="text-align:center"><div class="hint" style="margin:0 0 6px">הצעה</div><button class="btn" data-tx="pick" data-v="'+esc(cur)+'" style="width:100%">'+esc(txAsLbl(cur))+(cur!=='x'&&!txIsOt(cur)&&cur!=='__env'?' <small>('+esc(cur.split('|')[0])+')</small>':'')+' ✓</button></div>';
@@ -132,6 +133,7 @@ function TXUI(){var h='<div class="c"><b>'+(TX.bal?'מילוי המאזן מקב
       var f2=TX.addFor===g.k?txAddForm(g):TX.otFor===g.k?txOtForm(g):'';
       return '<div class="r" style="flex-wrap:wrap"><label style="flex:1 1 140px">'+esc(g.nm)+'<small>'+(g.sub?new Date(g.d1).toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})+' · ':g.n+' תנועות · ')+fm(g.t)+(g.inc?' · הכנסה':'')+(g.sk==='card'?' · נראה כחיוב כרטיס':g.sk==='cash'?' · נראה כמשיכת מזומן':!g.sk&&!g.inc&&TXCARD.test(g.nm)?' · חיוב כרטיס אשראי: כדאי להעלות גם את פירוט האשראי':'')+'</small></label><select data-tx="as" data-g="'+esc(g.k)+'" style="flex:1 1 150px">'+o+'</select>'+(g.can&&!g.sub?'<button class="lk" data-tx="spl" data-g="'+esc(g.base)+'">לשייך כל תנועה בנפרד</button>':g.sub?'<button class="lk" data-tx="mrg" data-g="'+esc(g.base)+'">איחוד</button>':'')+f2+'</div>'}).join(''):'<p class="hint" style="margin:0">אין כאן שורות.</p>')+'</div>';
     return h+'<div class="f"><button class="btn" data-tx="sum"'+(un.length?' disabled':'')+'>לסיכום</button><button class="btn sec" data-tx="back">חזרה</button></div>'+(un.length?'<p class="hint">כדי להמשיך צריך לשייך כל שורה, או לבחור "לא נספר".</p>':'')}
+  if(TX.step===4)return txEnvUI();
   var sm=txSum(),rows='';
   if(TX.bal){var ps=Object.keys(TX.pm).filter(function(p){return TX.pm[p]}).map(Number).sort(function(a,b){return a-b}),ks=Object.keys(sm.m);
     h+='<div class="c"><b>שלב 3: סיכום למאזן</b><div class="hint" style="margin:4px 0 8px">'+(ps.length?'לכל סעיף יירשמו הסכומים של '+ps.map(txPL).join(' ו')+', והממוצע יחושב במאזן. סעיפים שכבר מולאו בהם יוחלפו. אפשר לעדכן סכומים אחר כך.':'לא נבחרו חודשים.')+'</div>'+
@@ -158,8 +160,24 @@ function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
   if(!TX.bal){var nl=[];txGroups().forEach(function(g){var v=TX.as[g.k];if(txIsOt(v)){var t=v.slice(5);nl.push('חד-פעמי: '+t+' ('+fm(g.t)+')'+(TX.od&&TX.od[t]?' - '+TX.od[t]:''))}});if(nl.length){S.note=S.note||{};var k2=ym();S.note[k2]=((S.note[k2]?S.note[k2]+'\n':'')+nl.join('\n'))}}
   txGroups().forEach(function(g){if(g.sub)return;var v=TX.as[g.k];if(v&&v!=='__new'&&!txIsOt(v)){delete ur[g.k];ur[g.k]=v}});
   var ks=Object.keys(ur);while(ks.length>500)delete ur[ks.shift()];
-  var wasBal=TX.bal;if(!wasBal){S.md=S.md||{};S.md[ym()]=Date.now();S.seg='מזומן'}else S.tab='bal';
-  TX.open=false;TX.bal=false;TX.ents=[];TX.files=[];TX.as={};TX.ok={};TX.hist=[];TX.sk=[];TX.pm=null;TX.step=1;save();render();window.scrollTo(0,0)}
+  var wasBal=TX.bal,wT=0,wD=0,wn=0;if(!wasBal){txGroups().forEach(function(g){if(TX.as[g.k]==='__env'){wT+=g.t;wn+=g.n;if(g.d2>wD)wD=g.d2}});S.md=S.md||{};S.md[ym()]=Date.now();S.seg='מזומן'}else S.tab='bal';
+  var goEnv=!wasBal&&envKs().length>0;
+  TX.ents=[];TX.files=[];TX.as={};TX.ok={};TX.hist=[];TX.sk=[];TX.pm=null;TX.bal=false;
+  if(goEnv){TX.wT=Math.round(wT);TX.wn=wn;TX.wD=wD;TX.step=4;TX.ei=-1;var ev=(S.env=S.env||{})[ym()]=S.env[ym()]||{};if(!ev.w)ev.w=wD||Date.now();if(TX.wT&&!n(ev.wa))ev.wa=TX.wT;save();render();window.scrollTo(0,0);return}
+  TX.open=false;TX.step=1;save();render();window.scrollTo(0,0)}
+function txEnvUI(){var k=ym(),ks=envKs(),e=(S.env=S.env||{})[k]=S.env[k]||{},i=TX.ei,cT=0;ks.forEach(function(x){cT+=n(S.bud[x.k])});
+  var h='<div class="c"><b>המעטפות של '+MN[S.m-1]+'</b></div>';
+  if(TX.err)h+='<div class="c" style="border:1px solid var(--bd)">'+esc(TX.err)+'</div>';
+  if(i<0){return h+'<div class="c"><b>כמה הכנסתם למעטפות?</b><div class="hint" style="margin:4px 0 8px">'+(TX.wT?'בקבצים זוהו '+TX.wn+' משיכות מזומן בסך '+fm(TX.wT)+'.':'לא זוהתה משיכת מזומן בקבצים. אפשר להזין ידנית.')+' בתקציב הוקצבו למעטפות '+fm(cT)+'.</div><input type="number" inputmode="decimal" id="txwa" value="'+(n(e.wa)||'')+'" placeholder="'+Math.round(cT)+'" style="width:100%;font-size:22px"></div>'+
+    '<div class="f"><button class="btn" data-tx="env0">להתחלת הדיווח על המעטפות ('+ks.length+')</button><button class="btn sec" data-tx="envskip">אדווח אחר כך</button></div>'}
+  if(i>=ks.length)i=TX.ei=ks.length-1;var x=ks[i],av=n(S.bud[x.k])+envCarry(x.k,k),lf=(e.left||{})[x.k],mv=(e.mv||{})[x.k]||'carry',lfv=lf===undefined||lf===''?'':n(lf);
+  h+='<div class="c"><div style="display:flex;justify-content:space-between"><b>מעטפה '+(i+1)+' מתוך '+ks.length+'</b></div><div class="pgb"><i style="width:'+Math.round(i*100/ks.length)+'%"></i></div></div>'+
+   '<div class="tcard te"><span class="tbd">מעטפה</span><div class="tnm" style="margin-top:8px">'+esc(x.i)+'</div><div class="hint">'+esc(x.g.n)+'</div><div class="tam">'+fm(av)+'</div><div class="hint">זמין במעטפה'+(av>n(S.bud[x.k])?' (כולל '+fm(av-n(S.bud[x.k]))+' מהחודש שעבר)':'')+'</div></div>'+
+   '<div class="c"><b>כמה נשאר במעטפה?</b><input type="number" inputmode="decimal" id="txel" min="0" value="'+lfv+'" placeholder="0" style="width:100%;font-size:22px;margin-top:6px"><div class="chs"><button class="chp sc" data-tx="envl" data-v="0">נוצל הכל</button><button class="chp sc" data-tx="envl" data-v="'+Math.round(av)+'">לא נגעתי</button></div>'+
+   (lfv>0?'<div style="margin-top:10px"><small class="hint">מה עושים עם היתרה?</small><select id="txem" style="width:100%">'+'<option value="carry"'+(mv==='carry'?' selected':'')+'>נשארת במעטפה</option><option value="free"'+(mv==='free'?' selected':'')+'>לא מועברת</option>'+(envAnn(x.k)?'':ks.filter(function(y){return y.k!==x.k}).map(function(y){return '<option value="'+esc(y.k)+'"'+(mv===y.k?' selected':'')+'>להעביר ל'+esc(envLbl(y))+'</option>'}).join(''))+'</select>'+(envAnn(x.k)?'<div class="hint">מעטפה שנתית: היתרה נשמרת ולא מועברת למעטפה אחרת.</div>':'')+'</div>':'')+'</div>'+
+   '<div class="f">'+(i>0?'<button class="btn sec" data-tx="envp">חזרה</button>':'')+'<button class="btn" data-tx="envn">'+(i===ks.length-1?'סיום החודש':'הבאה')+'</button></div>';return h}
+function txEnvSave(){var k=ym(),ks=envKs(),e=S.env[k],i=TX.ei;if(i<0)return;var x=ks[i];if(!x)return;var el=document.getElementById('txel'),em=document.getElementById('txem');e.left=e.left||{};e.mv=e.mv||{};
+  if(el&&el.value!=='')e.left[x.k]=Math.max(0,n(el.value));if(em)e.mv[x.k]=em.value}
 function txRead(fl){fl=Array.prototype.slice.call(fl||[]);if(!fl.length)return;TX.busy=true;TX.err='';render();
     txLoad(function(){var left=fl.length,bad=[];fl.forEach(function(f){var fr=new FileReader();fr.onload=function(){try{var wb=txHtml(fr.result)||XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true}),en=txFile(wb,f.name);
         if(!en.length)bad.push(f.name);else{TX.ents=TX.ents.concat(en);TX.files.push({nm:f.name,n:en.length,acc:wb.acc||''})}}catch(x){bad.push(f.name)}
@@ -173,6 +191,7 @@ document.addEventListener('change',function(e){var t=e.target;
   var a=t.dataset&&t.dataset.tx;if(!a)return;
   if(a==='all'){TX.all=t.checked;TX.as={};TX.ok={};render()}
   else if(a==='pm'){TX.pm=TX.pm||{};TX.pm[t.dataset.v]=t.checked?1:0;TX.as={};TX.ok={}}
+  else if(a==='em'){}
   else if(a==='as'){var y=window.scrollY,g=t.dataset.g;if(t.value==='__new'){TX.addFor=g;TX.otFor=''}else if(t.value==='__ot'){TX.otFor=g;TX.addFor=''}else{TX.addFor='';TX.otFor='';TX.as[g]=t.value;TX.ok[g]=1}render();window.scrollTo(0,y)}});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]');if(!b||b.tagName==='SELECT'||(b.tagName==='INPUT'&&b.type!=='button'))return;var a=b.dataset.tx,y=window.scrollY,g=b.dataset.g;
   var R=function(k){render();window.scrollTo(0,k?y:0)};
@@ -195,6 +214,11 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]'
   else if(a==='skp'){var c2=txCardCur();if(c2){TX.sk=(TX.sk||[]).filter(function(k){return k!==c2.k});TX.sk.push(c2.k);TX.det=false;R(1)}}
   else if(a==='prv'){var hk=(TX.hist||[]).pop();if(hk){TX.ok[hk]=0;TX.sk=(TX.sk||[]).filter(function(k){return k!==hk});TX.cg='';R(1)}}
   else if(a==='okall'){Object.keys(TX.as).forEach(function(k){if(TX.as[k])TX.ok[k]=1});R()}
+  else if(a==='env0'){var wa=document.getElementById('txwa');S.env[ym()].wa=wa?n(wa.value):0;TX.ei=0;save();R()}
+  else if(a==='envskip'){TX.open=false;TX.step=1;save();render();window.scrollTo(0,0)}
+  else if(a==='envl'){var el2=document.getElementById('txel');if(el2){el2.value=b.dataset.v;txEnvSave();R(1)}}
+  else if(a==='envp'){txEnvSave();TX.ei--;save();R()}
+  else if(a==='envn'){txEnvSave();var kk=envKs();if(TX.ei>=kk.length-1){envFinish(ym());TX.open=false;TX.step=1;S.seg='מזומן';save();render();window.scrollTo(0,0)}else{TX.ei++;save();R()}}
   else if(a==='ot'){TX.otFor=g;TX.addFor='';R(1)}
   else if(a==='nw'){TX.addFor=g;TX.otFor='';R(1)}
   else if(a==='otno'||a==='addno'){TX.otFor='';TX.addFor='';R(1)}
