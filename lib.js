@@ -66,9 +66,10 @@ function grp(g,mode){
 function secs(mode){return ['i','f','v'].map(function(t){return '<h3>'+SEC[t]+'</h3>'+G.filter(function(g){return g.t===t}).map(function(g){return grp(g,mode)}).join('')}).join('')}
 function bottom(sn,k){var i=ts(sn,'i',k),e=ex(sn,k);return (sn==='bud'||sn==='bal'?pmSum(sn):'')+'<div class="c"><div class="tot"><span>סה״כ הכנסות</span><span>'+fm(i)+'</span></div><div class="tot"><span>סה״כ הוצאות</span><span>'+fm(e)+'</span></div><div class="tot"><span>יתרה</span><span class="'+(i-e<0?'neg':'')+'">'+fm(i-e)+'</span></div></div>'}
 function bal(){
+  if(window.TX&&TX.open&&TX.bal)return TXUI();
   var food=n(S.bal['קניות|אוכל ומוצרי מכולת']),p=n(S.ppl)||((S.L.kd||[]).length?2+S.L.kd.length:0);
   var opts=G.map(function(g){return '<option>'+esc(g.n)+'</option>'}).join('');
-  return (ADM?'':rulesUI())+'<p class="hint">לכל סעיף הזינו את הסכום של חודשיים והממוצע יחושב לבד (אפשר להוסיף עוד חודשים). בן הזוג ובת הזוג מדרגים כל הוצאה: 1 = חיוני, 5 = אפשר לוותר.</p>'+secs('bal')+bottom('bal')+
+  return (ADM?'':rulesUI())+'<p class="hint">לכל סעיף הזינו את הסכום של חודשיים והממוצע יחושב לבד (אפשר להוסיף עוד חודשים). בן הזוג ובת הזוג מדרגים כל הוצאה: 1 = חיוני, 5 = אפשר לוותר.</p>'+(typeof txBtnBal==='function'?txBtnBal():'')+secs('bal')+bottom('bal')+
   '<div class="c"><div class="r" style="border:0"><label>מספר נפשות בבית</label><input type="number" min="0" data-s="ppl" data-k="x" value="'+(S.ppl||'')+'"></div>'+
   (p&&food?'<div class="tot"><span>מזון לנפש לשבוע</span><span>'+fm(food/p/4.2)+'</span></div>':'')+'</div>'+
   '<div class="c"><b>הוספת סעיף</b><div class="f" style="margin-top:8px"><select id="cg">'+opts+'</select><input id="cn" placeholder="שם הסעיף"><button class="btn" data-a="add">הוספה</button></div></div>'}
@@ -93,7 +94,7 @@ function monRules(){if(STAGE<2||!n((S.md||{})[ym()]))return '';var ai=ts('act','
   if(ai>0&&ae>ai){h+='<div class="c rl2 bd2"><b>פער שלילי של '+fm(ae-ai)+'</b><div class="hint" style="margin:4px 0 0">פער שלילי חובה לסגור תוך 30 יום. לא מלווים ממעטפה למעטפה, וחוזרים למסגרת בחודש הבא.</div></div>'}
   return h}
 function mon(){
-  if(window.TX&&TX.open)return TXUI();
+  if(window.TX&&TX.open&&!TX.bal)return TXUI();
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
   return '<div class="f" style="margin-bottom:10px"><select id="ms">'+ms+'</select><input id="yr" type="number" value="'+S.y+'" style="max-width:100px"></div>'+
