@@ -99,8 +99,8 @@ function mon(){
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
   var vss=vsSel();
-  return '<div class="mhd"><button class="ib sm" data-a="mpv" title="חודש קודם" aria-label="חודש קודם">'+ic('bck',18)+'</button><div class="mht"><b>'+MN[S.m-1]+' '+S.y+'</b>'+vss+'</div><button class="ib sm" data-a="mnx" title="חודש הבא" aria-label="חודש הבא">'+ic('nxt',18)+'</button>'+lockBtn(k)+'</div>'+
-  '<div class="g"><div class="k"><b>'+fm(ai)+'</b><span>הכנסות (תקציב '+fm(pi)+')</span></div><div class="k"><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae)+'</b><span>הוצאות (תקציב '+fm(pe)+')</span></div><div class="k"><b class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</b><span>יתרה בפועל</span></div></div>'+
+  return '<div class="mhd"><button class="chv" data-a="mpv" title="חודש קודם" aria-label="חודש קודם">'+ic('bck',22)+'</button><h2 class="mtt">'+MN[S.m-1]+' '+S.y+'</h2><button class="chv" data-a="mnx" title="חודש הבא" aria-label="חודש הבא">'+ic('nxt',22)+'</button><span style="flex:1"></span>'+lockBtn(k)+'</div>'+(vss?'<div class="mvs"><small>תקציב להצגה</small>'+vss+'</div>':'')+
+  '<div class="s3"><div><span>הכנסות ₪</span><b>'+fm(ai).replace(' ₪','')+'</b><small>תקציב '+fm(pi)+'</small></div><div><span>הוצאות ₪</span><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae).replace(' ₪','')+'</b><small>תקציב '+fm(pe)+'</small></div><div><span>יתרה ₪</span><b class="'+(ai-ae<0?'neg':'pos')+'">'+fm(ai-ae).replace(' ₪','')+'</b></div></div>'+
   (isLocked(k)?'':overUI())+(typeof txBtn==='function'?txBtn():'')+(isLocked(k)?'':'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>')+(isLocked(k)?lockBody(k):monSeg())+
   (isLocked(k)?(S.note[k]?'<div class="c"><b>הערות לחודש</b><p style="margin:8px 0 0;white-space:pre-line">'+esc(S.note[k])+'</p></div>':'')+closeSum(k):'<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI())}
 function yr(){
@@ -394,19 +394,22 @@ document.addEventListener('click',function(e){var mi=e.target.closest&&e.target.
 var MU={};
 function isLocked(k){return !!n((S.md||{})[k])}
 function lockBtn(k){var ev=envKs().length>0,ok=!ev||!!(S.env&&S.env[k]&&S.env[k].done);
-  return isLocked(k)?'<button class="ib lkb on" data-a="unl" title="החודש סגור · לחיצה לפתיחה" aria-label="פתיחת החודש">'+ic('lock',20)+'</button>':'<button class="ib lkb" data-a="md" title="'+(ok?'סגירת החודש':'קודם סוגרים את המעטפות')+'" aria-label="סגירת החודש"'+(ok?'':' disabled')+'>'+ic('unlock',20)+'</button>'}
+  return isLocked(k)?'<button class="lkb on" data-a="unl" title="לחיצה לפתיחת החודש" aria-label="פתיחת החודש">'+ic('lock',18)+'<span>נסגר</span></button>':'<button class="lkb" data-a="md" title="'+(ok?'לחיצה לסגירת החודש':'קודם סוגרים את המעטפות')+'" aria-label="סגירת החודש"'+(ok?'':' disabled')+'>'+ic('unlock',18)+'<span>פתוח</span></button>'}
 function lockBar(k){if(!n((S.md||{})[k]))return '';
   return '<div class="c lockc"><span class="lki">'+ic('lock',26)+'</span><div style="flex:1"><b>החודש סגור</b><div class="hint" style="margin:2px 0 0">נסגר ב-'+new Date(n(S.md[k])).toLocaleDateString('he-IL')+'. אפשר להוסיף משימות.</div></div><button class="ib" data-a="gt" title="הוספת משימה" aria-label="הוספת משימה">'+ic('plus',22)+'</button></div>'}
 var SGI={'i':['inn','הכנסה'],'אשראי':['card','אשראי'],'מזומן':['cash','מזומן'],'הו"ק':['rep','הוראת קבע'],'sv':['sv','חיסכון']};
 function mic(g,i){var sg=segOf(g,i),x=SGI[sg];if(!x)return '';return '<span class="mi" data-tip="'+esc(x[1])+'" title="'+esc(x[1])+'" tabindex="0">'+ic(x[0],16)+'</span>'}
-function lockBody(k){var a=st('act'),h='';
-  G.forEach(function(g){var rows=its(g).map(function(i){var kk=g.n+'|'+i,bv=n(S.bud[kk]),av=n(a[kk]);return (bv||av)?{i:i,bv:bv,av:av}:null}).filter(Boolean);if(!rows.length)return;
-    var tb=0,ta=0;rows.forEach(function(r){tb+=r.bv;ta+=r.av});var inc=g.t==='i',dd=inc?ta-tb:tb-ta;
-    h+='<div class="c lkg"><div class="lkh">'+gic(g.n)+'<b>'+esc(g.n)+'</b><span class="d '+(dd<0?'neg':'ok')+'">'+(dd>0?'+':'')+fm(dd)+'</span></div>'+
-     rows.map(function(r){var d=inc?r.av-r.bv:r.bv-r.av;return '<div class="lkr"><span>'+mic(g,r.i)+' '+esc(r.i)+'</span><small>'+fm(r.bv)+'</small><b>'+fm(r.av)+'</b><span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}).join('')+'</div>'});
-  var cash=envRO(k);
-  return '<div class="lkt"><span></span><small>תקציב</small><small>בפועל</small><small>הפרש</small></div>'+(h||'<div class="c"><p class="hint">לא הוזנו סכומים לחודש הזה.</p></div>')+cash}
-
+var MF='all';
+function lockBody(k){var a=st('act'),h='',cnt={all:0,sv:0,ov:0};
+  G.forEach(function(g){var inc=g.t==='i',rows=its(g).map(function(i){var kk=g.n+'|'+i,bv=n(S.bud[kk]),av=n(a[kk]),d=inc?av-bv:bv-av;return (bv||av)?{i:i,bv:bv,av:av,d:d}:null}).filter(Boolean);
+    rows.forEach(function(r){cnt.all++;if(r.d>0)cnt.sv++;if(r.d<0)cnt.ov++});
+    var sh=rows.filter(function(r){return MF==='all'||(MF==='sv'?r.d>0:r.d<0)});if(!sh.length)return;
+    var tb=0,ta=0;rows.forEach(function(r){tb+=r.bv;ta+=r.av});var dd=inc?ta-tb:tb-ta;
+    h+='<div class="c lkg"><div class="lkh">'+gic(g.n)+'<b>'+esc(g.n)+'</b></div>'+
+     sh.map(function(r){return '<div class="lkr"><span>'+mic(g,r.i)+' '+esc(r.i)+'</span><small>'+fm(r.bv)+'</small><b>'+fm(r.av)+'</b><span class="dp '+(r.d<0?'neg':r.d>0?'pos':'')+'">'+(r.d>0?'+':'')+fm(r.d)+'</span></div>'}).join('')+
+     '<div class="lkr lks"><span>סה"כ</span><small>'+fm(tb)+'</small><b>'+fm(ta)+'</b><span class="dp '+(dd<0?'neg':dd>0?'pos':'')+'">'+(dd>0?'+':'')+fm(dd)+'</span></div></div>'});
+  var tabs='<div class="mft">'+[['all','הכל'],['sv','חסכתי'],['ov','חרגתי']].map(function(t){return '<button class="'+(MF===t[0]?'on':'')+'" data-a="mf" data-id="'+t[0]+'">'+t[1]+' <small>('+cnt[t[0]]+')</small></button>'}).join('')+'</div>';
+  return tabs+'<div class="lkt"><span></span><small>תקציב</small><small>בפועל</small><small>הפרש</small></div>'+(h||'<div class="c"><p class="hint">אין שורות להצגה.</p></div>')+envRO(k)}
 function envRO(k){var ks=envKs();if(!ks.length)return '';var e=(S.env||{})[k]||{},L=e.left||{},D=e.d||{},M=e.mv||{};
   var rows=ks.map(function(x){var b=n(S.bud[x.k]),av=b+envCarry(x.k,k),sp=D[x.k]!=null?n(D[x.k]):Math.max(0,av-n(L[x.k])),lf=n(L[x.k]),mv=M[x.k]||'carry',dest=lf>0?(mv==='carry'||envAnn(x.k)?'נשאר במעטפה':mv==='free'?'לא מועבר':'הועבר ל'+((ks.filter(function(y){return y.k===mv})[0]||{}).i||'')):'';
     return '<div class="lkr"><span><span class="mi" data-tip="מזומן" title="מזומן" tabindex="0">'+ic('cash',16)+'</span> '+esc(x.i)+(dest?'<small style="display:block">'+esc(dest)+'</small>':'')+'</span><small>'+fm(av)+'</small><b>'+fm(sp)+'</b><span class="d">'+fm(lf)+'</span></div>'}).join('');
