@@ -98,10 +98,11 @@ function mon(){
   if(window.TX&&TX.open&&!TX.bal)return TXUI();
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
-  return '<div class="f mh" style="margin-bottom:10px"><select id="ms">'+ms+'</select><input id="yr" type="number" value="'+S.y+'" style="max-width:100px">'+vsSel()+'</div>'+
+  var vss=vsSel();
+  return '<div class="c mhc"><div class="mh'+(vss?'':' mh2')+'"><label class="mhl"><small>חודש</small><select id="ms">'+ms+'</select></label><label class="mhl"><small>שנה</small><input id="yr" type="number" value="'+S.y+'"></label>'+(vss?'<label class="mhl"><small>תקציב להצגה</small>'+vss+'</label>':'')+'</div></div>'+
   '<div class="g"><div class="k"><b>'+fm(ai)+'</b><span>הכנסות (תקציב '+fm(pi)+')</span></div><div class="k"><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae)+'</b><span>הוצאות (תקציב '+fm(pe)+')</span></div><div class="k"><b class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</b><span>יתרה בפועל</span></div></div>'+
   lockBar(k)+monRules()+overUI()+(typeof txBtn==='function'?txBtn():'')+(isLocked(k)?'':'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>')+(isLocked(k)?lockBody(k):monSeg())+
-  '<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI()}
+  (isLocked(k)?(S.note[k]?'<div class="c"><b>הערות לחודש</b><p style="margin:8px 0 0;white-space:pre-line">'+esc(S.note[k])+'</p></div>':'')+closeSum(k):'<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI())}
 function yr(){
   var rows='',TI=0,TE=0,TP=0;
   MN.forEach(function(m,i){var k=S.y+'-'+(i+1),ai=ts('act','i',k),ae=ex('act',k);
@@ -394,12 +395,31 @@ var MU={};
 function isLocked(k){return !!n((S.md||{})[k])}
 function lockBar(k){if(!n((S.md||{})[k]))return '';
   return '<div class="c lockc"><span class="lki">'+ic('lock',26)+'</span><div style="flex:1"><b>החודש סגור</b><div class="hint" style="margin:2px 0 0">נסגר ב-'+new Date(n(S.md[k])).toLocaleDateString('he-IL')+'. אפשר להוסיף משימות.</div></div><button class="ib" data-a="gt" title="הוספת משימה" aria-label="הוספת משימה">'+ic('plus',22)+'</button></div>'}
-var SGI={'i':['inn','הכנסה'],'אשראי':['card','אשראי: החיוב בפועל מהכרטיס'],'מזומן':['cash','מזומן: מעטפה נפרדת לכל סעיף'],'הו"ק':['rep','הוראת קבע: חיוב קבוע מהחשבון'],'sv':['sv','חיסכון']};
+var SGI={'i':['inn','הכנסה'],'אשראי':['card','אשראי'],'מזומן':['cash','מזומן'],'הו"ק':['rep','הוראת קבע'],'sv':['sv','חיסכון']};
 function mic(g,i){var sg=segOf(g,i),x=SGI[sg];if(!x)return '';return '<span class="mi" data-tip="'+esc(x[1])+'" title="'+esc(x[1])+'" tabindex="0">'+ic(x[0],16)+'</span>'}
 function lockBody(k){var a=st('act'),h='';
   G.forEach(function(g){var rows=its(g).map(function(i){var kk=g.n+'|'+i,bv=n(S.bud[kk]),av=n(a[kk]);return (bv||av)?{i:i,bv:bv,av:av}:null}).filter(Boolean);if(!rows.length)return;
     var tb=0,ta=0;rows.forEach(function(r){tb+=r.bv;ta+=r.av});var inc=g.t==='i',dd=inc?ta-tb:tb-ta;
     h+='<div class="c lkg"><div class="lkh">'+gic(g.n)+'<b>'+esc(g.n)+'</b><span class="d '+(dd<0?'neg':'ok')+'">'+(dd>0?'+':'')+fm(dd)+'</span></div>'+
      rows.map(function(r){var d=inc?r.av-r.bv:r.bv-r.av;return '<div class="lkr"><span>'+mic(g,r.i)+' '+esc(r.i)+'</span><small>'+fm(r.bv)+'</small><b>'+fm(r.av)+'</b><span class="d '+(d<0?'neg':'')+'">'+fm(d)+'</span></div>'}).join('')+'</div>'});
-  var sv=S.seg;S.seg='מזומן';var m=monSeg();S.seg=sv;var cash=envKs().length?m.slice(m.indexOf('</div>')+6):'';
-  return '<div class="lkt"><span></span><small>תקציב</small><small>בפועל</small><small>הפרש</small></div>'+(h||'<div class="c"><p class="hint">לא הוזנו סכומים לחודש הזה.</p></div>')+(cash?'<div class="sgh" style="margin-top:12px"><b>מעטפות</b></div>'+cash:'')}
+  var cash=envRO(k);
+  return '<div class="lkt"><span></span><small>תקציב</small><small>בפועל</small><small>הפרש</small></div>'+(h||'<div class="c"><p class="hint">לא הוזנו סכומים לחודש הזה.</p></div>')+cash}
+
+function envRO(k){var ks=envKs();if(!ks.length)return '';var e=(S.env||{})[k]||{},L=e.left||{},D=e.d||{},M=e.mv||{};
+  var rows=ks.map(function(x){var b=n(S.bud[x.k]),av=b+envCarry(x.k,k),sp=D[x.k]!=null?n(D[x.k]):Math.max(0,av-n(L[x.k])),lf=n(L[x.k]),mv=M[x.k]||'carry',dest=lf>0?(mv==='carry'||envAnn(x.k)?'נשאר במעטפה':mv==='free'?'לא מועבר':'הועבר ל'+((ks.filter(function(y){return y.k===mv})[0]||{}).i||'')):'';
+    return '<div class="lkr"><span>'+ic('cash',16)+' '+esc(x.i)+(dest?'<small style="display:block">'+esc(dest)+'</small>':'')+'</span><small>'+fm(av)+'</small><b>'+fm(sp)+'</b><span class="d">'+fm(lf)+'</span></div>'}).join('');
+  return '<div class="lkt" style="margin-top:12px"><b style="text-align:right">מעטפות</b><small>זמין</small><small>הוצא</small><small>נשאר</small></div><div class="c lkg">'+(e.done?'':'<p class="hint" style="margin:0 0 6px">המעטפות לא דווחו לפני הסגירה.</p>')+rows+'</div>'}
+function closeSum(k){var ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud'),bal=ai-ae,L=[];
+  L.push(['inn','הכנסות: '+fm(ai)+(pi?(ai>=pi?' (מעל התכנון ב-'+fm(ai-pi)+')':' (פחות מהתכנון ב-'+fm(pi-ai)+')'):'')]);
+  L.push(['card','הוצאות: '+fm(ae)+(pe?(ae<=pe?' (חסכתם '+fm(pe-ae)+' מהתכנון)':' (חריגה של '+fm(ae-pe)+')'):'')]);
+  var ov=G.filter(function(g){return g.t!=='i'&&gs('bud',g)>0&&gs('act',g)>gs('bud',g)}).map(function(g){return{n:g.n,d:gs('act',g)-gs('bud',g)}}).sort(function(a,b){return b.d-a.d}).slice(0,3);
+  if(ov.length)L.push(['dot','חרגו: '+ov.map(function(o){return o.n+' ('+fm(o.d)+')'}).join(', ')]);
+  var un=G.filter(function(g){return g.t!=='i'&&gs('bud',g)>0&&gs('act',g)<gs('bud',g)}).map(function(g){return{n:g.n,d:gs('bud',g)-gs('act',g)}}).sort(function(a,b){return b.d-a.d}).slice(0,2);
+  if(un.length)L.push(['check','הכי טוב: '+un.map(function(o){return o.n+' (נשאר '+fm(o.d)+')'}).join(', ')]);
+  var ks=envKs();if(ks.length){var e=(S.env||{})[k]||{},cT=0,sp=0,lf=0,car=0;ks.forEach(function(x){cT+=n(S.bud[x.k]);var l=n((e.left||{})[x.k]);lf+=l;sp+=n((e.d||{})[x.k]);var mv=(e.mv||{})[x.k]||'carry';if(l>0&&mv!=='free')car+=l});
+    L.push(['cash','מזומן: תוכנן '+fm(cT)+(n(e.wa)?', נמשך '+fm(n(e.wa)):'')+', הוצא '+fm(sp)]);
+    if(n(e.wa)&&n(e.wa)>cT)L.push(['dot','משכתם '+fm(n(e.wa)-cT)+' יותר מהמתוכנן למעטפות']);
+    if(lf)L.push(['cash','נשאר במעטפות '+fm(lf)+(car?', מתוכו '+fm(car)+' ממשיך לחודש הבא':'')])}
+  var ot=Object.keys(st('act')).filter(function(x){return x.indexOf('|חד-פעמי: ')>0});if(ot.length)L.push(['plus',ot.length+' פריטים חד-פעמיים החודש']);
+  var msg=bal>0?'נשארה יתרה של '+fm(bal)+'. כדאי להעביר אותה לחיסכון או ליעד.':bal<0?'יש פער שלילי של '+fm(-bal)+'. צריך לסגור אותו בחודש הקרוב.':'יצאתם מאוזנים, כל הכבוד.';
+  return '<div class="c csum" style="border:2px solid '+(bal<0?'var(--bd)':'var(--ok)')+'"><b>סיכום ותובנות</b><div class="csb '+(bal<0?'neg':'')+'">'+fm(bal)+'</div><p class="hint" style="margin:0 0 10px">'+msg+'</p>'+L.map(function(l){return '<div class="csl">'+ic(l[0],18)+'<span>'+esc(l[1])+'</span></div>'}).join('')+'<div class="f" style="margin-top:14px"><button class="btn" data-a="gt" title="הוספת משימה">'+ic('plus',18)+'<span>משימה</span></button></div></div>'}
