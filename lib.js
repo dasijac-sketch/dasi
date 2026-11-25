@@ -352,6 +352,7 @@ function home(){
   if(st2)h+=yrkUI();
   if(st2&&ph==='start')h+=mtgUI();
   if(!st2&&done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
+  if(st2)h+=rptUI();
   if(STAGE>=3)h+=cuUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
@@ -446,3 +447,11 @@ function xCsv(){var k=ym(),a=st('act'),L=[['קבוצה','סעיף','אמצעי �
   var tl=(S.tx||{})[k]||[];if(tl.length){L.push([]);L.push(['תאריך','בית עסק','סכום','סעיף']);tl.forEach(function(t){L.push([t[0],t[1],t[2],(t[3]||'').split('|')[1]||''])})}
   var csv='﻿'+L.map(function(r){return r.map(function(c){c=String(c==null?'':c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\r\n');
   var u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='דוח-'+MN[S.m-1]+'-'+S.y+'.csv';document.body.appendChild(l);l.click();setTimeout(function(){URL.revokeObjectURL(u);l.remove()},500)}
+
+function rptUI(){var P=perNow(S.sd),ms=[];for(var i=0;i<12&&ms.length<3;i++){var m=P.m-i,y=P.y;while(m<1){m+=12;y--}var k=y+'-'+m,a=S.act[k]||{};if(Object.keys(a).some(function(x){return n(a[x])>0}))ms.push({k:k,m:m,y:y,a:a})}
+  if(!ms.length)return '';var need=ms.length===1?1:2,out=[];
+  G.forEach(function(g){if(g.t==='i')return;its(g).forEach(function(it){var kk=g.n+'|'+it,b=n(S.bud[kk]);if(!b)return;var c=0,sum=0;ms.forEach(function(x){var v=n(x.a[kk]);if(v>b){c++;sum+=v-b}});if(c>=need)out.push({i:it,g:g.n,c:c,av:sum/c})})});
+  if(!out.length)return '';out.sort(function(a,b){return b.c-a.c||b.av-a.av});
+  return '<div class="c rpt"><div class="rph">'+ic('rep',20)+'<b>חריגות שחוזרות</b></div><div class="hint" data-hf="1" style="margin:4px 0 8px">'+(ms.length===1?'סעיפים שחרגו מהתקציב בחודש שיש עליו נתונים.':'סעיפים שחרגו מהתקציב ב-2 מתוך '+ms.length+' החודשים האחרונים.')+' כדאי לעדכן תקציב או להוריד הוצאה.</div>'+
+    out.slice(0,6).map(function(o){return '<div class="rpr"><span>'+esc(o.i)+'<small>'+esc(o.g)+'</small></span><em>'+o.c+'/'+ms.length+'</em><span class="dp neg">+'+fm(o.av)+'</span></div>'}).join('')+
+    (out.length>6?'<p class="hint" style="margin:6px 0 0">ועוד '+(out.length-6)+' סעיפים.</p>':'')+'<div class="f"><button class="btn sec" data-a="tab" data-id="bud" title="מעבר לתקציב">'+ic('bud',18)+'<span>לתקציב</span></button></div></div>'}
