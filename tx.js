@@ -69,7 +69,7 @@ function txBack(){return '<button class="btn sec" data-tx="close">חזרה למ�
 function TXUI(){var h='<div class="c"><b>סיווג הוצאות '+MN[S.m-1]+' '+S.y+'</b><div class="hint" style="margin:4px 0 0">הקבצים נקראים רק במכשיר שלכם. נשמרים רק הסכומים לכל סעיף וכללי הסיווג, לא פירוט העסקאות.</div></div>';
   if(TX.err)h+='<div class="c" style="border:1px solid var(--bd)">'+esc(TX.err)+'</div>';
   if(TX.step===1){
-    h+='<div class="c"><b>שלב 1: בחירת קבצים</b><div class="hint" style="margin:4px 0 8px">אפשר לבחור כמה קבצים יחד: פירוט אשראי של כל הכרטיסים ודף חשבון בנק (Excel או CSV).</div><input type="file" id="txf" accept=".xls,.xlsx,.csv" multiple>'+(TX.busy?'<p class="hint">קורא קבצים…</p>':'')+
+    h+='<div class="c"><b>שלב 1: בחירת קבצים</b><div class="hint" style="margin:4px 0 8px">אפשר לבחור כמה קבצים יחד: פירוט אשראי של כל הכרטיסים ודף חשבון בנק (Excel או CSV).</div><label id="txdz" class="dz"><b>גוררים לכאן את הקבצים</b><small>או לוחצים לבחירה</small><input type="file" id="txf" accept=".xls,.xlsx,.csv" multiple hidden></label>'+(TX.busy?'<p class="hint">קורא קבצים…</p>':'')+
     (TX.files.length?'<ul style="margin:10px 0 0;padding-inline-start:18px">'+TX.files.map(function(f){return '<li>'+esc(f.nm)+' <small class="hint">('+f.n+' תנועות)</small></li>'}).join('')+'</ul>':'')+'</div>';
     if(TX.ents.length){var gl=txGroups();h+='<div class="f"><button class="btn" data-tx="go">המשך לסיווג ('+gl.length+' בתי עסק)</button><button class="btn sec" data-tx="clr">ניקוי</button></div>'}
     return h+'<div class="f" style="margin-top:8px">'+txBack()+'</div>'}
@@ -97,11 +97,15 @@ function txFin(){var sm=txSum(),k=ym(),a=S.act[k]=S.act[k]||{},ur=S.ur=S.ur||{};
   txGroups().forEach(function(g){var v=TX.as[g.k];if(v&&v!=='x'&&v!=='__new'){delete ur[g.k];ur[g.k]=v}else if(v==='x'&&g.sk){delete ur[g.k];ur[g.k]='x'}});
   var ks=Object.keys(ur);while(ks.length>500)delete ur[ks.shift()];
   S.md=S.md||{};S.md[k]=Date.now();S.seg='מזומן';TX.open=false;TX.ents=[];TX.files=[];TX.as={};TX.step=1;save();render();window.scrollTo(0,0)}
-document.addEventListener('change',function(e){var t=e.target;
-  if(t.id==='txf'){var fl=Array.prototype.slice.call(t.files||[]);if(!fl.length)return;TX.busy=true;TX.err='';render();
+function txRead(fl){fl=Array.prototype.slice.call(fl||[]);if(!fl.length)return;TX.busy=true;TX.err='';render();
     txLoad(function(){var left=fl.length,bad=[];fl.forEach(function(f){var fr=new FileReader();fr.onload=function(){try{var wb=XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true}),en=txFile(wb,f.name);
         if(!en.length)bad.push(f.name);else{TX.ents=TX.ents.concat(en);TX.files.push({nm:f.name,n:en.length})}}catch(x){bad.push(f.name)}
-        if(!--left){TX.busy=false;if(bad.length)TX.err='לא זוהו תנועות בקבצים: '+bad.join(', ')+'. ודאו שזה פירוט עסקאות עם עמודות תאריך וסכום.';TX.as={};render()}};fr.onerror=function(){bad.push(f.name);if(!--left){TX.busy=false;render()}};fr.readAsArrayBuffer(f)})});return}
+        if(!--left){TX.busy=false;if(bad.length)TX.err='לא זוהו תנועות בקבצים: '+bad.join(', ')+'. ודאו שזה פירוט עסקאות עם עמודות תאריך וסכום.';TX.as={};render()}};fr.onerror=function(){bad.push(f.name);if(!--left){TX.busy=false;render()}};fr.readAsArrayBuffer(f)})})}
+document.addEventListener('dragover',function(e){var z=e.target.closest&&e.target.closest('#txdz');if(z){e.preventDefault();z.classList.add('dzo')}});
+document.addEventListener('dragleave',function(e){var z=e.target.closest&&e.target.closest('#txdz');if(z)z.classList.remove('dzo')});
+document.addEventListener('drop',function(e){var z=e.target.closest&&e.target.closest('#txdz');if(z){e.preventDefault();z.classList.remove('dzo');txRead(e.dataTransfer.files)}else if(TX.open)e.preventDefault()});
+document.addEventListener('change',function(e){var t=e.target;
+  if(t.id==='txf'){txRead(t.files);return}
   var a=t.dataset&&t.dataset.tx;if(!a)return;
   if(a==='all'){TX.all=t.checked;TX.as={};render()}
   else if(a==='as'){var y=window.scrollY,g=t.dataset.g;if(t.value==='__new'){TX.addFor=g}else{TX.addFor='';TX.as[g]=t.value}render();window.scrollTo(0,y)}});
