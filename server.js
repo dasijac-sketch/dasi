@@ -443,6 +443,77 @@ function dailyBackup() {
 }
 dailyBackup(); setInterval(dailyBackup, 6 * 60 * 60 * 1000).unref();
 
+/* ---------- תזכורות בטלפון (Web Push) ---------- */
+let webpush = null;
+try { webpush = require('web-push'); } catch (e) { console.error('web-push missing'); }
+db.exec(`CREATE TABLE IF NOT EXISTS push_subs(id INTEGER PRIMARY KEY AUTOINCREMENT, couple_id INTEGER NOT NULL, endpoint TEXT UNIQUE NOT NULL, sub TEXT NOT NULL, created_at INTEGER NOT NULL)`);
+db.exec(`CREATE TABLE IF NOT EXISTS push_log(couple_id INTEGER NOT NULL, kind TEXT NOT NULL, day TEXT NOT NULL, PRIMARY KEY(couple_id, kind, day))`);
+let VAPID = null;
+if (webpush) {
+  try {
+    const vf = path.join(DATA_DIR, 'vapid.json');
+    VAPID = process.env.VAPID_PUBLIC && process.env.VAPID_PRIVATE ? { publicKey: process.env.VAPID_PUBLIC, privateKey: process.env.VAPID_PRIVATE }
+      : fs.existsSync(vf) ? JSON.parse(fs.readFileSync(vf, 'utf8')) : null;
+    if (!VAPID) { VAPID = webpush.generateVAPIDKeys(); fs.writeFileSync(vf, JSON.stringify(VAPID), { mode: 0o600 }); }
+    webpush.setVapidDetails('mailto:' + (process.env.PUSH_CONTACT || 'noreply@example.com'), VAPID.publicKey, VAPID.privateKey);
+  } catch (e) { console.error('vapid failed', e.message); VAPID = null; }
+}
+const pq = {
+  add: db.prepare('INSERT INTO push_subs(couple_id, endpoint, sub, created_at) VALUES(?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET couple_id=excluded.couple_id, sub=excluded.sub'),
+  del: db.prepare('DELETE FROM push_subs WHERE endpoint=?'),
+  delMine: db.prepare('DELETE FROM push_subs WHERE endpoint=? AND couple_id=?'),
+  cnt: db.prepare('SELECT COUNT(*) n FROM push_subs WHERE couple_id=?'),
+  all: db.prepare('SELECT s.couple_id, s.endpoint, s.sub, c.state, c.stage, c.token FROM push_subs s JOIN couples c ON c.id=s.couple_id'),
+  logged: db.prepare('SELECT 1 FROM push_log WHERE couple_id=? AND kind=? AND day=?'),
+  log: db.prepare('INSERT OR IGNORE INTO push_log(couple_id, kind, day) VALUES(?,?,?)'),
+};
+app.get('/api/push-key', (req, res) => res.json({ key: VAPID ? VAPID.publicKey : null }));
+app.get('/api/c/:token/push', (req, res) => { const row = coupleFromToken(req, res); if (!row) return; res.json({ n: pq.cnt.get(row.id).n }); });
+app.post('/api/c/:token/push', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  const b = req.body || {}, sub = b.sub;
+  if (!VAPID || !sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || sub.endpoint.length > 1000 || !sub.keys || typeof sub.keys.p256dh !== 'string' || typeof sub.keys.auth !== 'string') return res.status(400).json({ error: 'bad_sub' });
+  if (pq.cnt.get(row.id).n >= 10) return res.status(400).json({ error: 'too_many' });
+  pq.add.run(row.id, sub.endpoint, JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }), Date.now());
+  res.json({ ok: true });
+});
+app.delete('/api/c/:token/push', (req, res) => {
+  const row = coupleFromToken(req, res); if (!row) return;
+  const ep = req.body && req.body.endpoint; if (typeof ep === 'string') pq.delMine.run(ep, row.id);
+  res.json({ ok: true });
+});
+function ilNow() { const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(new Date()); const g = t => +p.find(x => x.type === t).value; return { y: g('year'), m: g('month'), d: g('day'), h: g('hour') % 24 }; }
+function pushMsgs(st, stage, now) {
+  if (stage < 2) return [];
+  const sd = Math.min(28, Math.max(1, parseInt(st.sd) || 1)), out = [];
+  const dim = new Date(now.y, now.m, 0).getDate();
+  const daysToStart = now.d < sd ? sd - now.d : dim - now.d + sd;
+  if (now.d === sd) out.push(['start', 'חודש חדש התחיל', 'זמן למשוך מזומן למעטפות ולקבוע את ישיבת התקציב החודשית.']);
+  if (daysToStart === 3) out.push(['end3', 'עוד 3 ימים לסוף החודש', 'כדאי להכין את פירוט האשראי ודפי הבנק לסגירת החודש.']);
+  /* חודש קודם שלא נסגר, שבוע אחרי תחילת החודש */
+  let pm = now.d >= sd ? now.m - 1 : now.m - 2, py = now.y; while (pm < 1) { pm += 12; py--; }
+  const pk = py + '-' + pm, md = (st.md || {})[pk], act = (st.act || {})[pk];
+  const started = now.d >= sd ? now.d - sd : now.d + (new Date(now.y, now.m - 1, 0).getDate() - sd);
+  if (started === 7 && !md && act && Object.keys(act).length) out.push(['open', 'החודש הקודם עוד פתוח', 'כדאי לסיים את הסיווג והמעטפות ולסגור את החודש.']);
+  return out;
+}
+async function pushTick() {
+  if (!webpush || !VAPID) return;
+  const now = ilNow(); if (now.h < 9 || now.h > 20) return;
+  const day = now.y + '-' + now.m + '-' + now.d;
+  for (const r of pq.all.all()) {
+    let st = {}; try { st = JSON.parse(r.state || '{}'); } catch (e) { }
+    for (const [kind, title, body] of pushMsgs(st, r.stage, now)) {
+      if (pq.logged.get(r.couple_id, kind, day + '|' + r.endpoint.slice(-24))) continue;
+      try {
+        await webpush.sendNotification(JSON.parse(r.sub), JSON.stringify({ title, body, url: '/c/' + r.token }), { TTL: 12 * 3600 });
+        pq.log.run(r.couple_id, kind, day + '|' + r.endpoint.slice(-24));
+      } catch (e) { if (e.statusCode === 404 || e.statusCode === 410) pq.del.run(r.endpoint); else console.error('push failed', e.statusCode || e.message); }
+    }
+  }
+}
+setTimeout(pushTick, 60 * 1000).unref(); setInterval(pushTick, 60 * 60 * 1000).unref();
+
 /* ---------- דפים ---------- */
 const PUB_DIR = path.join(__dirname, 'public');
 const pub = fs.existsSync(PUB_DIR) ? PUB_DIR : __dirname; /* תומך גם בקבצים שבשורש המאגר */
@@ -454,7 +525,7 @@ app.get('/c/:token', page('couple.html'));
 app.get('/c/:token/manifest.webmanifest', (req, res) => {
   res.type('application/manifest+json').json({ name: 'נקודת איזון', short_name: 'נקודת איזון', lang: 'he', dir: 'rtl', start_url: '/c/' + encodeURIComponent(req.params.token), scope: '/c/', display: 'standalone', background_color: '#ffffff', theme_color: '#1f3a5f', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }] });
 });
-app.get('/sw.js', (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.type('application/javascript').send("self.addEventListener('install',function(){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim())});self.addEventListener('fetch',function(e){e.respondWith(fetch(e.request))});"); });
+app.get('/sw.js', (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.type('application/javascript').send("self.addEventListener('install',function(){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(self.clients.claim())});self.addEventListener('fetch',function(e){e.respondWith(fetch(e.request))});self.addEventListener('push',function(e){var d={};try{d=e.data.json()}catch(x){}e.waitUntil(self.registration.showNotification(d.title||'נקודת איזון',{body:d.body||'',dir:'rtl',lang:'he',icon:'/icon-192.png',badge:'/icon-192.png',data:{url:d.url||'/'}}))});self.addEventListener('notificationclick',function(e){e.notification.close();var u=(e.notification.data&&e.notification.data.url)||'/';e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url.indexOf(u)>=0&&'focus' in l[i])return l[i].focus()}return self.clients.openWindow(u)}))});"); });
 app.get('/:file', (req, res, next) => ASSETS.has(req.params.file) ? page(req.params.file)(req, res) : next());
 app.use((req, res) => res.status(404).type('text').send('העמוד לא נמצא'));
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: 'server_error' }); });

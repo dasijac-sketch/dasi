@@ -15,7 +15,7 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(DEFP)return '<div class="c"><b>התקנה כאפליקציה</b><div class="hint" style="margin:4px 0 8px">אייקון על המסך הראשי ופתיחה במסך מלא.</div><div class="f"><button class="btn" data-a="inst">התקנה</button><button class="btn sec" data-a="insx">לא עכשיו</button></div></div>';
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').then(function(){pushCheck()}).catch(function(){});
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});if(STAGE>=2)t.push(['cmp','השוואות']);t.push(['sv','חסכונות והלוואות'],['gl','יעדים'],['ins','ביטוחים'],['yc','מעגל השנה'],['me','אזור אישי']);if(STAGE>=2)t.push(['rl','הכללים']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
@@ -34,10 +34,27 @@ function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,cmp:cmpUI}[S.tab]||home;
   var tl=(tabs().filter(function(t){return t[0]===S.tab})[0]||[])[1]||'';tl=tl.replace(/\s*\(\d+\)$/,'');
-  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+fabUI();
+  app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0):'')+fabUI();
   hintFold(app);
 }
 window.render=render;window.save=save;
+
+var PS={st:'',busy:false};
+function pushSup(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
+function pushCheck(){if(!pushSup()){PS.st='no';return}navigator.serviceWorker.ready.then(function(r){return r.pushManager.getSubscription()}).then(function(s){PS.st=s?'on':(Notification.permission==='denied'?'denied':'off');try{render()}catch(e){}}).catch(function(){PS.st='off'})}
+function b64u(s){var p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function pushOn(){if(PS.busy)return;PS.busy=true;render();
+  fetch('/api/push-key').then(function(r){return r.json()}).then(function(k){if(!k.key)throw 0;return Notification.requestPermission().then(function(p){if(p!=='granted'){PS.st='denied';throw 1}return navigator.serviceWorker.ready}).then(function(r){return r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(k.key)})})})
+   .then(function(s){return fetch(API+'/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub:s.toJSON()})}).then(function(r){if(!r.ok)throw 2;PS.st='on'})})
+   .catch(function(){if(PS.st!=='denied')PS.st='err'}).then(function(){PS.busy=false;render()})}
+function pushOff(){navigator.serviceWorker.ready.then(function(r){return r.pushManager.getSubscription()}).then(function(s){if(!s)return;var ep=s.endpoint;return s.unsubscribe().then(function(){return fetch(API+'/push',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:ep})})})}).catch(function(){}).then(function(){PS.st='off';render()})}
+function pushUI(home){if(STAGE<2)return '';if(!pushSup())PS.st='no';var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(home&&(PS.st==='on'||PS.st===''||PS.st==='no'||PS.st==='denied'))return '';try{if(home&&localStorage.getItem('pshx'))return ''}catch(e){}
+  var body;if(PS.st==='no')body=ios&&!sa?'באייפון מקבלים תזכורות אחרי התקנה: שיתוף ← הוספה למסך הבית, ואז פותחים מהאייקון.':'הדפדפן הזה לא תומך בתזכורות.';
+  else if(PS.st==='on')body='<span class="pill ok">✓ פעילות במכשיר הזה</span><div class="f"><button class="btn sec" data-a="psoff">'+ic('xx',18)+'<span>כיבוי</span></button></div>';
+  else if(PS.st==='denied')body='ההתראות חסומות בהגדרות הדפדפן. אפשר לאפשר אותן בהגדרות האתר.';
+  else body='תחילת חודש, 3 ימים לפני סוף החודש, וחודש שעוד לא נסגר.'+(PS.st==='err'?' <b class="neg">ההפעלה לא הצליחה, נסו שוב.</b>':'')+'<div class="f"><button class="btn" data-a="pson"'+(PS.busy?' disabled':'')+'>'+ic('check',18)+'<span>הפעלה</span></button>'+(home?'<button class="btn sec" data-a="pshx">לא עכשיו</button>':'')+'</div>';
+  return '<div class="c"><div class="rph" style="color:#1F3A5F">'+ic('yc',20)+'<b>תזכורות בטלפון</b></div><div class="hint" data-hf="1" style="margin:6px 0 0">'+body+'</div></div>'}
 function save(){dirty=true;clearTimeout(timer);timer=setTimeout(flush,700);status('שומר...')}
 function flush(){
   clearTimeout(timer);timer=null;
@@ -89,6 +106,9 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='mf'){MF=b.dataset.id}
+  else if(a==='pson'){pushOn();return}
+  else if(a==='psoff'){pushOff();return}
+  else if(a==='pshx'){try{localStorage.setItem('pshx','1')}catch(e){}}
   else if(a==='cmpv'){CMP=b.dataset.id}
   else if(a==='gofc'){S.tab='sv';render();setTimeout(function(){var f=document.getElementById('fcc');if(f)f.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
   else if(a==='blk'){S.bl=Date.now();save()}
