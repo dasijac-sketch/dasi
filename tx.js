@@ -158,6 +158,8 @@ function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
     TX.ents.forEach(function(){});}
   else{var k=ym(),a=S.act[k]=S.act[k]||{};
     if(TX.im==='new'){Object.keys(a).forEach(function(x){var pp=x.split('|');var gg=G.filter(function(q){return q.n===pp[0]})[0];if(!(gg&&segOf(gg,pp[1])==='מזומן'))delete a[x]})}
+    txGroups();var tl=[];TX.ents.forEach(function(en,ix){if(!txIn(en))return;var v=TX.as[txEK(en,ix)];if(!v||v==='x'||v==='__env')return;var d=new Date(en.d);tl.push([d.getDate()+'/'+(d.getMonth()+1),en.nm.slice(0,30),Math.round(Math.abs(en.a)*100)/100,txVK(v)])});
+    S.tx=S.tx||{};S.tx[k]=(TX.im==='add'?(S.tx[k]||[]):[]).concat(tl).slice(0,500);var tk=Object.keys(S.tx).sort(function(x,y){var p=x.split('-'),q=y.split('-');return (p[0]*12+ +p[1])-(q[0]*12+ +q[1])});while(tk.length>6)delete S.tx[tk.shift()];
     [sm.e,sm.i].forEach(function(o){Object.keys(o).forEach(function(x){a[x]=(TX.im==='add'?n(a[x]):0)+o[x];if(x.indexOf('|חד-פעמי: ')>0){var p=x.split('|');S.cx=S.cx||{};var l=S.cx[p[0]]=S.cx[p[0]]||[];if(l.indexOf(p[1])<0)l.push(p[1])}})})}
   if(!TX.bal){var wd=0;txGroups().forEach(function(g){if(TX.as[g.k]==='__env'&&g.d2>wd)wd=g.d2});if(wd){S.env=S.env||{};var ev=S.env[ym()]=S.env[ym()]||{};if(!ev.w)ev.w=wd}}
   if(!TX.bal){var nl=[];txGroups().forEach(function(g){var v=TX.as[g.k];if(txIsOt(v)){var t=v.slice(5);nl.push('חד-פעמי: '+t+' ('+fm(g.t)+')'+(TX.od&&TX.od[t]?' - '+TX.od[t]:''))}});if(nl.length){S.note=S.note||{};var k2=ym();S.note[k2]=((S.note[k2]?S.note[k2]+'\n':'')+nl.join('\n'))}}
@@ -230,5 +232,5 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]'
   else if(a==='otok'){var tx=((document.getElementById('txot')||{}).value||'').trim().slice(0,40);if(!tx){TX.err='נא לכתוב על מה הלך הכסף';R(1);return}TX.err='';var og=txGroups().filter(function(x){return x.k===g})[0];var dt=((document.getElementById('txotd')||{}).value||'').trim().slice(0,200);TX.od=TX.od||{};if(dt)TX.od[tx]=dt;txAssign(g,(og&&og.inc?'__oi:':'__ot:')+tx);R(1)}
   else if(a==='addok'){var gn=(document.getElementById('txng')||{}).value,nn=((document.getElementById('txnn')||{}).value||'').trim();
     if(!gn||!nn){TX.err='נא למלא את שם הסעיף';R(1);return}TX.err='';S.cx=S.cx||{};var l=S.cx[gn]=S.cx[gn]||[];if(l.indexOf(nn)<0)l.push(nn);
-    txAssign(g,gn+'|'+nn);save();R(1)}});
+    S.nwi=S.nwi||{};S.nwi[gn+'|'+nn]=ym();txAssign(g,gn+'|'+nn);save();R(1)}});
 function txCardCur(){var gl=txGroups(),ty=TX.ty||'',sk=TX.sk||[],q=gl.filter(function(g){return !TX.ok[g.k]&&(!ty||(ty==='i')===!!g.inc)});q=q.filter(function(g){return sk.indexOf(g.k)<0}).concat(q.filter(function(g){return sk.indexOf(g.k)>=0}));return q[0]}

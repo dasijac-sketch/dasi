@@ -19,7 +19,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch
 function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['rl','הכללים'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['ins','ביטוחים ויעדים'],['me','אזור אישי']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
-function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{}}}
+function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{},tx:S.tx||{},nwi:S.nwi||{}}}
 function apply(d){
   PWSET=d.pwset?1:0;PROF=d.profile||{};
   var keep={y:S.y,m:S.m,tab:S.tab,open:S.open,vs:S.vs,seg:S.seg};
@@ -88,6 +88,9 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='mf'){MF=b.dataset.id}
+  else if(a==='eye'){var ek2=b.dataset.k;EYE[ek2]=!EYE[ek2]}
+  else if(a==='xpdf'){window.print();return}
+  else if(a==='xcsv'){xCsv();return}
   else if(a==='unl'){if(S.md)delete S.md[ym()];save()}
   else if(a==='md'){var ek=ym();if(envKs().length&&!(S.env&&S.env[ek]&&S.env[ek].done))return;S.md=S.md||{};S.md[ek]=Date.now();save()}
   else if(a==='gt'){S.tab='tasks'}
