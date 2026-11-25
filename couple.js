@@ -87,8 +87,7 @@ document.addEventListener('click',function(e){
   if(a==='tab')S.tab=b.dataset.id;
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
-  else if(a==='unl'){MU[ym()]=1;render();return}
-  else if(a==='rel'){delete MU[ym()];render();return}
+  else if(a==='unl'){if(S.md)delete S.md[ym()];save()}
   else if(a==='md'){var ek=ym();if(envKs().length&&!(S.env&&S.env[ek]&&S.env[ek].done))return;S.md=S.md||{};S.md[ek]=Date.now();save()}
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='t37'){S.mt=S.mt||{};S.mt['x37'+ym()]={x:('להעביר '+fm(n(b.dataset.v))+' מההכנסה החריגה של החודש לחיסכון').slice(0,200),ts:Date.now()};save();render()}

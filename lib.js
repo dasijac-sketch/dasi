@@ -99,9 +99,9 @@ function mon(){
   var k=ym(),ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud');
   var ms=MN.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===S.m?' selected':'')+'>'+m+'</option>'}).join('');
   var vss=vsSel();
-  return '<div class="c mhc"><div class="mh'+(vss?'':' mh2')+'"><label class="mhl"><small>חודש</small><select id="ms">'+ms+'</select></label><label class="mhl"><small>שנה</small><input id="yr" type="number" value="'+S.y+'"></label>'+(vss?'<label class="mhl"><small>תקציב להצגה</small>'+vss+'</label>':'')+'</div></div>'+
+  return '<div class="mhd"><button class="ib sm" data-a="mpv" title="חודש קודם" aria-label="חודש קודם">'+ic('bck',18)+'</button><div class="mht"><b>'+MN[S.m-1]+' '+S.y+'</b>'+vss+'</div><button class="ib sm" data-a="mnx" title="חודש הבא" aria-label="חודש הבא">'+ic('nxt',18)+'</button>'+lockBtn(k)+'</div>'+
   '<div class="g"><div class="k"><b>'+fm(ai)+'</b><span>הכנסות (תקציב '+fm(pi)+')</span></div><div class="k"><b class="'+(ae>pe&&pe?'neg':'')+'">'+fm(ae)+'</b><span>הוצאות (תקציב '+fm(pe)+')</span></div><div class="k"><b class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</b><span>יתרה בפועל</span></div></div>'+
-  lockBar(k)+monRules()+overUI()+(typeof txBtn==='function'?txBtn():'')+(isLocked(k)?'':'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>')+(isLocked(k)?lockBody(k):monSeg())+
+  (isLocked(k)?'':overUI())+(typeof txBtn==='function'?txBtn():'')+(isLocked(k)?'':'<p class="hint">הוצאות לפי אמצעי תשלום. באשראי ובהוראות קבע מזינים את החיוב בפועל, ובמעטפות רק סוגרים את החודש.</p>')+(isLocked(k)?lockBody(k):monSeg())+
   (isLocked(k)?(S.note[k]?'<div class="c"><b>הערות לחודש</b><p style="margin:8px 0 0;white-space:pre-line">'+esc(S.note[k])+'</p></div>':'')+closeSum(k):'<div class="c"><b>הערות לחודש</b><textarea id="nt" rows="3" style="width:100%;margin-top:6px" placeholder="סיכום, מסקנות ומשימות לחודש הבא">'+esc(S.note[k]||'')+'</textarea></div>'+mdUI())}
 function yr(){
   var rows='',TI=0,TE=0,TP=0;
@@ -232,7 +232,7 @@ function remUI(){if(STAGE<2)return '';var P0=perNow(S.sd),py=P0.m>1?P0.y:P0.y-1,
   if(n((S.md||{})[pk])||!S.act[pk]||!Object.keys(S.act[pk]).length)return '';
   return '<div class="c" style="border:1px solid var(--wn)"><b>סגירת '+MN[pm-1]+'</b><div class="hint" style="margin:4px 0 8px">'+MN[pm-1]+' עוד לא סומן כהושלם. כדאי לעבור על ההוצאות בפועל ולסגור את החודש.</div><button class="btn" data-a="gm" data-y="'+py+'" data-m="'+pm+'">לסגירת החודש</button></div>'}
 function mdUI(){var k=ym(),dt=n((S.md||{})[k]),bal=ts('act','i')-ex('act'),ev=envKs().length>0,envOk=!ev||!!(S.env&&S.env[k]&&S.env[k].done);
-  if(!dt)return '<div class="c"><b>סיימתם את החודש?</b><div class="hint" style="margin:4px 0 8px">'+(envOk?'אחרי שהזנתם את כל ההכנסות וההוצאות ומילאתם את המעטפות אפשר לסגור. לא ניתן לפתוח את החודש מחדש, רק להוסיף משימות.':'קודם ממלאים וסוגרים את המעטפות, ואז סוגרים את החודש.')+'</div><button class="btn" data-a="md" title="סיום החודש"'+(envOk?'':' disabled')+'>'+ic('lock',18)+'<span>סגירת החודש</span></button></div>';
+  if(!dt)return '<div class="c"><b>סיימתם את החודש?</b><div class="hint" style="margin:4px 0 8px">'+(envOk?'אחרי שהזנתם את כל ההכנסות וההוצאות ומילאתם את המעטפות אפשר לסגור את החודש.':'קודם ממלאים וסוגרים את המעטפות, ואז סוגרים את החודש.')+'</div><button class="btn" data-a="md" title="סיום החודש"'+(envOk?'':' disabled')+'>'+ic('lock',18)+'<span>סגירת החודש</span></button></div>';
   var msg=bal>0?'איזה כיף! נשארה לכם יתרה של '+fm(bal)+'. אפשר לקחת אותה לקטגוריה שחשובה לכם, כמו חיסכון, יעד או משהו שרציתם לעצמכם.':bal<0?'יש חריגה של '+fm(-bal)+'. צריך לכסות אותה בתוך החודש הקרוב. אפשר להוסיף לעצמכם משימה בלשונית "משימות ואתגרים".':'יצאתם מאוזנים החודש, כל הכבוד.';
   return '<div class="c" style="border:2px solid '+(bal<0?'var(--bd)':'var(--ok)')+'"><b>סיכום החודש</b><p style="margin:8px 0">'+msg+'</p><div class="f"><button class="btn" data-a="gt" title="הוספת משימה">'+ic('plus',18)+'<span>משימה</span></button></div></div>'}
 function tkAll(){var K={tk:'מהמאמנת',ch:'אתגר'},l=INBOX.filter(function(m){return m.k==='tk'||m.k==='ch'}).map(function(m){return{id:m.id,x:m.x,ts:m.ts,due:m.due||'',tag:K[m.k],own:false}}).filter(function(t){return !(S.chd||{})['hid:'+t.id]});
@@ -393,6 +393,8 @@ document.addEventListener('click',function(e){var mi=e.target.closest&&e.target.
 
 var MU={};
 function isLocked(k){return !!n((S.md||{})[k])}
+function lockBtn(k){var ev=envKs().length>0,ok=!ev||!!(S.env&&S.env[k]&&S.env[k].done);
+  return isLocked(k)?'<button class="ib lkb on" data-a="unl" title="החודש סגור · לחיצה לפתיחה" aria-label="פתיחת החודש">'+ic('lock',20)+'</button>':'<button class="ib lkb" data-a="md" title="'+(ok?'סגירת החודש':'קודם סוגרים את המעטפות')+'" aria-label="סגירת החודש"'+(ok?'':' disabled')+'>'+ic('unlock',20)+'</button>'}
 function lockBar(k){if(!n((S.md||{})[k]))return '';
   return '<div class="c lockc"><span class="lki">'+ic('lock',26)+'</span><div style="flex:1"><b>החודש סגור</b><div class="hint" style="margin:2px 0 0">נסגר ב-'+new Date(n(S.md[k])).toLocaleDateString('he-IL')+'. אפשר להוסיף משימות.</div></div><button class="ib" data-a="gt" title="הוספת משימה" aria-label="הוספת משימה">'+ic('plus',22)+'</button></div>'}
 var SGI={'i':['inn','הכנסה'],'אשראי':['card','אשראי'],'מזומן':['cash','מזומן'],'הו"ק':['rep','הוראת קבע'],'sv':['sv','חיסכון']};
@@ -407,7 +409,7 @@ function lockBody(k){var a=st('act'),h='';
 
 function envRO(k){var ks=envKs();if(!ks.length)return '';var e=(S.env||{})[k]||{},L=e.left||{},D=e.d||{},M=e.mv||{};
   var rows=ks.map(function(x){var b=n(S.bud[x.k]),av=b+envCarry(x.k,k),sp=D[x.k]!=null?n(D[x.k]):Math.max(0,av-n(L[x.k])),lf=n(L[x.k]),mv=M[x.k]||'carry',dest=lf>0?(mv==='carry'||envAnn(x.k)?'נשאר במעטפה':mv==='free'?'לא מועבר':'הועבר ל'+((ks.filter(function(y){return y.k===mv})[0]||{}).i||'')):'';
-    return '<div class="lkr"><span>'+ic('cash',16)+' '+esc(x.i)+(dest?'<small style="display:block">'+esc(dest)+'</small>':'')+'</span><small>'+fm(av)+'</small><b>'+fm(sp)+'</b><span class="d">'+fm(lf)+'</span></div>'}).join('');
+    return '<div class="lkr"><span><span class="mi" data-tip="מזומן" title="מזומן" tabindex="0">'+ic('cash',16)+'</span> '+esc(x.i)+(dest?'<small style="display:block">'+esc(dest)+'</small>':'')+'</span><small>'+fm(av)+'</small><b>'+fm(sp)+'</b><span class="d">'+fm(lf)+'</span></div>'}).join('');
   return '<div class="lkt" style="margin-top:12px"><b style="text-align:right">מעטפות</b><small>זמין</small><small>הוצא</small><small>נשאר</small></div><div class="c lkg">'+(e.done?'':'<p class="hint" style="margin:0 0 6px">המעטפות לא דווחו לפני הסגירה.</p>')+rows+'</div>'}
 function closeSum(k){var ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('bud'),bal=ai-ae,L=[];
   L.push(['inn','הכנסות: '+fm(ai)+(pi?(ai>=pi?' (מעל התכנון ב-'+fm(ai-pi)+')':' (פחות מהתכנון ב-'+fm(pi-ai)+')'):'')]);
@@ -421,5 +423,11 @@ function closeSum(k){var ai=ts('act','i'),pi=ts('bud','i'),ae=ex('act'),pe=ex('b
     if(n(e.wa)&&n(e.wa)>cT)L.push(['dot','משכתם '+fm(n(e.wa)-cT)+' יותר מהמתוכנן למעטפות']);
     if(lf)L.push(['cash','נשאר במעטפות '+fm(lf)+(car?', מתוכו '+fm(car)+' ממשיך לחודש הבא':'')])}
   var ot=Object.keys(st('act')).filter(function(x){return x.indexOf('|חד-פעמי: ')>0});if(ot.length)L.push(['plus',ot.length+' פריטים חד-פעמיים החודש']);
+  var R=[],ex0=pi>0&&ai>pi?ai-pi:0;
+  if(ex0)R.push('<div class="csl rl">'+ic('rl',18)+'<span><b>כלל 70-30:</b> הכנסה חריגה של '+fm(ex0)+'. '+fm(ex0*.7)+' לחיסכון ו-'+fm(ex0*.3)+' להעלאת רמת חיים.'+(ex0>10000?' מעל 10,000 ₪ כדאי להתייעץ עם המאמנת.':'')+(S.mt&&S.mt['x37'+k]?' ✓ נוספה משימה':' <button class="lk" data-a="t37" data-v="'+Math.round(ex0*.7)+'">להוסיף משימה</button>')+'</span></div>');
+  if(bal<0)R.push('<div class="csl rl">'+ic('rl',18)+'<span><b>פער שלילי</b> סוגרים תוך 30 יום. לא מלווים ממעטפה למעטפה.</span></div>');
+  var ek=envKs(),ee=(S.env||{})[k]||{},annL=ek.filter(function(x){return envAnn(x.k)&&n((ee.left||{})[x.k])>0});
+  if(annL.length)R.push('<div class="csl rl">'+ic('rl',18)+'<span><b>מעטפות שנתיות</b> ('+annL.map(function(x){return x.i}).join(', ')+'): היתרה נשמרת לשימוש בהמשך השנה ולא מועברת למעטפה אחרת.</span></div>');
+  if(bal>0)R.push('<div class="csl rl">'+ic('rl',18)+'<span><b>יתרה חיובית</b> לא נשארת בעו"ש: מעבירים לחיסכון או ליעד שבחרתם.</span></div>');
   var msg=bal>0?'נשארה יתרה של '+fm(bal)+'. כדאי להעביר אותה לחיסכון או ליעד.':bal<0?'יש פער שלילי של '+fm(-bal)+'. צריך לסגור אותו בחודש הקרוב.':'יצאתם מאוזנים, כל הכבוד.';
-  return '<div class="c csum" style="border:2px solid '+(bal<0?'var(--bd)':'var(--ok)')+'"><b>סיכום ותובנות</b><div class="csb '+(bal<0?'neg':'')+'">'+fm(bal)+'</div><p class="hint" style="margin:0 0 10px">'+msg+'</p>'+L.map(function(l){return '<div class="csl">'+ic(l[0],18)+'<span>'+esc(l[1])+'</span></div>'}).join('')+'<div class="f" style="margin-top:14px"><button class="btn" data-a="gt" title="הוספת משימה">'+ic('plus',18)+'<span>משימה</span></button></div></div>'}
+  return '<div class="c csum" style="border:2px solid '+(bal<0?'var(--bd)':'var(--ok)')+'"><b>סיכום ותובנות</b><div class="csb '+(bal<0?'neg':'')+'">'+fm(bal)+'</div><p class="hint" style="margin:0 0 10px">'+msg+'</p>'+L.map(function(l){return '<div class="csl">'+ic(l[0],18)+'<span>'+esc(l[1])+'</span></div>'}).join('')+(R.length?'<div class="sgh" style="margin-top:12px"><b>כללים רלוונטיים</b></div>'+R.join(''):'')+'<div class="f" style="margin-top:14px"><button class="btn" data-a="gt" title="הוספת משימה">'+ic('plus',18)+'<span>משימה</span></button></div></div>'}
