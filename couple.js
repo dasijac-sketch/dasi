@@ -33,7 +33,7 @@ function apply(d){
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin}[S.tab]||home;
-  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|mon|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+fabUI();
+  app.innerHTML=(S.tab==='home'?obUI()+instUI():'')+(/^(home|bud|yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+fabUI();
   hintFold(app);
 }
 window.render=render;window.save=save;
@@ -89,8 +89,7 @@ document.addEventListener('click',function(e){
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='unl'){MU[ym()]=1;render();return}
   else if(a==='rel'){delete MU[ym()];render();return}
-  else if(a==='md'){S.md=S.md||{};S.md[ym()]=Date.now();save()}
-  else if(a==='umd'){S.md=S.md||{};delete S.md[ym()];save()}
+  else if(a==='md'){var ek=ym();if(envKs().length&&!(S.env&&S.env[ek]&&S.env[ek].done))return;S.md=S.md||{};S.md[ek]=Date.now();save()}
   else if(a==='gt'){S.tab='tasks'}
   else if(a==='t37'){S.mt=S.mt||{};S.mt['x37'+ym()]={x:('להעביר '+fm(n(b.dataset.v))+' מההכנסה החריגה של החודש לחיסכון').slice(0,200),ts:Date.now()};save();render()}
   else if(a==='mta'){var ti=document.getElementById('mti'),tx=ti&&ti.value.trim();if(!tx)return;S.mt=S.mt||{};S.mt['m'+Date.now()]={x:tx.slice(0,200),ts:Date.now()}  ;save()}
