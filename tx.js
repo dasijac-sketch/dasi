@@ -158,14 +158,14 @@ function txFin(){var sm=txSum(),ur=S.ur=S.ur||{};
     TX.ents.forEach(function(){});}
   else{var k=ym(),a=S.act[k]=S.act[k]||{};
     if(TX.im==='new'){Object.keys(a).forEach(function(x){var pp=x.split('|');var gg=G.filter(function(q){return q.n===pp[0]})[0];if(!(gg&&segOf(gg,pp[1])==='מזומן'))delete a[x]})}
-    txGroups();var tl=[];TX.ents.forEach(function(en,ix){if(!txIn(en))return;var v=TX.as[txEK(en,ix)];if(!v||v==='x'||v==='__env')return;var d=new Date(en.d);tl.push([d.getDate()+'/'+(d.getMonth()+1),en.nm.slice(0,30),Math.round(Math.abs(en.a)*100)/100,txVK(v)])});
+    txGroups();var tl=[];TX.ents.forEach(function(en,ix){if(!txIn(en))return;var v=TX.as[txEK(en,ix)];if(!v||v==='x'||v==='__env')return;var d=new Date(en.d);var im=((en.x||'')+' '+en.nm).match(/תשלום\s*(\d{1,2})\s*(?:מתוך|מ-|\/)\s*(\d{1,2})/);tl.push([d.getDate()+'/'+(d.getMonth()+1),en.nm.slice(0,30),Math.round(Math.abs(en.a)*100)/100,txVK(v)].concat(im&&+im[2]>1?[im[1]+'/'+im[2]]:[]))});
     S.tx=S.tx||{};S.tx[k]=(TX.im==='add'?(S.tx[k]||[]):[]).concat(tl).slice(0,500);var tk=Object.keys(S.tx).sort(function(x,y){var p=x.split('-'),q=y.split('-');return (p[0]*12+ +p[1])-(q[0]*12+ +q[1])});while(tk.length>6)delete S.tx[tk.shift()];
     [sm.e,sm.i].forEach(function(o){Object.keys(o).forEach(function(x){a[x]=(TX.im==='add'?n(a[x]):0)+o[x];if(x.indexOf('|חד-פעמי: ')>0){var p=x.split('|');S.cx=S.cx||{};var l=S.cx[p[0]]=S.cx[p[0]]||[];if(l.indexOf(p[1])<0)l.push(p[1])}})})}
   if(!TX.bal){var wd=0;txGroups().forEach(function(g){if(TX.as[g.k]==='__env'&&g.d2>wd)wd=g.d2});if(wd){S.env=S.env||{};var ev=S.env[ym()]=S.env[ym()]||{};if(!ev.w)ev.w=wd}}
   if(!TX.bal){var nl=[];txGroups().forEach(function(g){var v=TX.as[g.k];if(txIsOt(v)){var t=v.slice(5);nl.push('חד-פעמי: '+t+' ('+fm(g.t)+')'+(TX.od&&TX.od[t]?' - '+TX.od[t]:''))}});if(nl.length){S.note=S.note||{};var k2=ym();S.note[k2]=((S.note[k2]?S.note[k2]+'\n':'')+nl.join('\n'))}}
   txGroups().forEach(function(g){if(g.sub)return;var v=TX.as[g.k];if(v&&v!=='__new'&&!txIsOt(v)){delete ur[g.k];ur[g.k]=v}});
   var ks=Object.keys(ur);while(ks.length>500)delete ur[ks.shift()];
-  var wasBal=TX.bal,wT=0,wD=0,wn=0;if(!wasBal){txGroups().forEach(function(g){if(TX.as[g.k]==='__env'){wT+=g.t;wn+=g.n;if(g.d2>wD)wD=g.d2}});S.seg='מזומן'}else S.tab='bal';
+  var wasBal=TX.bal,wT=0,wD=0,wn=0;if(!wasBal){txGroups().forEach(function(g){if(TX.as[g.k]==='__env'){wT+=g.t;wn+=g.n;if(g.d2>wD)wD=g.d2}});S.seg='מזומן'}else{S.tab='bal';S.bf=Date.now()}
   var goEnv=!wasBal&&envKs().length>0;
   TX.ents=[];TX.files=[];TX.as={};TX.ok={};TX.hist=[];TX.sk=[];TX.pm=null;TX.bal=false;
   if(goEnv){TX.wT=Math.round(wT);TX.wn=wn;TX.wD=wD;TX.step=4;TX.ei=-1;var ev=(S.env=S.env||{})[ym()]=S.env[ym()]||{};if(!ev.w)ev.w=wD||Date.now();if(TX.wT&&!n(ev.wa))ev.wa=TX.wT;save();render();window.scrollTo(0,0);return}
