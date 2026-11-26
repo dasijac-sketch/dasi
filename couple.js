@@ -48,7 +48,7 @@ function pushOn(){if(PS.busy)return;PS.busy=true;render();
    .then(function(s){return fetch(API+'/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub:s.toJSON()})}).then(function(r){if(!r.ok)throw 2;PS.st='on'})})
    .catch(function(){if(PS.st!=='denied')PS.st='err'}).then(function(){PS.busy=false;render()})}
 function pushOff(){navigator.serviceWorker.ready.then(function(r){return r.pushManager.getSubscription()}).then(function(s){if(!s)return;var ep=s.endpoint;return s.unsubscribe().then(function(){return fetch(API+'/push',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:ep})})})}).catch(function(){}).then(function(){PS.st='off';render()})}
-function pushUI(home){if(STAGE<2)return '';if(!pushSup())PS.st='no';var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+function pushUI(home){if(STAGE<2||!/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent))return '';if(!pushSup())PS.st='no';var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone;
   if(home&&(PS.st==='on'||PS.st===''||PS.st==='no'||PS.st==='denied'))return '';try{if(home&&localStorage.getItem('pshx'))return ''}catch(e){}
   var body;if(PS.st==='no')body=ios&&!sa?'באייפון מקבלים תזכורות אחרי התקנה: שיתוף ← הוספה למסך הבית, ואז פותחים מהאייקון.':'הדפדפן הזה לא תומך בתזכורות.';
   else if(PS.st==='on')body='<span class="pill ok">✓ פעילות במכשיר הזה</span><div class="f"><button class="btn sec" data-a="psoff">'+ic('xx',18)+'<span>כיבוי</span></button></div>';

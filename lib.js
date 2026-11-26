@@ -353,7 +353,7 @@ function autoYr(){if(STAGE<2||typeof ADM!=='undefined'&&ADM)return false;S.mt=S.
   if(!n(S.chd.ykb)){S.chd.ykb=Date.now();chg=true}var p=ykP();
   YKT.forEach(function(t){var id='yk|'+t[0]+'|'+p;if(S.mt[id]||S.chd[id]||S.chd['hid:'+id]||!t[2]())return;S.mt[id]={x:'בדיקה שנתית: '+t[1],ts:Date.now()};chg=true});return chg}
 function ykOpen(){return Object.keys(S.mt||{}).filter(function(k){return /^yk\|/.test(k)&&!S.chd[k]})}
-function yrkUI(){if(STAGE<2)return '';var o=ykOpen();if(!o.length)return '';return '<div class="nw"><b>הגיע הזמן לבדיקה שנתית</b><div class="nwi">'+o.slice(0,6).map(function(k){return '• '+esc(S.mt[k].x.replace('בדיקה שנתית: ',''))}).join('<br>')+'</div><div class="f"><button class="btn" data-a="tab" data-id="tasks">'+ic('nxt',18)+'<span>למשימות</span></button></div></div>'}
+function yrkUI(){if(STAGE<2)return '';var sn=n(S.sn),k=Object.keys(S.mt||{}).filter(function(k){return !S.chd[k]&&n(S.mt[k].ts)>sn&&/^(yk|hk)\|/.test(k)});if(!k.length)return '';return '<div class="nw" role="status"><b>יש לך משימות חדשות</b><div class="nwi">'+k.slice(0,6).map(function(i){return '• '+esc(S.mt[i].x.replace('בדיקה שנתית: ',''))}).join('<br>')+'</div><div class="f"><button class="btn" data-a="tab" data-id="tasks">'+ic('nxt',18)+'<span>למשימות</span></button><button class="btn sec" data-a="nsn">'+ic('check',18)+'<span>קראתי</span></button></div></div>'}
 function staleUI(){var s=false;['sv','pn','ln'].forEach(function(l){(S.L[l]||[]).forEach(function(x){if(mel(x.u)>=3)s=true})});return s?'<div class="nw"><b>הגיע הזמן לעדכן יתרות</b><div class="nwi">עברו כמה חודשים מעדכון החסכונות וההלוואות. כמה דקות מול האפליקציה של הבנק, וההערכה חוזרת להיות מדויקת.</div><div class="f"><button class="btn" data-a="tab" data-id="sv">'+ic('nxt',18)+'<span>עדכון יתרות</span></button></div></div>':''}
 function planUI(ph,pi,pe,cT,hasCash){var st=ph==='start',pl=pi-pe,left=dLeft();
   return '<div class="hero2 plan"><div class="hm2">'+MN[S.m-1]+' '+S.y+' · משפחת '+esc(S.fam)+'</div><div class="hb2" style="font-size:26px">'+(st?'פותחים את החודש':'התוכנית של החודש')+'</div><div class="hm2" style="margin-top:6px;line-height:1.5">'+(st?'כמה צעדים קצרים והחודש מתחיל בביטחון: מושכים מזומן למעטפות ועוברים על התקציב.':'אין צורך לדווח עכשיו. בעוד '+left+' ימים סוגרים את החודש.')+'</div><div class="f" style="margin-top:12px;flex-wrap:wrap">'+(st&&hasCash?'<button class="btn" data-a="gocash">משיכת מזומן ומילוי מעטפות</button>':'')+'<button class="btn'+(st&&hasCash?' sec':'')+'" data-a="tab" data-id="bud">'+ic('nxt',18)+'<span>תקציב</span></button></div></div>'+
@@ -391,9 +391,8 @@ function home(){
    var ev0=st2?envKs():[],cT=0;ev0.forEach(function(x){cT+=n(S.bud[x.k])});
    var ph=st2?phase():'';
    var h=st2?trendUI()+pmChart()+annUI()+instUI()+goalsUI()+homeSum():'<div class="hero2"><div class="hm2">'+MN[S.m-1]+' '+S.y+'</div><div class="hb2" style="font-size:26px">שלום משפחת '+esc(S.fam)+'</div>'+(bi>0||be>0?'<div class="h2s"><span>הכנסות חודשיות <b>'+fm(bi)+'</b></span><span>הוצאות חודשיות <b>'+fm(be)+'</b></span><span>יתרה <b>'+fm(bi-be)+'</b></span></div>':'<div class="hm2" style="margin-top:6px">מתחילים במילוי המאזן. הכל נשמר אוטומטית.</div>')+'</div>';
-  h=greet()+cdUI()+remUI()+newsUI()+rmUI()+h;
+  h=greet()+yrkUI()+newsUI()+cdUI()+remUI()+rmUI()+h;
   h+=journeyUI();
-  if(st2)h+=yrkUI();
   if(st2&&ph==='start')h+=mtgUI();
   if(!st2&&done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
   if(st2)h+=rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
