@@ -16,7 +16,7 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').then(function(){pushCheck()}).catch(function(){});
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});if(STAGE>=2)t.push(['cmp','השוואות']);t.push(['sv','חסכונות'],['ln','הלוואות'],['gl','יעדים'],['ins','ביטוחים'],['yc','מעגל השנה'],['me','אזור אישי']);if(STAGE>=2)t.push(['rl','הכללים']);return t}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי ומגמות']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});t.push(['sv','חסכונות'],['ln','הלוואות'],['gl','יעדים'],['ins','ביטוחים'],['yc','מעגל השנה'],['me','אזור אישי']);if(STAGE>=2)t.push(['rl','הכללים']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{},tx:S.tx||{},nwi:S.nwi||{},bl:n(S.bl),bf:n(S.bf)}}
@@ -34,7 +34,7 @@ function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
   var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,cmp:cmpUI,ln:tln}[S.tab]||home;
   var tl=(tabs().filter(function(t){return t[0]===S.tab})[0]||[])[1]||'';tl=tl.replace(/\s*\(\d+\)$/,'');
-  app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():/^(sv|ln)$/.test(S.tab)?edBtn(S.tab):''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0):'')+fabUI();
+  app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0):'')+fabUI();
   hintFold(app);
 }
 window.render=render;window.save=save;
@@ -143,7 +143,7 @@ document.addEventListener('click',function(e){
   else if(a==='inst'&&DEFP){DEFP.prompt();DEFP=null;INSTH=true}
   else if(a==='insx'){INSTH=true;try{localStorage.setItem('insx','1')}catch(e){}}
   else if(a==='tkd'){S.chd[b.dataset.id]=S.chd[b.dataset.id]?0:1;save()}
-  else if(a==='mtd'){var tid=b.dataset.id;if(/^hk\|/.test(tid))S.chd['hid:'+tid]=1;if(S.mt&&S.mt[tid])delete S.mt[tid];else S.chd['hid:'+tid]=1;delete S.chd[tid];save()}
+  else if(a==='mtd'){var tid=b.dataset.id;if(/^(hk|yk)\|/.test(tid))S.chd['hid:'+tid]=1;if(S.mt&&S.mt[tid])delete S.mt[tid];else S.chd['hid:'+tid]=1;delete S.chd[tid];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
   else if(a==='gocash'){S.seg='מזומן';S.tab='mon';render()}
@@ -151,7 +151,7 @@ document.addEventListener('click',function(e){
   else if(a==='mnx'){S.m++;if(S.m>12){S.m=1;S.y++}render()}
   else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;render()}
   else if(a==='r37'){var v=Math.min(1e9,n(document.getElementById('r37').value)),o=document.getElementById('r37o');o.textContent=v>0?(v>10000?'מעל 10,000 ₪ כדאי להתייעץ עם המאמנת. לפי הכלל, ':'')+'לחיסכון '+fm(v*.7)+' · להעלאת רמת חיים '+fm(v*.3):'הזינו סכום'}
-  else if(a==='yrk'){S.chd.yrk=Date.now();S.chd['yk'+new Date().getFullYear()]=1;save();render()}
+  else if(a==='yrk'){save();render()}
   else if(a==='rmd'){S.chd['rm5'+ym()]=1;save()}
   else if(a==='nsn'){S.sn=Date.now();save();render()}
   else if(a==='dvc'){if(!confirm('לנתק את כל המכשירים האחרים? הם ייכנסו שוב עם הסיסמה.'))return;fetch(API+'/rotate',{method:'POST'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){location.href='/c/'+encodeURIComponent(j.token)}).catch(function(){status('הפעולה נכשלה')})}
@@ -160,8 +160,8 @@ document.addEventListener('click',function(e){
     if(p1!==p2){re.textContent='שתי הסיסמאות לא זהות.';return}
     if(!confirm('להחליף את הסיסמה? הסיסמה הקודמת תפסיק לעבוד, והסיסמה החדשה לא תוצג באתר.'))return;
     fetch(API+'/code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:p1})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})}).then(function(o){if(o.ok){PWSET=1;render();status('✓ הסיסמה הוחלפה')}else re.textContent=o.s===409?'הסיסמה כבר בשימוש, בחרו אחרת.':o.s===429?'יותר מדי ניסיונות, נסו מאוחר יותר.':'ההחלפה נכשלה'}).catch(function(){re.textContent='ההחלפה נכשלה'})}
-  else if(a==='la'){S.L[b.dataset.l].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});save()}
-  else if(a==='ld'){S.L[b.dataset.l].splice(+b.dataset.i,1);save()}
+  else if(a==='la'){var ll=S.L[b.dataset.l];ll.push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});if(b.dataset.ed)EDI[b.dataset.l+(ll.length-1)]=1;save()}
+  else if(a==='ld'){var li=S.L[b.dataset.l][+b.dataset.i],nm=(li&&(li.n||li.y))||'';if(!confirm('האם למחוק'+(nm?' את "'+nm+'"':' את הפריט')+'? לאחר המחיקה לא ניתן לשחזר את הנתונים.'))return;S.L[b.dataset.l].splice(+b.dataset.i,1);EDI={};save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}
   else if(a==='add'){var g=document.getElementById('cg').value,nm=document.getElementById('cn').value.trim();if(!nm)return;S.cx[g]=(S.cx[g]||[]).concat(nm);S.open[g]=true;save()}
   else return;
@@ -174,6 +174,7 @@ setInterval(refresh,60000);
 fetch(API,{cache:'no-store'}).then(function(r){if(r.status===404)throw 'nf';if(!r.ok)throw 'err';return r.json()}).then(function(d){
   apply(d);status('✓ מחובר');render();
 }).catch(function(e){
+  try{console.log('BOOT',e&&e.stack||e)}catch(x){}
   status('');
   app.innerHTML=e==='nf'?'<div class="c">הקישור אינו תקין או שכבר אינו פעיל. פנו למאמנת לקבלת קישור חדש.</div>':'<div class="c">לא ניתן להתחבר כרגע. נסו לרענן את הדף בעוד רגע.</div>';
 });
