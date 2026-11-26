@@ -249,8 +249,7 @@ function txEditUI(k){var tl=(S.tx||{})[k]||[],ro=(typeof ADM!=='undefined'&&ADM)
     (l.length>8?'<input type="search" class="txs" data-txq="1" placeholder="חיפוש בית עסק" value="'+esc(TXE.q||'')+'" style="width:100%;margin-bottom:6px">':'')+
     l.map(function(x){var q=(TXE.q||'').trim();if(q&&x.nm.indexOf(q)<0&&txAsLbl(x.v).indexOf(q)<0)return '';
       return '<div class="r txr"><label>'+esc(x.nm)+'<small>'+(x.n>1?x.n+' תנועות · ':'')+fm(x.t)+'</small></label>'+(ro||lk?'<span class="txv">'+esc(txAsLbl(x.v))+'<small>'+esc(x.v.indexOf('|')>0?x.v.split('|')[0]:'')+'</small></span>':'<select data-txe="1" data-k="'+esc(k)+'" data-nm="'+esc(x.nm)+'" data-old="'+esc(x.v)+'" aria-label="שיוך '+esc(x.nm)+'">'+txeOpts(txeType(x.v),x.v)+'</select>')+'</div>'}).join('')+'</details>'}
-  if(urk.length&&!ro){h+='<details'+(TXE.r?' open':'')+' data-txr="1" style="margin-top:'+(l.length?'10px':'0')+'"><summary><b>כללי שיוך שמורים</b><small class="hint"> · '+urk.length+'</small></summary><div class="hint" style="margin:6px 0 8px">כך יסווגו בתי העסק האלה בהעלאה הבאה. שינוי כאן לא משנה חודשים שכבר הוזנו.</div>'+
-    urk.slice().sort(function(a,b){return a.slice(2).localeCompare(b.slice(2),'he')}).map(function(rk){var v=S.ur[rk];return '<div class="r txr"><label>'+esc(rk.slice(2))+'<small>'+(rk[0]==='i'?'הכנסה':'הוצאה')+'</small></label><select data-tur="'+esc(rk)+'" aria-label="כלל שיוך '+esc(rk.slice(2))+'">'+txeOpts(rk[0],v)+'</select><button class="gh" data-tx="urx" data-g="'+esc(rk)+'" title="מחיקת הכלל" aria-label="מחיקת הכלל">'+ic('xx',16)+'</button></div>'}).join('')+'</details>'}
+  if(urk.length&&!ro)h+='<div style="margin-top:'+(l.length?'10px':'0')+'"><button class="lk" data-tx="urgo">'+ic('list',16)+' כל השיוכים השמורים ('+urk.length+')</button></div>';
   return h+'</div>'}
 var TXE={o:false,r:false,q:''};
 document.addEventListener('toggle',function(e){var d=e.target;if(!d||!d.dataset)return;if(d.dataset.txo)TXE.o=d.open;if(d.dataset.txr)TXE.r=d.open},true);
@@ -262,5 +261,22 @@ document.addEventListener('change',function(e){var t=e.target;if(!t.dataset)retu
     if(nv!=='x'&&nv!=='__env')a[nv]=Math.round(n(a[nv])+sum);
     var ty=txeType(nv)||txeType(old)||'e';if(nm.length<30&&!txIsOt(nv)&&nv.indexOf('|חד-פעמי: ')<0){S.ur=S.ur||{};S.ur[ty+'|'+nm]=nv}
     var y=window.scrollY;save();render();window.scrollTo(0,y)}
-  else if(t.dataset.tur){S.ur=S.ur||{};S.ur[t.dataset.tur]=t.value;save()}});
+  else if(t.dataset.tur){S.ur=S.ur||{};S.ur[t.dataset.tur]=t.value;var y2=window.scrollY;save();render();window.scrollTo(0,y2)}});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-tx="urx"]');if(!b)return;if(S.ur)delete S.ur[b.dataset.g];var y=window.scrollY;save();render();window.scrollTo(0,y)});
+
+/* כל השיוכים השמורים: מה יוצע אוטומטית בהעלאה הבאה */
+function txeLbl(v){return v==='x'?'לא נספר':v==='__env'?'משיכה למעטפות':v&&v.indexOf('|')>0?v.split('|')[1]:v||''}
+function urUI(){if(STAGE<2)return '';var ur=S.ur||{},ks=Object.keys(ur),ro=(typeof ADM!=='undefined'&&ADM)||RO;
+  var h='<div class="c txe" id="urc"><div class="rph" style="color:#1F3A5F">'+ic('list',20)+'<b>השיוכים השמורים שלנו</b></div><div class="hint" style="margin:4px 0 8px">כל בית עסק ששייכתם נשמר כאן, ובהעלאה הבאה הוא יוצע אוטומטית לאותו סעיף. אפשר לשנות או למחוק. שינוי כאן לא משנה חודשים שכבר הוזנו (את זה משנים בשיוכים של החודש במעקב החודשי).</div>';
+  if(!ks.length)return h+'<div class="hint" style="margin:0">עוד אין שיוכים שמורים. הם נשמרים אחרי שמסווגים העלאה של קבצי אשראי ועו"ש.</div></div>';
+  var q=(TXE.uq||'').trim(),gr={},ord=[];
+  ks.forEach(function(rk){var v=ur[rk],nm=rk.slice(2);if(q&&nm.indexOf(q)<0&&txeLbl(v).indexOf(q)<0&&String(v).indexOf(q)<0)return;var g=v==='x'||v==='__env'?'לא נכנס לתקציב':(v.split('|')[0]||'אחר');if(!gr[g]){gr[g]=[];ord.push(g)}gr[g].push(rk)});
+  var gi=function(g){var ix=G.map(function(x){return x.n}).indexOf(g);return ix<0?999:ix};ord.sort(function(a,b){return gi(a)-gi(b)});
+  h+='<input type="search" data-urq="1" placeholder="חיפוש בית עסק או סעיף ('+ks.length+' שיוכים)" value="'+esc(TXE.uq||'')+'" style="width:100%;margin-bottom:6px" aria-label="חיפוש בשיוכים">';
+  if(!ord.length)return h+'<div class="hint">לא נמצאו שיוכים מתאימים.</div></div>';
+  ord.forEach(function(g){var l=gr[g].sort(function(a,b){return txeLbl(ur[a]).localeCompare(txeLbl(ur[b]),'he')||a.slice(2).localeCompare(b.slice(2),'he')});
+    h+='<div class="sgh urg"><b>'+(gi(g)<999?gic(g)+' ':'')+esc(g)+'</b><small class="hint"> · '+l.length+'</small></div>'+l.map(function(rk){var v=ur[rk];
+      return '<div class="r txr"><label>'+esc(rk.slice(2))+(ro?'<small>'+esc(txeLbl(v))+'</small>':'')+'</label>'+(ro?'':'<select data-tur="'+esc(rk)+'" aria-label="שיוך '+esc(rk.slice(2))+'">'+txeOpts(rk[0],v)+'</select><button class="gh" data-tx="urx" data-g="'+esc(rk)+'" title="מחיקת השיוך" aria-label="מחיקת השיוך של '+esc(rk.slice(2))+'">'+ic('xx',16)+'</button>')+'</div>'}).join('')});
+  return h+'</div>'}
+document.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.urq){TXE.uq=t.value;var y=window.scrollY,pos=t.selectionStart;render();window.scrollTo(0,y);var ni=document.querySelector('[data-urq]');if(ni){ni.focus();try{ni.setSelectionRange(pos,pos)}catch(x){}}}});
+document.addEventListener('click',function(e){var b=e.target.closest('[data-tx="urgo"]');if(!b)return;S.tab='me';render();var el=document.getElementById('urc');if(el)el.scrollIntoView({block:'start'});else window.scrollTo(0,0)});

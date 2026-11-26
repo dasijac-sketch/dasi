@@ -34,7 +34,7 @@ function render(){
   nav.innerHTML=navHTML();nav.classList.toggle('open',NAVO);document.body.classList.toggle('navo',NAVO);
   var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,cmp:cmpUI,ln:tln}[S.tab]||home;
   var tl=(tabs().filter(function(t){return t[0]===S.tab})[0]||[])[1]||'';tl=tl.replace(/\s*\(\d+\)$/,'');
-  app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0):'')+fabUI();
+  app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0)+(typeof urUI==='function'?urUI():''):'')+fabUI();
   hintFold(app);
 }
 window.render=render;window.save=save;
