@@ -288,3 +288,23 @@ i.ti{background:#9bbf3a}i.te{background:#1F3A5F}.trc span{font-size:13px;color:v
 
 .lbr{display:grid;gap:10px;margin:10px 0}.lbt{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.lbb{height:10px;border-radius:6px;background:#eef2f7;overflow:hidden}.lbb i{display:block;height:100%;border-radius:6px}
 .trr{margin:12px 0 0}.trt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}.trb{position:relative;height:8px;border-radius:5px;background:#eef2f7;margin-top:6px}.trb i{display:block;height:100%;border-radius:5px;background:#1F6F50}.trb i.bd{background:#8C3B3B}.trb u{position:absolute;top:-3px;width:2px;height:14px;background:#6b7683;text-decoration:none}.trs{display:flex;justify-content:space-between;color:var(--mu);margin-top:3px}.tdt{display:inline-flex;gap:3px}.tdt i{width:9px;height:9px;border-radius:50%;background:#dfe5ec}.tdt i.ok{background:#1F6F50}.tdt i.bd{background:#8C3B3B}
+/* תיקוני UX נובמבר 2026 */
+.ob .btn.sec{background:transparent!important;color:#fff!important;border-color:#6F86AA!important}
+.sh{gap:12px;align-items:center}.sh h2{white-space:nowrap}.sh .lnk{white-space:nowrap}
+.r .d.dl{width:96px;line-height:1.25;font-weight:600}.r .d.dl small{display:block;font-size:11px;font-weight:400;color:var(--mu)}.r .d.dl.neg small{color:#8C3B3B}
+.d.pos{color:#1f7a3a}
+.rhd{border-top:0!important;padding:0 0 4px!important;font-size:11px;color:var(--mu)}.rhd label{font-size:11px}.rhd .rhi{width:92px;text-align:center}.rhd .d{width:96px}
+.ngh{font-size:11px;font-weight:700;color:var(--mu);padding:12px 14px 4px;letter-spacing:.02em}
+.nmore{display:none}
+@media (max-width:899px){
+ body{padding-bottom:150px}
+ nav .ngh,nav button.nx{display:none}
+ nav .nmore{display:block}
+ nav button{min-width:0!important;flex:1 1 0!important}
+ nav.open{flex-wrap:wrap;max-height:75vh;overflow-y:auto;box-shadow:0 -10px 30px rgba(31,58,95,.15);border-radius:18px 18px 0 0;padding-top:10px}
+ nav.open .ngh{display:block;flex:1 0 100%;padding:8px 6px 2px}
+ nav.open button.nx{display:block;flex:1 0 30%!important}
+ nav.open .nmore{order:99;flex:1 0 100%!important}
+ .fab{bottom:96px}
+}
+@media (max-width:899px){body.navo .fab{display:none}}
