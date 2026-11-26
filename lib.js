@@ -504,7 +504,7 @@ function xCsv(){var k=ym(),a=st('act'),L=[['קבוצה','סעיף','אמצעי �
   var csv='﻿'+L.map(function(r){return r.map(function(c){c=String(c==null?'':c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\r\n');
   var u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='דוח-'+MN[S.m-1]+'-'+S.y+'.csv';document.body.appendChild(l);l.click();setTimeout(function(){URL.revokeObjectURL(u);l.remove()},500)}
 
-function lastMs(N){N=N||3;var P=perNow(S.sd),ms=[],md=S.md||{};for(var i=0;i<24&&ms.length<N;i++){var m=P.m-i,y=P.y;while(m<1){m+=12;y--}var k=y+'-'+m;if(!n(md[k]))continue;var a=S.act[k]||{};var hs=Object.keys(a).some(function(x){return n(a[x])>0}),tt=hs?mSum(k):{i:0,e:0};ms.push({k:k,m:m,y:y,a:a,has:hs,full:hs&&tt.i>0&&tt.e>0})}return ms}
+function lastMs(N){N=N||3;var P=perNow(S.sd),ms=[],md=S.md||{},st=n(md[P.y+'-'+P.m])?0:1;/* רק חודשים סגורים מתוך 3 החודשים האחרונים */for(var i=st;i<st+3&&ms.length<N;i++){var m=P.m-i,y=P.y;while(m<1){m+=12;y--}var k=y+'-'+m;if(!n(md[k]))continue;var a=S.act[k]||{};var hs=Object.keys(a).some(function(x){return n(a[x])>0}),tt=hs?mSum(k):{i:0,e:0};ms.push({k:k,m:m,y:y,a:a,has:hs,full:hs&&tt.i>0&&tt.e>0})}return ms}
 function lastMsF(){return lastMs().filter(function(x){return x.full})}
 function lastMsD(){return lastMs().filter(function(x){return x.has})}
 function rptUI(){var ms=lastMsD();
