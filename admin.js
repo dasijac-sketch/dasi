@@ -213,6 +213,7 @@ document.addEventListener('click',function(e){
   else if(a==='xi'||a==='xg'||a==='ai'||a==='ag'){
     var k2=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});
     var cl=function(v){return String(v||'').replace(/\|/g,' ').trim().slice(0,60)};
+    if((a==='xi'||a==='xg')&&!confirm(a==='xi'?'להסיר את התת קטגוריה "'+x.i+'"? היא תוסתר מהתקציב של הזוג.':'להסיר את הקטגוריה "'+x.g+'" עם כל התתי קטגוריות? היא תוסתר מהתקציב של הזוג.'))return;
     if(a==='xi'){var key=x.g+'|'+x.i,L2=k2.ni[x.g]||[],ix=L2.indexOf(x.i);if(ix>=0)L2.splice(ix,1);if(k2.hid.indexOf(key)<0)k2.hid.push(key)}
     else if(a==='xg'){var ngi=k2.ng.findIndex(function(z){return z.n===x.g});if(ngi>=0)k2.ng.splice(ngi,1);else if(k2.hg.indexOf(x.g)<0)k2.hg.push(x.g)}
     else if(a==='ai'){var g1=document.getElementById('sg').value,nm=cl(document.getElementById('sn').value);if(!nm)return;var gg=G.filter(function(z){return z.n===g1})[0];if(!gg||its(gg).indexOf(nm)>=0){status('התת קטגוריה כבר קיימת');return}var hk=g1+'|'+nm,hx=k2.hid.indexOf(hk);if(hx>=0)k2.hid.splice(hx,1);else(k2.ni[g1]=k2.ni[g1]||[]).push(nm);A.open[g1]=true}
@@ -222,7 +223,7 @@ document.addEventListener('click',function(e){
   else if(a==='ss'){A.sc=x.id;render()}
   else if(a==='se'){A.sc=x.id;A.tab='bud';render()}
   else if(a==='sr'){var z2=(c.budget.sc||[]).filter(function(z){return z.id===A.sc})[0]||(c.budget.sc||[])[0];if(z2){z2.bud=JSON.parse(JSON.stringify(c.budget.bud||{}));saveBud(c);render()}}
-  else if(a==='la'||a==='ld'){c.state=c.state||{};var L3=c.state.L=Object.assign(defL(),c.state.L||{}),ll=b.dataset.l;L3[ll]=L3[ll]||[];if(a==='la')L3[ll].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});else L3[ll].splice(+b.dataset.i,1);saveL(c);render()}
+  else if(a==='la'||a==='ld'){if(a==='ld'&&!confirm('למחוק את הפריט? לא ניתן לשחזר.'))return;c.state=c.state||{};var L3=c.state.L=Object.assign(defL(),c.state.L||{}),ll=b.dataset.l;L3[ll]=L3[ll]||[];if(a==='la')L3[ll].push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});else L3[ll].splice(+b.dataset.i,1);saveL(c);render()}
   else if(a==='sd'){var l3=c.budget.sc||[],i3=l3.findIndex(function(z){return z.id===A.sc});if(i3<0)i3=0;if(l3[i3]&&confirm('למחוק את התסריט "'+l3[i3].n+'"?')){l3.splice(i3,1);A.sc=null;saveBud(c);render()}}
   else if(a==='xc'){A.imp=null;render()}
   else if(a==='xa'&&A.imp&&A.imp.R){if(!confirm('טעינת אקסל תמחק את כל הנתונים הקודמים של הזוג (סכומים, חודשים, דירוגים, חסכונות והלוואות) ותחליף אותם בנתוני הקובץ. האם ברצונך להמשיך?'))return;var R=A.imp.R,t2=A.imp.t,k=c.budget.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},c.budget.cs||{});if(R.cs)k=c.budget.cs=JSON.parse(JSON.stringify(R.cs));
@@ -237,12 +238,12 @@ document.addEventListener('click',function(e){
     if(a==='cds'&&!confirm('לשנות את הסיסמה הראשונית ל-'+nv+'? הקישור והסיסמה הקודמים יפסיקו לעבוד.'))return;
     api('PUT','/api/admin/couples/'+c.id,{code:nv}).then(function(r){c.code=r.code;render();status('✓ הסיסמה עודכנה')}).catch(function(er){var ce=document.getElementById('cder');if(ce)ce.textContent=er&&er.status===409?'הסיסמה כבר בשימוש אצל זוג אחר.':'השמירה נכשלה'})}
   else if(a==='cmr'){api('PUT','/api/admin/couples/'+c.id,{cmsgs:(c.cmsgs||[]).map(function(m){return Object.assign({},m,{read:1})})}).then(function(r){c.cmsgs=r.cmsgs;render()})}
-  else if(a==='cmd'){api('PUT','/api/admin/couples/'+c.id,{cmsgs:(c.cmsgs||[]).filter(function(m){return m.id!==x.id})}).then(function(r){c.cmsgs=r.cmsgs;render()})}
+  else if(a==='cmd'){if(!confirm('למחוק את ההודעה? לא ניתן לשחזר.'))return;api('PUT','/api/admin/couples/'+c.id,{cmsgs:(c.cmsgs||[]).filter(function(m){return m.id!==x.id})}).then(function(r){c.cmsgs=r.cmsgs;render()})}
   else if(a==='ta'){var v=document.getElementById('tn').value.trim();if(v){c.tasks.push({t:v,d:0,dt:(document.getElementById('tdt')||{}).value||''});put(c,{tasks:c.tasks}).then(render)}}
   else if(a==='tt'){var tk=c.tasks[+x.i];if(tk){tk.d=tk.d?0:1;put(c,{tasks:c.tasks}).then(render)}}
-  else if(a==='td'){c.tasks.splice(+x.i,1);put(c,{tasks:c.tasks}).then(render)}
+  else if(a==='td'){if(!confirm('למחוק את המשימה? לא ניתן לשחזר.'))return;c.tasks.splice(+x.i,1);put(c,{tasks:c.tasks}).then(render)}
   else if(a==='sm'){var tx=document.getElementById('mx').value.trim();if(tx){c.msgs.push({id:String(Date.now()),k:document.getElementById('mt').value,x:tx,due:document.getElementById('mt').value==='msg'?'':document.getElementById('md2').value,ts:Date.now()});put(c,{msgs:c.msgs}).then(render)}}
-  else if(a==='md'){c.msgs=c.msgs.filter(function(m){return m.id!==x.id});put(c,{msgs:c.msgs}).then(render)}
+  else if(a==='md'){if(!confirm('למחוק את ההודעה או המשימה? לא ניתן לשחזר.'))return;c.msgs=c.msgs.filter(function(m){return m.id!==x.id});put(c,{msgs:c.msgs}).then(render)}
   else if(a==='rg'){if(confirm('הקישור הישן יפסיק לעבוד, ותצטרכי לשלוח לזוג את החדש. להמשיך?'))api('POST','/api/admin/couples/'+c.id+'/regenerate').then(function(r){c.token=r.token;render();status('נוצר קישור חדש')}).catch(function(){status('הפעולה נכשלה')})}
   else if(a==='dl'){if(confirm('למחוק את הזוג ואת כל הנתונים שלו? אי אפשר לשחזר.'))api('DELETE','/api/admin/couples/'+c.id).then(function(){A.list=A.list.filter(function(q){return q.id!==c.id});A.cur=null;render()}).catch(function(){status('המחיקה נכשלה')})}
 });

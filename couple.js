@@ -26,7 +26,7 @@ function apply(d){
   S=Object.assign(newState(),d.state||{},keep);
   S.L=Object.assign(defL(),(d.state&&d.state.L)||{});
   S.cs=Object.assign({hid:[],hg:[],ng:[],ni:{}},d.cs||{});bG();S.bud0=d.bud||{};S.sc=d.sc||[];if(S.vs==null){try{S.vs=localStorage.getItem('vs')||''}catch(e){S.vs=''}}if(!S.sc.some(function(z){return z.id===S.vs}))S.vs='';useVs();LASTB=bdJ();S.fam=d.name||'';STAGE=d.stage||1;RO=STAGE<2;INBOX=d.msgs||[];
-  if(!PINIT){var P1=perNow(S.sd);S.y=P1.y;S.m=P1.m;PINIT=true}
+  if(!PINIT){var P1=perNow(S.sd);S.y=P1.y;S.m=P1.m;PINIT=true;autoVs()}
   var chg=autoInc();chg=stampU()||chg;chg=snapNw()||chg;chg=autoYr()||chg;chg=autoHok()||chg;if(chg)save();
   if(tabs().map(function(x){return x[0]}).indexOf(S.tab)<0)S.tab='home';
 }
@@ -73,6 +73,7 @@ function refresh(){
 document.addEventListener('change',function(e){
   var t=e.target,d=t.dataset;
   if(d.s==='bud'&&RO)return;
+  if(t.id==='scdv'){var zz=(S.sc||[]).filter(function(z){return z.id===S.vs})[0];if(zz&&t.value){zz.d=t.value;save()}return}
   if(t.id==='vs'){S.vs=t.value;try{localStorage.setItem('vs',S.vs)}catch(e){}useVs();render();return}
   if(t.id==='ms'){S.m=+t.value;render();return}
   if(d.s==='prof'){PROF[d.k]=t.value.trim();var pr=document.getElementById('pfr');fetch(API+'/profile',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:PROF})}).then(function(r){if(pr)pr.textContent=r.ok?'✓ נשמר':'הפרט לא תקין (בדקו מייל וטלפון)'}).catch(function(){if(pr)pr.textContent='השמירה נכשלה'});return}
@@ -115,7 +116,7 @@ document.addEventListener('click',function(e){
   else if(a==='gofc'){S.tab='sv';render();setTimeout(function(){var f=document.getElementById('fcc');if(f)f.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
   else if(a==='blk'){S.bl=Date.now();save()}
   else if(a==='bul'){S.bl=0;save()}
-  else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:S.y+'-'+(S.m<10?'0':'')+S.m,bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
+  else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var sdi=document.getElementById('scd'),id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:(sdi&&sdi.value)||(S.y+'-'+(S.m<10?'0':'')+S.m),bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
   else if(a==='dsc'){SCDEL=S.vs}
   else if(a==='dscn'){SCDEL=''}
   else if(a==='dscy'){var did=SCDEL;SCDEL='';S.sc=(S.sc||[]).filter(function(z){return z.id!==did});S.vs='';try{localStorage.setItem('vs','')}catch(e){}useVs();save()}
@@ -143,13 +144,13 @@ document.addEventListener('click',function(e){
   else if(a==='inst'&&DEFP){DEFP.prompt();DEFP=null;INSTH=true}
   else if(a==='insx'){INSTH=true;try{localStorage.setItem('insx','1')}catch(e){}}
   else if(a==='tkd'){S.chd[b.dataset.id]=S.chd[b.dataset.id]?0:1;save()}
-  else if(a==='mtd'){var tid=b.dataset.id;if(/^(hk|yk)\|/.test(tid))S.chd['hid:'+tid]=1;if(S.mt&&S.mt[tid])delete S.mt[tid];else S.chd['hid:'+tid]=1;delete S.chd[tid];save()}
+  else if(a==='mtd'){var tid=b.dataset.id;if(!confirm('האם להסיר את המשימה? לא ניתן לשחזר אותה לאחר ההסרה.'))return;if(/^(hk|yk)\|/.test(tid))S.chd['hid:'+tid]=1;if(S.mt&&S.mt[tid])delete S.mt[tid];else S.chd['hid:'+tid]=1;delete S.chd[tid];save()}
   else if(a==='dn'){S.dn=Date.now();save()}
   else if(a==='undn'){S.dn=0;save()}
   else if(a==='gocash'){S.seg='מזומן';S.tab='mon';render()}
-  else if(a==='mpv'){S.m--;if(S.m<1){S.m=12;S.y--}render()}
-  else if(a==='mnx'){S.m++;if(S.m>12){S.m=1;S.y++}render()}
-  else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;render()}
+  else if(a==='mpv'){S.m--;if(S.m<1){S.m=12;S.y--}autoVs();render()}
+  else if(a==='mnx'){S.m++;if(S.m>12){S.m=1;S.y++}autoVs();render()}
+  else if(a==='mcu'){var Pc=perNow(S.sd);S.y=Pc.y;S.m=Pc.m;autoVs();render()}
   else if(a==='r37'){var v=Math.min(1e9,n(document.getElementById('r37').value)),o=document.getElementById('r37o');o.textContent=v>0?(v>10000?'מעל 10,000 ₪ כדאי להתייעץ עם המאמנת. לפי הכלל, ':'')+'לחיסכון '+fm(v*.7)+' · להעלאת רמת חיים '+fm(v*.3):'הזינו סכום'}
   else if(a==='yrk'){save();render()}
   else if(a==='rmd'){S.chd['rm5'+ym()]=1;save()}
@@ -160,6 +161,7 @@ document.addEventListener('click',function(e){
     if(p1!==p2){re.textContent='שתי הסיסמאות לא זהות.';return}
     if(!confirm('להחליף את הסיסמה? הסיסמה הקודמת תפסיק לעבוד, והסיסמה החדשה לא תוצג באתר.'))return;
     fetch(API+'/code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:p1})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,s:r.status,j:j}})}).then(function(o){if(o.ok){PWSET=1;render();status('✓ הסיסמה הוחלפה')}else re.textContent=o.s===409?'הסיסמה כבר בשימוש, בחרו אחרת.':o.s===429?'יותר מדי ניסיונות, נסו מאוחר יותר.':'ההחלפה נכשלה'}).catch(function(){re.textContent='ההחלפה נכשלה'})}
+  else if(a==='gaut'){var gt=GAU.filter(function(g){return g[0]===b.dataset.t})[0],ai=document.getElementById('ga_'+gt[0]),amt=ai&&ai.value!==''?n(ai.value):'',ad=0,sk=0,tn=new Date();S.L.gl=S.L.gl||[];(S.L.kd||[]).forEach(function(x){if(x.g!==gt[2]||kAge(x)==null)return;var nm=gt[1]+' - '+(x.n||'ילד'),dt=gauDate(x,gt[3]),p=dt.split('-');if(S.L.gl.some(function(y){return y.n===nm})||(+p[0]*12+ +p[1])<(tn.getFullYear()*12+tn.getMonth()+1)){sk++;return}S.L.gl.push({n:nm,t:amt,s:'',d:dt});ad++});status(ad?'נוספו '+ad+' יעדים'+(sk?' ('+sk+' דולגו)':''):'לא נוספו יעדים חדשים'+(sk?' ('+sk+' כבר קיימים או שהמועד עבר)':''));save()}
   else if(a==='la'){var ll=S.L[b.dataset.l];ll.push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});if(b.dataset.ed)EDI[b.dataset.l+(ll.length-1)]=1;save()}
   else if(a==='ld'){var li=S.L[b.dataset.l][+b.dataset.i],nm=(li&&(li.n||li.y))||'';if(!confirm('האם למחוק'+(nm?' את "'+nm+'"':' את הפריט')+'? לאחר המחיקה לא ניתן לשחזר את הנתונים.'))return;S.L[b.dataset.l].splice(+b.dataset.i,1);EDI={};save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}
