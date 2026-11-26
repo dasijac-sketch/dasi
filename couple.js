@@ -16,7 +16,7 @@ function instUI(){if(INSTH||OB>=0)return '';var ios=/iphone|ipad|ipod/i.test(nav
  if(ios)return '<div class="c"><b>הוספה למסך הבית</b><div class="hint" style="margin:4px 0 8px">בספארי לוחצים על כפתור השיתוף ואז על "הוספה למסך הבית".</div><button class="btn sec" data-a="insx">הבנתי</button></div>';return ''}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();DEFP=e;try{render()}catch(x){}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').then(function(){pushCheck()}).catch(function(){});
-function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});if(STAGE>=2)t.push(['cmp','השוואות']);t.push(['sv','חסכונות והלוואות'],['gl','יעדים'],['ins','ביטוחים'],['yc','מעגל השנה'],['me','אזור אישי']);if(STAGE>=2)t.push(['rl','הכללים']);return t}
+function tabs(){var o=openTk(),t=[['home','בית'],['tasks','משימות ואתגרים'+(o?' ('+o+')':'')],['bal','מאזן']];if(STAGE>=2)t.push(['bud','התקציב'],['mon','מעקב חודשי'],['yr','סיכום שנתי']);if(STAGE>=2)t=t.filter(function(x){return x[0]!=='bal'});if(STAGE>=2)t.push(['cmp','השוואות']);t.push(['sv','חסכונות'],['ln','הלוואות'],['gl','יעדים'],['ins','ביטוחים'],['yc','מעגל השנה'],['me','אזור אישי']);if(STAGE>=2)t.push(['rl','הכללים']);return t}
 var LASTB='',PINIT=false;function bdJ(){return JSON.stringify({bud:S.bud0,cs:S.cs,sc:S.sc||[]})}
 function budgetBody(){return STAGE>=2&&bdJ()!==LASTB?{bud:S.bud0,cs:S.cs,sc:S.sc||[]}:undefined}
 function payload(){return{nw:S.nw||{},sn:n(S.sn),aic:S.aic||{},sd:n(S.sd),bal:S.bal,mo:S.mo,rt:S.rt,fc:S.fc||{},fm:S.fm||{},pm:S.pm||{},env:S.env||{},yc:S.yc||{},yx:S.yx||{},dn:n(S.dn),cx:S.cx,L:S.L,act:S.act,note:S.note,chd:S.chd,ppl:n(S.ppl),md:S.md||{},mt:S.mt||{},ur:S.ur||{},tx:S.tx||{},nwi:S.nwi||{},bl:n(S.bl),bf:n(S.bf)}}
@@ -32,7 +32,7 @@ function apply(d){
 }
 function render(){
   nav.innerHTML=tabs().map(function(t){return '<button data-a="tab" data-id="'+t[0]+'" class="'+(S.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
-  var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,cmp:cmpUI}[S.tab]||home;
+  var f={me:meUI,home:home,tasks:tasksView,bal:bal,bud:bud,mon:mon,rl:mgmtRulesUI,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,cmp:cmpUI,ln:tln}[S.tab]||home;
   var tl=(tabs().filter(function(t){return t[0]===S.tab})[0]||[])[1]||'';tl=tl.replace(/\s*\(\d+\)$/,'');
   app.innerHTML=(S.tab==='home'?obUI()+instUI()+pushUI(1):'')+(/^(home|mon)$/.test(S.tab)?'':pgHead(tl,S.tab==='bud'?budLock():''))+(/^(yr)$/.test(S.tab)&&STAGE>=2?vsUI():'')+f()+(/^(bal|sv|ins)$/.test(S.tab)?doneUI():'')+(S.tab==='me'?pushUI(0):'')+fabUI();
   hintFold(app);

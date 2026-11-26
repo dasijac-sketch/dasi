@@ -60,9 +60,9 @@ function listView(){
 function detailView(c){
   S=cs(c);bG();
   if(c.stage===3){A.tab='mg';var T3=[['mg','ניהול']];nav.innerHTML=T3.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="on">'+navLbl(t[0],t[1])+'</button>'}).join('');return ''+famBar(c)+'<div class="c"><b>הזוג סיים את התהליך</b><p class="hint" style="margin:4px 0 0">מכאן והלאה אינך רואה מה הזוג מילא ומה הוא עושה באזור האישי שלו. תקבלי רק עדכונים שהוא שולח לך בכפתור. אפשר לחזור לשלב קודם דרך בחירת השלב.</p></div>'+mgView(c)}
-  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות והלוואות'],['yc','מעגל השנה'],['gl','יעדים'],['ins','ביטוחים'],['mg','ניהול']];
+  var T=[['sum','סקירה'],['bal','מאזן'],['bud','תקציב'],['sc','תסריטים'],['sv','חסכונות'],['ln','הלוואות'],['yc','מעגל השנה'],['gl','יעדים'],['ins','ביטוחים'],['mg','ניהול']];
   nav.innerHTML=T.map(function(t){return '<button data-a="tb" data-id="'+t[0]+'" class="'+(A.tab===t[0]?'on':'')+'">'+navLbl(t[0],t[1])+'</button>'}).join('');
-  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
+  var f={sum:function(){return sumView(c)},bal:bal,bud:bud,sc:function(){return scView(c)},mon:mon,yr:yr,sv:tvs,yc:ycTab,ins:tin,gl:tgl,ln:tln,mg:function(){return mgView(c)}}[A.tab]||function(){return sumView(c)};
   return ''+famBar(c)+''+(A.tab==='bal'||A.tab==='bud'?impUI(A.tab):'')+(A.tab==='bud'||A.tab==='sc'?ctxUI():'')+(/^(bud)$/.test(A.tab)&&c.stage>=2?vsUI():'')+f();
 }
 function impUI(t){var R=A.imp&&A.imp.t===t?A.imp.R:null;
