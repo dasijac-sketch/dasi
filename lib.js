@@ -136,8 +136,9 @@ function sm(l,f,fn){return S.L[l].filter(fn||function(){return true}).reduce(fun
 function tile(b,s,c){return '<div class="k"><b class="'+(c||'')+'">'+b+'</b><span>'+s+'</span></div>'}
 function fld(l,i,f,v){var b=' data-s="L" data-k="'+l+'.'+i+'.'+f.k+'"'+(f.t==='n'?' data-ty="n"':''),h;
   if(f.t==='s')h='<select'+b+'>'+(v?'':'<option value="">—</option>')+f.o.map(function(o){return '<option'+(o===v?' selected':'')+'>'+o+'</option>'}).join('')+'</select>';
-  else{if(f.t==='d'&&/^\d{4}-\d{2}$/.test(String(v||'')))v=v+'-01';h='<input type="'+(f.t==='n'?'number':f.t==='m'?'month':f.t==='d'?'date':'text')+'"'+b+' value="'+esc(v==null?'':v)+'"'+(f.t==='d'?' max="'+new Date().toISOString().slice(0,10)+'"':'')}
-  if(f.t!=='s')h+=''+(f.t==='n'?' inputmode="decimal" min="0"':'')+'>';
+  else if(f.t==='d'){var Yk=new Date().getFullYear();h=dPick(b,'L.'+l+'.'+i+'.'+f.k,v,Yk-45,Yk,f.l)}
+  else{h='<input type="'+(f.t==='n'?'number':f.t==='m'?'month':f.t==='d'?'date':'text')+'"'+b+' value="'+esc(v==null?'':v)+'"'+(f.t==='d'?' max="'+new Date().toISOString().slice(0,10)+'"':'')}
+  if(f.t!=='s'&&f.t!=='d')h+=''+(f.t==='n'?' inputmode="decimal" min="0"':'')+'>';
   return '<span><small>'+f.l+'</small>'+h+'</span>'}
 function ordL(l){var L=S.L[l]||[],ix=L.map(function(x,i){return i});if(l==='ln')ix.sort(function(a,b){return (isMg(L[a])?1:0)-(isMg(L[b])?1:0)||a-b});return ix}
 function itEd(l,x,i,xf){return '<div class="it"><div class="fl">'+FD[l].filter(function(f){return !f.w||x.y===f.w}).map(function(f){return fld(l,i,f,x[f.k])}).join('')+'<button class="gh" style="width:30px;color:var(--bd)" data-a="ld" data-l="'+l+'" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'+(xf?xf(x):'')+insLine(l,x)+'</div>'}
@@ -193,7 +194,7 @@ function gauUI(){var k=S.L.kd||[];if(!k.length)return '';var bad=k.filter(functi
   (bad.length?'<div class="hint" style="margin-top:8px">חסרים מין או תאריך לידה אצל: '+bad.map(function(x){return esc(x.n||'ילד')}).join(', ')+'</div>':'')+'</div>'}
 function pAge(f,key){var d=f[key+'d'];if(d)return kAge({b:d});var a=f[key];return a?n(a):null}
 function fmUI(){var f=S.fm||{},k=S.L.kd||[],ag=k.filter(function(x){return kAge(x)!=null}).map(function(x){return kAge(x)}).sort(function(a,b){return b-a});
-  var inp=function(key,l){var v=f[key+'d']||'',a=pAge(f,key);return '<span><small>'+l+'</small><input type="date" data-s="fm" data-k="'+key+'d" value="'+esc(v)+'" max="'+new Date().toISOString().slice(0,10)+'" aria-label="'+l+'">'+(a!=null&&v?'<small class="hint" style="margin:2px 0 0">גיל '+a+'</small>':'')+'</span>'};
+  var Y=new Date().getFullYear(),inp=function(key,l){var v=f[key+'d']||'',a=pAge(f,key);return '<span class="dpw"><small>'+l+(a!=null&&v?' · גיל '+a:'')+'</small>'+dPick('data-s="fm" data-k="'+key+'d"','fm.'+key+'d',v,Y-90,Y-15,l)+'</span>'};
   return '<div class="c"><b>הסיפור המשפחתי שלנו</b><p class="hint">תאריכי הלידה של ההורים והילדים עוזרים לתכנן יעדים לאורך השנים, כמו בר מצווה, חתונה ופרישה.</p><div class="dt">'+inp('a','תאריך לידה בן הזוג')+inp('b','תאריך לידה בת הזוג')+'</div>'+
   (k.length?'<div class="hint" style="margin:8px 0 0">'+(k.length===1?'ילד אחד':k.length+' ילדים')+(ag.length>1?' · הגדול בן '+ag[0]+', הקטן בן '+ag[ag.length-1]:ag.length?' · בן '+ag[0]:'')+' · '+(2+k.length)+' נפשות בבית</div>':'')+'</div>'+
   lst('kd','הילדים','שם, מין ותאריך לידה של כל ילד. לפי זה אפשר ליצור יעדים אוטומטיים.')}
@@ -653,3 +654,12 @@ function tvsRO(){var dep=sm('sv','m'),val=tot('sv'),liq=tot('sv',function(x){ret
   return '<div class="s3"><div><span>שווי (משוער)</span><b>'+fmS(val)+'</b></div><div><span>הפקדה חודשית</span><b>'+fmS(dep)+'</b></div><div><span>כרית ביטחון</span><b>'+(e?(liq/e).toFixed(1):'—')+'</b><small>חודשי הוצאות</small></div></div>'+
    roList('sv','חסכונות',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['תשואה משוערת',function(x){return n(x.r)?n(x.r)+'%':'—'}],['צפי במשיכה',function(x){var q=svx(x);return q?fmS(q.a)+'<small class="hint" style="display:block">בעוד '+q.y+' ש׳</small>':'—'}]],'השווי והצפי משוערים. הצפי לפי השנים שהוזנו לכל חיסכון. כרית הביטחון מחושבת מחסכונות נזילים מול ההוצאות החודשיות.',svf)+
    roList('pn','פנסיה',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['עמלות',function(x){return n(x.c)?n(x.c)+'%':'—'}]],'השווי משוער. לסכום המדויק היכנסו לאזור האישי בגוף המנהל.',function(x){return ''})+rulesUI()+fcUI()}
+
+/* בחירת תאריך ידידותית: יום, חודש ושנה בשלוש רשימות. מעדכן שדה נסתר ושולח change לשמירה הרגילה */
+var DPS={};
+function dPick(attrs,key,v,y0,y1,lbl){var p=DPS[key]||String(v||'').split('-'),yy=p[0]||'',mm=p[1]?String(+p[1]):'',dd=p[2]?String(+p[2]):'',o=function(a,sel,ph){return '<option value="">'+ph+'</option>'+a.map(function(x){return '<option value="'+x[0]+'"'+(String(x[0])===sel?' selected':'')+'>'+x[1]+'</option>'}).join('')},D=[],M=[],Y=[],i;
+  for(i=1;i<=31;i++)D.push([i,i]);for(i=1;i<=12;i++)M.push([i,MN[i-1]]);for(i=y1;i>=y0;i--)Y.push([i,i]);
+  return '<span class="dpk" data-dk="'+esc(key)+'"><select data-dp="d" aria-label="'+esc(lbl)+': יום">'+o(D,dd,'יום')+'</select><select data-dp="m" aria-label="'+esc(lbl)+': חודש">'+o(M,mm,'חודש')+'</select><select data-dp="y" aria-label="'+esc(lbl)+': שנה">'+o(Y,yy,'שנה')+'</select><input type="hidden" data-str="1" '+attrs+' value="'+esc(v||'')+'"></span>'}
+document.addEventListener('change',function(e){var t=e.target;if(!t.dataset||!t.dataset.dp)return;e.stopPropagation();var w=t.closest('.dpk'),k=w.dataset.dk,g=function(x){return w.querySelector('[data-dp="'+x+'"]').value},d=g('d'),m=g('m'),y=g('y');
+  DPS[k]=[y,m,d];if(!y||!m){return}var mx=new Date(+y,+m,0).getDate();if(d&&+d>mx){d=String(mx);w.querySelector('[data-dp="d"]').value=d}
+  var v=y+'-'+(+m<10?'0':'')+m+(d?'-'+(+d<10?'0':'')+d:'');delete DPS[k];var h=w.querySelector('input[type=hidden]');h.value=v;h.dispatchEvent(new Event('change',{bubbles:true}))},true);
