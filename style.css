@@ -345,3 +345,7 @@ i.ti{background:#9bbf3a}i.te{background:#1F3A5F}.trc span{font-size:13px;color:v
 .bcl .bcin{width:12px;height:12px;border-radius:2px}
 .bcw .bcv{position:static!important;transform:none!important;margin-bottom:4px!important;font-size:12px}@media (max-width:520px){.bcw .bcv{font-size:10px}}
 .bcp .bct{position:absolute!important;left:-6px;right:-6px;text-align:center;transform:none!important;margin:0!important;z-index:1}
+.bstk{width:46%;max-width:56px;display:flex;flex-direction:column;border-radius:3px 3px 0 0;overflow:hidden}
+.bstk i{display:block;min-height:2px}
+.pml{max-width:420px}
+input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
