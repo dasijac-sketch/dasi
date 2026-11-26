@@ -126,7 +126,7 @@ function yr(){
     TI+=ai;TE+=ae;TP+=ex('bud')-ae;
     rows+='<tr><td>'+m+'</td><td>'+fm(ai)+'</td><td>'+fm(ae)+'</td><td class="'+(ai-ae<0?'neg':'')+'">'+fm(ai-ae)+'</td><td class="'+(ex('bud')-ae<0?'neg':'')+'">'+fm(ex('bud')-ae)+'</td></tr>'});
   rows+='<tr><th>סה״כ</th><th>'+fm(TI)+'</th><th>'+fm(TE)+'</th><th>'+fm(TI-TE)+'</th><th>'+fm(TP)+'</th></tr>';
-  return '<div class="c ov"><b>שנת '+S.y+'</b><table><tr><th>חודש</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>פער מהתקציב</th></tr>'+rows+'</table></div><p class="hint">פער מהתקציב: חיובי = חסכתם ביחס לתוכנית, שלילי = חריגה.</p>'+(STAGE>=2?'<div class="sh" style="margin-top:18px"><h2>'+ic('trend',20)+' מגמות</h2></div>'+trUI():'')}
+  return '<div class="c ov"><b>שנת '+S.y+'</b><table><tr><th>חודש</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>פער מהתקציב</th></tr>'+rows+'</table></div><p class="hint">פער מהתקציב: חיובי = חסכתם ביחס לתוכנית, שלילי = חריגה.</p>'+(STAGE>=2?'<div class="sh" style="margin-top:18px"><h2>'+ic('trend',20)+' מגמות</h2></div>'+trUI()+rptUI():'')}
 function defL(){return{sv:['יתרה בעו"ש','חיסכון לכל ילד','קופת גמל','קרן השתלמות','קרן חרום','הוצאות בלתי מתוכננות'].map(function(x){return{n:x,m:'',v:'',r:'',y:'',q:''}}),ln:[],ins:[],gl:[],kd:[],pn:['פנסיה בן זוג','פנסיה בת זוג'].map(function(x){return{n:x,v:'',m:'',e:'',c:''}})}}
 var FD={pn:[{k:'n',l:'שם',t:'t'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'e',l:'הצפי לפנסיה',t:'n'},{k:'c',l:'עמלות %',t:'n'},{k:'iv',l:'איפה מושקע',t:'t'}],kd:[{k:'n',l:'שם הילד/ה',t:'t'},{k:'g',l:'מין',t:'s',o:['בן','בת']},{k:'b',l:'תאריך לידה',t:'d'}],sv:[{k:'n',l:'שם החיסכון',t:'t'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'r',l:'תשואה שנתית משוערת %',t:'n'},{k:'y',l:'צפי משיכה בעוד (שנים)',t:'n'},{k:'q',l:'נזילות',t:'s',o:['נזיל מיידית','תוך שנה','ארוך טווח']},{k:'iv',l:'איפה מושקע',t:'t'}],
 ln:[{k:'y',l:'סוג',t:'s',o:['הלוואה','משכנתא']},{k:'n',l:'שם ההלוואה / המשכנתא',t:'t'},{k:'w',l:'שווי הנכס',t:'n',w:'משכנתא'},{k:'b',l:'יתרה',t:'n'},{k:'c',l:'חודשים לסיום',t:'n'},{k:'p',l:'החזר חודשי',t:'n'},{k:'r',l:'ריבית שנתית % (לא חובה)',t:'n'}],
@@ -457,7 +457,7 @@ function home(){
   h+=journeyUI();
   if(st2&&ph==='start')h+=mtgUI();
   if(!st2&&done<steps.length)h+='<div class="c"><b>'+(st2?'לאן עוברים':'הצעדים שלכם')+'</b>'+steps.map(function(s){return '<button class="stp" data-a="tab" data-id="'+s[0]+'"><span><b>'+s[1]+'</b><small>'+s[2]+'</small></span><span class="ck'+(s[3]?' ok':'')+'">'+(s[3]?'✓':'')+'</span></button>'}).join('')+'</div>';
-  if(st2)h+=rptUI()+svChUI()+lnEndUI()+creditUI()+tipsUI();
+  if(st2)h+=svChUI()+lnEndUI()+creditUI()+tipsUI();
   if(!n(S.dn))h+=doneUI();
   if(!st2){
     h+=be>0||bi>0?'<div class="g">'+tile(fm(bi),'הכנסות חודשיות')+tile(fm(be),'הוצאות חודשיות')+tile(fm(bi-be),'יתרה חודשית',bi-be<0?'neg':'')+'</div><div class="c">תודה על מילוי המאזן. המאמנת תבנה עבורכם את התקציב, ותעדכן אתכם כאן.</div>':'<div class="c">התחילו במילוי המאזן: הזינו את ההכנסות וההוצאות החודשיות הממוצעות שלכם.</div>'}
