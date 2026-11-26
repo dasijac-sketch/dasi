@@ -173,7 +173,7 @@ function budgetFrom(b, cur) {
   const okNum = o => isObj(o) && Object.values(o).every(v => typeof v === 'number' && isFinite(v));
   if ('sc' in b) {
     if (!Array.isArray(b.sc) || b.sc.length > 20 || b.sc.some(z => !isObj(z) || typeof z.id !== 'string' || z.id.length > 40 || typeof z.n !== 'string' || !z.n.trim() || z.n.length > 60 || typeof z.d !== 'string' || z.d.length > 7 || !okNum(z.bud))) return { error: 'bad_sc' };
-    sc = b.sc.map(z => ({ id: z.id, n: z.n, d: z.d, bud: z.bud }));
+    sc = b.sc.map(z => Object.assign({ id: z.id, n: z.n, d: z.d, bud: z.bud }, typeof z.bl === 'number' && isFinite(z.bl) && z.bl > 0 ? { bl: z.bl } : {}));
   }
   if ('bud' in b) {
     if (!okNum(b.bud)) return { error: 'bad_bud' };

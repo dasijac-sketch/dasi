@@ -120,8 +120,8 @@ document.addEventListener('click',function(e){
   else if(a==='pshx'){try{localStorage.setItem('pshx','1')}catch(e){}}
   else if(a==='cmpv'){CMP=b.dataset.id}
   else if(a==='gofc'){S.tab='sv';render();setTimeout(function(){var f=document.getElementById('fcc');if(f)f.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
-  else if(a==='blk'){S.bl=Date.now();save()}
-  else if(a==='bul'){S.bl=0;save()}
+  else if(a==='blk'){var zb=curSc();if(zb)zb.bl=Date.now();else S.bl=Date.now();save()}
+  else if(a==='bul'){var zu=curSc();if(zu)zu.bl=0;else S.bl=0;save()}
   else if(a==='nsc'){S.sc=S.sc||[];if(S.sc.length>=20)return;var ni=document.getElementById('scn'),nm=((ni&&ni.value)||'').trim().slice(0,60)||('תסריט '+(S.sc.length+1));var sdi=document.getElementById('scd'),id='s'+Date.now().toString(36);S.sc.push({id:id,n:nm,d:(sdi&&sdi.value)||(S.y+'-'+(S.m<10?'0':'')+S.m),bud:JSON.parse(JSON.stringify(S.bud0||{}))});S.vs=id;try{localStorage.setItem('vs',id)}catch(e){}useVs();save()}
   else if(a==='dsc'){SCDEL=S.vs}
   else if(a==='dscn'){SCDEL=''}

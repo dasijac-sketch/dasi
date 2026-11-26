@@ -308,3 +308,40 @@ i.ti{background:#9bbf3a}i.te{background:#1F3A5F}.trc span{font-size:13px;color:v
  .fab{bottom:96px}
 }
 @media (max-width:899px){body.navo .fab{display:none}}
+/* נעילת תקציב ותסריטים */
+.lkst{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#1F3A5F;background:#e9eef5;border-radius:20px;padding:5px 11px;margin-inline-end:6px}
+.lkst.op{color:#8a6410;background:#fdf6e3}
+.mhd .lkb+.lkst,.mhd .lkst+.lkb{margin-inline-start:0}
+/* גרף עמודות חודשי */
+.bch{display:flex;gap:8px;align-items:flex-end;margin:22px 0 6px;padding:0 4px}
+.bcc{flex:1 1 0;display:flex;flex-direction:column;align-items:center;min-width:0}
+.bcp{position:relative;width:100%;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--ln)}
+.bcb{display:block;width:62%;max-width:64px;background:#5FD8C6;border-radius:3px 3px 0 0}
+.bcb.ovr{background:#E48A8A}.bcb.prt{background:repeating-linear-gradient(135deg,#d6efe9 0 6px,#eef8f5 6px 12px)}.bcb.cur{background:#a9e9de}
+.bcv{position:absolute;left:0;right:0;text-align:center;font-size:12px;font-weight:600;color:#222;white-space:nowrap}
+.bci{position:absolute;left:12%;right:12%;height:0;border-top:2px dashed #1F3A5F}
+.bcm{font-size:13px;margin-top:6px;color:#1F3A5F}
+.bcs{font-size:11px;color:var(--mu);white-space:nowrap}
+.bcn{color:var(--mu);font-size:11px;text-align:center;align-self:center}
+.bcu .bcm{color:var(--mu)}
+.bcl{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--mu);margin:4px 0 8px}
+.bcl span{display:inline-flex;align-items:center;gap:6px}.bcl .bcb{width:12px;height:12px;border-radius:2px}.bcl .bci{position:static;width:16px;display:inline-block}
+@media (max-width:520px){.bcv{font-size:10px}.bch{gap:4px}.bcb{width:72%}}
+/* פילוח הוצאות החודש */
+.cdn{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:12px 0 4px}
+.cdl{flex:1 1 180px;display:grid;gap:6px}
+.cdl div{display:flex;align-items:center;gap:8px;font-size:14px}.cdl i{width:10px;height:10px;border-radius:50%;flex:0 0 auto}.cdl span{flex:1}.cdl b{white-space:nowrap}
+/* עריכת שיוכים */
+.txe summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:4px}
+.txe summary::before{content:'‹';display:inline-block;transform:rotate(-90deg);transition:transform .15s;margin-inline-end:6px;color:var(--mu)}
+.txe details[open]>summary::before{transform:rotate(90deg)}
+.txr select{flex:0 1 190px;max-width:55%}.txr .txv{font-size:13px;text-align:left}.txr .txv small{display:block;color:var(--mu);font-size:11px}
+.bcp{gap:4px}
+.bcw{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;width:34%;max-width:40px;height:100%}
+.bcw .bcb{width:100%;max-width:none}
+.bcw .bcv{position:absolute;left:50%;transform:translateX(-50%);bottom:auto;right:auto;top:auto}
+.bcw .bcb+.bcv,.bcw .bcv{margin:0}
+.bcin{display:block;width:100%;background:#1F3A5F;border-radius:3px 3px 0 0}.bcin.cur{background:#8fa3bf}
+.bcl .bcin{width:12px;height:12px;border-radius:2px}
+.bcw .bcv{position:static!important;transform:none!important;margin-bottom:4px!important;font-size:12px}@media (max-width:520px){.bcw .bcv{font-size:10px}}
+.bcp .bct{position:absolute!important;left:-6px;right:-6px;text-align:center;transform:none!important;margin:0!important;z-index:1}

@@ -234,3 +234,33 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-tx]'
     if(!gn||!nn){TX.err='נא למלא את שם הסעיף';R(1);return}TX.err='';S.cx=S.cx||{};var l=S.cx[gn]=S.cx[gn]||[];if(l.indexOf(nn)<0)l.push(nn);
     S.nwi=S.nwi||{};S.nwi[gn+'|'+nn]=ym();txAssign(g,gn+'|'+nn);save();R(1)}});
 function txCardCur(){var gl=txGroups(),ty=TX.ty||'',sk=TX.sk||[],q=gl.filter(function(g){return !TX.ok[g.k]&&(!ty||(ty==='i')===!!g.inc)});q=q.filter(function(g){return sk.indexOf(g.k)<0}).concat(q.filter(function(g){return sk.indexOf(g.k)>=0}));return q[0]}
+
+/* עריכת שיוכים: תנועות שסווגו בחודש, וכללי שיוך שנשמרו להעלאות הבאות */
+function txeType(v){if(!v||v==='x'||v==='__env')return '';var g=G.filter(function(x){return x.n===v.split('|')[0]})[0];return g?(g.t==='i'?'i':'e'):''}
+function txeOpts(ty,cur){var s='',has=false;G.forEach(function(g){if(ty&&(g.t==='i')!==(ty==='i'))return;var it=its(g);if(!it.length)return;
+    s+='<optgroup label="'+esc(g.n)+'">'+it.map(function(i){var v=g.n+'|'+i;if(v===cur)has=true;return '<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(i)+'</option>'}).join('')+'</optgroup>'});
+  var ex='<option value="x"'+(cur==='x'?' selected':'')+'>לא נספר</option>'+(cur==='__env'?'<option value="__env" selected>משיכה למעטפות</option>':'');if(cur==='x'||cur==='__env')has=true;
+  return (has?'':'<option value="'+esc(cur)+'" selected>'+esc(txAsLbl(cur)||cur)+'</option>')+ex+s}
+function txEditUI(k){var tl=(S.tx||{})[k]||[],ro=(typeof ADM!=='undefined'&&ADM)||RO,lk=isLocked(k),urk=Object.keys(S.ur||{});if(!tl.length&&!urk.length)return '';
+  var gm={},l=[];tl.forEach(function(t){var id=t[1]+'\u0001'+t[3];if(!gm[id]){gm[id]={nm:t[1],v:t[3],n:0,t:0};l.push(gm[id])}gm[id].n++;gm[id].t+=n(t[2])});
+  l.sort(function(a,b){return b.t-a.t});var h='<div class="c txe">';
+  if(l.length){h+='<details'+(TXE.o?' open':'')+' data-txo="1"><summary><b>השיוכים של '+MN[+k.split('-')[1]-1]+'</b><small class="hint"> · '+l.length+' בתי עסק</small></summary>'+
+    '<div class="hint" style="margin:6px 0 8px">'+(ro?'לצפייה בלבד.':lk?'החודש סגור. כדי לשנות שיוך פותחים את החודש בכפתור "נסגר" למעלה.':'משנים כאן לאיזה סעיף שויכה הוצאה. הסכומים במעקב מתעדכנים לבד, והשיוך נשמר גם להעלאות הבאות.')+'</div>'+
+    (l.length>8?'<input type="search" class="txs" data-txq="1" placeholder="חיפוש בית עסק" value="'+esc(TXE.q||'')+'" style="width:100%;margin-bottom:6px">':'')+
+    l.map(function(x){var q=(TXE.q||'').trim();if(q&&x.nm.indexOf(q)<0&&txAsLbl(x.v).indexOf(q)<0)return '';
+      return '<div class="r txr"><label>'+esc(x.nm)+'<small>'+(x.n>1?x.n+' תנועות · ':'')+fm(x.t)+'</small></label>'+(ro||lk?'<span class="txv">'+esc(txAsLbl(x.v))+'<small>'+esc(x.v.indexOf('|')>0?x.v.split('|')[0]:'')+'</small></span>':'<select data-txe="1" data-k="'+esc(k)+'" data-nm="'+esc(x.nm)+'" data-old="'+esc(x.v)+'" aria-label="שיוך '+esc(x.nm)+'">'+txeOpts(txeType(x.v),x.v)+'</select>')+'</div>'}).join('')+'</details>'}
+  if(urk.length&&!ro){h+='<details'+(TXE.r?' open':'')+' data-txr="1" style="margin-top:'+(l.length?'10px':'0')+'"><summary><b>כללי שיוך שמורים</b><small class="hint"> · '+urk.length+'</small></summary><div class="hint" style="margin:6px 0 8px">כך יסווגו בתי העסק האלה בהעלאה הבאה. שינוי כאן לא משנה חודשים שכבר הוזנו.</div>'+
+    urk.slice().sort(function(a,b){return a.slice(2).localeCompare(b.slice(2),'he')}).map(function(rk){var v=S.ur[rk];return '<div class="r txr"><label>'+esc(rk.slice(2))+'<small>'+(rk[0]==='i'?'הכנסה':'הוצאה')+'</small></label><select data-tur="'+esc(rk)+'" aria-label="כלל שיוך '+esc(rk.slice(2))+'">'+txeOpts(rk[0],v)+'</select><button class="gh" data-tx="urx" data-g="'+esc(rk)+'" title="מחיקת הכלל" aria-label="מחיקת הכלל">'+ic('xx',16)+'</button></div>'}).join('')+'</details>'}
+  return h+'</div>'}
+var TXE={o:false,r:false,q:''};
+document.addEventListener('toggle',function(e){var d=e.target;if(!d||!d.dataset)return;if(d.dataset.txo)TXE.o=d.open;if(d.dataset.txr)TXE.r=d.open},true);
+document.addEventListener('input',function(e){var t=e.target;if(t.dataset&&t.dataset.txq){TXE.q=t.value;var y=window.scrollY,pos=t.selectionStart;render();window.scrollTo(0,y);var ni=document.querySelector('[data-txq]');if(ni){ni.focus();try{ni.setSelectionRange(pos,pos)}catch(x){}}}});
+document.addEventListener('change',function(e){var t=e.target;if(!t.dataset)return;
+  if(t.dataset.txe){var k=t.dataset.k,nm=t.dataset.nm,old=t.dataset.old,nv=t.value;if(nv===old||isLocked(k))return;var rows=(S.tx||{})[k]||[],sum=0;
+    rows.forEach(function(r){if(r[1]===nm&&r[3]===old){r[3]=nv;sum+=n(r[2])}});sum=Math.round(sum);
+    var a=S.act[k]=S.act[k]||{};if(old!=='x'&&old!=='__env'){a[old]=Math.max(0,Math.round(n(a[old])-sum));if(!a[old])delete a[old]}
+    if(nv!=='x'&&nv!=='__env')a[nv]=Math.round(n(a[nv])+sum);
+    var ty=txeType(nv)||txeType(old)||'e';if(nm.length<30&&!txIsOt(nv)&&nv.indexOf('|חד-פעמי: ')<0){S.ur=S.ur||{};S.ur[ty+'|'+nm]=nv}
+    var y=window.scrollY;save();render();window.scrollTo(0,y)}
+  else if(t.dataset.tur){S.ur=S.ur||{};S.ur[t.dataset.tur]=t.value;save()}});
+document.addEventListener('click',function(e){var b=e.target.closest('[data-tx="urx"]');if(!b)return;if(S.ur)delete S.ur[b.dataset.g];var y=window.scrollY;save();render();window.scrollTo(0,y)});
