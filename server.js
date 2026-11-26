@@ -367,7 +367,7 @@ app.put('/api/admin/couples/:id/state', requireAdmin, (req, res) => {
   for (const k of ['bal', 'mo', 'rt', 'pm', 'fm']) if (k in b) { if (!isObj(b[k])) return res.status(400).json({ error: 'bad_' + k }); cur[k] = b[k]; }
   if ('L' in b) {
     const L = b.L, okV = v => v === undefined || v === '' || num(v) || (typeof v === 'string' && v.length <= 200);
-    const okL = a => Array.isArray(a) && a.length <= 300 && a.every(x => isObj(x) && Object.values(x).every(okV));
+    const okL = a => Array.isArray(a) && a.length <= 300 && a.every(x => isObj(x) && Object.entries(x).every(([k, v]) => k === 'p' ? (typeof v === 'string' && v.length <= 40000 && v.startsWith('data:image/')) : okV(v)));
     const keys = ['sv', 'ln', 'ins', 'gl', 'pn', 'kd'];
     if (!isObj(L) || keys.some(k => k in L && !okL(L[k]))) return res.status(400).json({ error: 'bad_L' });
     cur.L = Object.assign({}, cur.L || {});

@@ -376,3 +376,14 @@ input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
 .kcd.ed{align-items:stretch;padding-top:30px}.kcd.ed>span{display:block;text-align:right}.kcd.ed .kav{align-self:center}.kcd.ed .kgs,.kcd.ed .kpill{align-self:center}.kcd.ed .kx{position:absolute;top:6px;left:8px;width:28px;color:var(--bd)}
 .kcd.ed .dpt{font-size:14px;padding-inline:8px;min-width:0}.kcd.ed .dpk{min-width:0}
 .kcd.ed .kdw{width:100%}.kcd.ed .kdw .dpt{min-width:0}
+.kavw{display:flex;flex-direction:column;align-items:center;gap:2px}.kav{padding:0;font:inherit}.kavb{cursor:pointer;position:relative;overflow:hidden}.kavb:focus-visible{outline:2px solid #1F3A5F;outline-offset:2px}
+.kimg{width:100%;height:100%;object-fit:cover;display:block}.kav{position:relative}.kcam{position:absolute;bottom:4px;inset-inline-end:4px;width:26px;height:26px;border-radius:50%;background:#1F3A5F;color:#fff;display:flex;align-items:center;justify-content:center}.kavb:not(:hover) .kcam{opacity:.9}
+.kphx{background:none;border:0;color:var(--mu);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:2px}
+.kav svg{display:block;width:100%;height:100%}
+.kgrid{grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px}
+.kcd{padding:8px 6px;gap:3px;border-radius:12px}.kcd .nm{font-size:14px}.kdt{font-size:12px}
+.kav{width:72px;height:72px;border-width:2px;margin:3px 0 1px}.kcam{width:22px;height:22px;bottom:0;inset-inline-end:0}.kcam svg{width:13px;height:13px}
+.kpill{font-size:11px;padding:2px 9px}.kcd.ed{padding-top:24px}.kcd.ed .kx{top:2px;left:4px}
+.kcd.ed .kgs{gap:5px}.kcd.ed .kgs .kgc{width:28px;height:28px}.kcd.ed .kgs .kgc svg{width:16px;height:16px}.kcd.ed small{font-size:11px}.kcd.ed input[type=text]{padding:6px 8px;font-size:14px;height:36px}.kcd.ed .dpt{height:36px}.kcd.ed .dpb{width:36px!important;height:36px!important}
+.kadd{border-style:dashed;color:#1F3A5F;background:none;cursor:pointer;justify-content:center;font:inherit;min-height:120px;align-items:center}.kadd span{font-size:13px;font-weight:700}
+.kcd.ed .dpt{font-size:12.5px!important;padding-inline:3px!important;letter-spacing:0!important}.kcd.ed .dpk{gap:4px}
