@@ -655,11 +655,22 @@ function tvsRO(){var dep=sm('sv','m'),val=tot('sv'),liq=tot('sv',function(x){ret
    roList('sv','חסכונות',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['תשואה משוערת',function(x){return n(x.r)?n(x.r)+'%':'—'}],['צפי במשיכה',function(x){var q=svx(x);return q?fmS(q.a)+'<small class="hint" style="display:block">בעוד '+q.y+' ש׳</small>':'—'}]],'השווי והצפי משוערים. הצפי לפי השנים שהוזנו לכל חיסכון. כרית הביטחון מחושבת מחסכונות נזילים מול ההוצאות החודשיות.',svf)+
    roList('pn','פנסיה',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['עמלות',function(x){return n(x.c)?n(x.c)+'%':'—'}]],'השווי משוער. לסכום המדויק היכנסו לאזור האישי בגוף המנהל.',function(x){return ''})+rulesUI()+fcUI()}
 
-/* בחירת תאריך ידידותית: יום, חודש ושנה בשלוש רשימות. מעדכן שדה נסתר ושולח change לשמירה הרגילה */
-var DPS={};
-function dPick(attrs,key,v,y0,y1,lbl){var p=DPS[key]||String(v||'').split('-'),yy=p[0]||'',mm=p[1]?String(+p[1]):'',dd=p[2]?String(+p[2]):'',o=function(a,sel,ph){return '<option value="">'+ph+'</option>'+a.map(function(x){return '<option value="'+x[0]+'"'+(String(x[0])===sel?' selected':'')+'>'+x[1]+'</option>'}).join('')},D=[],M=[],Y=[],i;
-  for(i=1;i<=31;i++)D.push([i,i]);for(i=1;i<=12;i++)M.push([i,MN[i-1]]);for(i=y1;i>=y0;i--)Y.push([i,i]);
-  return '<span class="dpk" data-dk="'+esc(key)+'"><select data-dp="d" aria-label="'+esc(lbl)+': יום">'+o(D,dd,'יום')+'</select><select data-dp="m" aria-label="'+esc(lbl)+': חודש">'+o(M,mm,'חודש')+'</select><select data-dp="y" aria-label="'+esc(lbl)+': שנה">'+o(Y,yy,'שנה')+'</select><input type="hidden" data-str="1" '+attrs+' value="'+esc(v||'')+'"></span>'}
-document.addEventListener('change',function(e){var t=e.target;if(!t.dataset||!t.dataset.dp)return;e.stopPropagation();var w=t.closest('.dpk'),k=w.dataset.dk,g=function(x){return w.querySelector('[data-dp="'+x+'"]').value},d=g('d'),m=g('m'),y=g('y');
-  DPS[k]=[y,m,d];if(!y||!m){return}var mx=new Date(+y,+m,0).getDate();if(d&&+d>mx){d=String(mx);w.querySelector('[data-dp="d"]').value=d}
-  var v=y+'-'+(+m<10?'0':'')+m+(d?'-'+(+d<10?'0':'')+d:'');delete DPS[k];var h=w.querySelector('input[type=hidden]');h.value=v;h.dispatchEvent(new Event('change',{bubbles:true}))},true);
+/* בחירת תאריך: הקלדה חופשית (יום/חודש/שנה, הלוכסנים מתווספים לבד) וכפתור ללוח שנה. הערך נשמר כ-YYYY-MM-DD בשדה נסתר */
+var DPCAL='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>';
+function dpIso2Txt(v){var p=String(v||'').split('-');if(!p[0]||!p[1])return '';return (p[2]?('0'+(+p[2])).slice(-2):'01')+'/'+('0'+(+p[1])).slice(-2)+'/'+p[0]}
+function dpTxt2Iso(t){var m=String(t||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return null;var d=+m[1],mo=+m[2],y=+m[3],dt=new Date(y,mo-1,d),now=new Date();
+  if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d||y<1920||dt>now)return null;return y+'-'+(mo<10?'0':'')+mo+'-'+(d<10?'0':'')+d}
+function dPick(attrs,key,v,y0,y1,lbl){var iso=/^\d{4}-\d{2}(-\d{2})?$/.test(String(v||''))?String(v):'',full=iso.length===10?iso:(iso?iso+'-01':''),mx=new Date().toISOString().slice(0,10);
+  return '<span class="dpk" data-dk="'+esc(key)+'"><input type="text" class="dpt" data-dt="1" inputmode="numeric" autocomplete="off" maxlength="10" dir="ltr" placeholder="dd/mm/yyyy" value="'+esc(dpIso2Txt(iso))+'" aria-label="'+esc(lbl)+' (יום/חודש/שנה)">'+
+   '<button type="button" class="dpb" data-dcal="1" title="בחירה מלוח שנה" aria-label="'+esc(lbl)+': בחירה מלוח שנה">'+DPCAL+'</button>'+
+   '<input type="date" class="dpn" data-dn="1" tabindex="-1" aria-hidden="true" min="1920-01-01" max="'+mx+'" value="'+esc(full)+'">'+
+   '<input type="hidden" data-str="1" '+attrs+' value="'+esc(iso)+'"></span>'}
+function dpCommit(w,iso){var h=w.querySelector('input[type=hidden]');if(h.value===iso)return;h.value=iso;h.dispatchEvent(new Event('change',{bubbles:true}))}
+document.addEventListener('input',function(e){var t=e.target;if(!t.dataset||!t.dataset.dt)return;var dg=t.value.replace(/\D/g,'').slice(0,8),o=dg;
+  if(dg.length>4)o=dg.slice(0,2)+'/'+dg.slice(2,4)+'/'+dg.slice(4);else if(dg.length>2)o=dg.slice(0,2)+'/'+dg.slice(2);
+  if(e.inputType&&/^delete/.test(e.inputType)&&/\/$/.test(t.value))o=t.value.replace(/\/$/,'');t.value=o;
+  var w=t.closest('.dpk'),iso=dpTxt2Iso(o);t.classList.toggle('bad',o.length===10&&!iso);if(iso){var nt=w.querySelector('.dpn');if(nt)nt.value=iso;dpCommit(w,iso)}});
+document.addEventListener('change',function(e){var t=e.target;if(!t.dataset)return;
+  if(t.dataset.dt){e.stopPropagation();var w=t.closest('.dpk');if(!t.value.trim()){t.classList.remove('bad');dpCommit(w,'');return}var iso=dpTxt2Iso(t.value);t.classList.toggle('bad',!iso);if(iso)dpCommit(w,iso)}
+  else if(t.dataset.dn){e.stopPropagation();if(!t.value)return;var w2=t.closest('.dpk');w2.querySelector('.dpt').value=dpIso2Txt(t.value);w2.querySelector('.dpt').classList.remove('bad');dpCommit(w2,t.value)}},true);
+document.addEventListener('click',function(e){var b=e.target.closest('[data-dcal]');if(!b)return;e.preventDefault();var nt=b.closest('.dpk').querySelector('.dpn');try{nt.showPicker()}catch(x){nt.focus();nt.click()}});

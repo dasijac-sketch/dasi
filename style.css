@@ -352,9 +352,12 @@ input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
 .txr label{flex:1 1 auto!important;min-width:0}.txr select{flex:0 0 210px!important;max-width:55%}.urg{margin-top:10px}
 .txr select{width:210px!important}.txr label{flex:1 1 40%!important}@media (max-width:520px){.txr select{width:170px!important}}
 /* בחירת תאריך */
-.dpk{display:flex;gap:6px;flex-wrap:nowrap}
-.dpk select{width:auto!important;min-width:0;flex:1 1 0;padding-inline:8px}
-.dpk select[data-dp="d"]{flex:0 0 68px}.dpk select[data-dp="m"]{flex:1 1 96px}.dpk select[data-dp="y"]{flex:0 0 86px}
-.dpw{flex:1 1 260px;min-width:250px}
-.fl span:has(.dpk){flex:1 0 250px}
-.dpk select[data-dp="m"]{flex:0 1 112px!important}.dpk{justify-content:flex-start}.dpw{flex:0 1 270px;min-width:250px}
+/* בחירת תאריך: הקלדה + לוח שנה */
+.dpk{display:flex;gap:6px;align-items:center;position:relative;flex-wrap:nowrap}
+.dpk .dpt{flex:1 1 130px;min-width:120px;width:auto!important;text-align:center;letter-spacing:.03em}
+.dpk .dpt.bad{border-color:#b23b3b!important;background:#fbeeee!important}
+.dpk .dpb{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:42px!important;height:42px!important;padding:0!important;border-radius:12px;border:1px solid var(--ln);background:#fff;color:#1F3A5F;cursor:pointer}
+.dpk .dpb:hover{background:#f1efe8}
+.dpk .dpn{position:absolute;inset-inline-end:0;bottom:0;width:42px!important;height:1px!important;opacity:0;pointer-events:none;padding:0;border:0}
+.dpw{flex:0 1 270px;min-width:230px}
+.fl span:has(.dpk){flex:1 0 190px}
