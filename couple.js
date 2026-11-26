@@ -106,6 +106,7 @@ document.addEventListener('click',function(e){
   else if(a==='tg')S.open[b.dataset.id]=!S.open[b.dataset.id];
   else if(a==='fill'&&false){G.forEach(function(g){its(g).forEach(function(i){var k=g.n+'|'+i;S.bud[k]=n(S.bal[k])})});save()}
   else if(a==='mf'){MF=b.dataset.id}
+  else if(a==='edi'){EDI[b.dataset.k]=!EDI[b.dataset.k]}
   else if(a==='edt'){EDT[b.dataset.id]=!EDT[b.dataset.id]}
   else if(a==='pson'){pushOn();return}
   else if(a==='psoff'){pushOff();return}

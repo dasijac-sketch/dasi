@@ -124,7 +124,7 @@ function yr(){
   rows+='<tr><th>סה״כ</th><th>'+fm(TI)+'</th><th>'+fm(TE)+'</th><th>'+fm(TI-TE)+'</th><th>'+fm(TP)+'</th></tr>';
   return '<div class="c ov"><b>שנת '+S.y+'</b><table><tr><th>חודש</th><th>הכנסות</th><th>הוצאות</th><th>יתרה</th><th>פער מהתקציב</th></tr>'+rows+'</table></div><p class="hint">פער מהתקציב: חיובי = חסכתם ביחס לתוכנית, שלילי = חריגה.</p>'}
 function defL(){return{sv:['יתרה בעו"ש','חיסכון לכל ילד','קופת גמל','קרן השתלמות','קרן חרום','הוצאות בלתי מתוכננות'].map(function(x){return{n:x,m:'',v:'',r:'',y:'',q:''}}),ln:[],ins:[],gl:[],kd:[],pn:['פנסיה בן זוג','פנסיה בת זוג'].map(function(x){return{n:x,v:'',m:'',e:'',c:''}})}}
-var FD={pn:[{k:'n',l:'שם',t:'t'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'e',l:'הצפי לפנסיה',t:'n'},{k:'c',l:'עמלות %',t:'n'},{k:'iv',l:'איפה מושקע',t:'t'}],kd:[{k:'n',l:'שם הילד/ה',t:'t'},{k:'a',l:'גיל',t:'n'}],sv:[{k:'n',l:'שם החיסכון',t:'t'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'r',l:'תשואה שנתית %',t:'n'},{k:'y',l:'צפי לעוד (שנים)',t:'n'},{k:'q',l:'נזילות',t:'s',o:['נזיל מיידית','תוך שנה','ארוך טווח']},{k:'iv',l:'איפה מושקע',t:'t'}],
+var FD={pn:[{k:'n',l:'שם',t:'t'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'e',l:'הצפי לפנסיה',t:'n'},{k:'c',l:'עמלות %',t:'n'},{k:'iv',l:'איפה מושקע',t:'t'}],kd:[{k:'n',l:'שם הילד/ה',t:'t'},{k:'a',l:'גיל',t:'n'}],sv:[{k:'n',l:'שם החיסכון',t:'t'},{k:'m',l:'הפקדה חודשית',t:'n'},{k:'v',l:'שווי נוכחי',t:'n'},{k:'r',l:'תשואה שנתית משוערת %',t:'n'},{k:'y',l:'צפי משיכה בעוד (שנים)',t:'n'},{k:'q',l:'נזילות',t:'s',o:['נזיל מיידית','תוך שנה','ארוך טווח']},{k:'iv',l:'איפה מושקע',t:'t'}],
 ln:[{k:'y',l:'סוג',t:'s',o:['הלוואה','משכנתא']},{k:'n',l:'שם ההלוואה / המשכנתא',t:'t'},{k:'w',l:'שווי הנכס',t:'n',w:'משכנתא'},{k:'b',l:'יתרה',t:'n'},{k:'c',l:'חודשים לסיום',t:'n'},{k:'p',l:'החזר חודשי',t:'n'},{k:'r',l:'ריבית שנתית % (לא חובה)',t:'n'}],
 ins:[{k:'y',l:'סוג',t:'s',o:['חיים','בריאות','רכב','דירה ותכולה','אובדן כושר עבודה','אחר']},{k:'n',l:'חברה / פירוט',t:'t'},{k:'p',l:'פרמיה',t:'n'},{k:'f',l:'תדירות',t:'s',o:['חודשי','שנתי']},{k:'r',l:'חידוש',t:'m'}],
 gl:[{k:'n',l:'שם היעד',t:'t'},{k:'t',l:'סכום יעד',t:'n'},{k:'s',l:'נחסך עד כה',t:'n'},{k:'d',l:'תאריך יעד',t:'m'}]};
@@ -134,7 +134,9 @@ function fld(l,i,f,v){var b=' data-s="L" data-k="'+l+'.'+i+'.'+f.k+'"'+(f.t==='n
   if(f.t==='s')h='<select'+b+'>'+(v?'':'<option value="">—</option>')+f.o.map(function(o){return '<option'+(o===v?' selected':'')+'>'+o+'</option>'}).join('')+'</select>';
   else h='<input type="'+(f.t==='n'?'number':f.t==='m'?'month':'text')+'"'+b+' value="'+esc(v==null?'':v)+'"'+(f.t==='n'?' inputmode="decimal" min="0"':'')+'>';
   return '<span><small>'+f.l+'</small>'+h+'</span>'}
-function lst(l,title,hint,xf){return '<div class="c"><b>'+title+'</b>'+(hint?'<p class="hint">'+hint+'</p>':'')+S.L[l].map(function(x,i){return '<div class="it"><div class="fl">'+FD[l].filter(function(f){return !f.w||x.y===f.w}).map(function(f){return fld(l,i,f,x[f.k])}).join('')+'<button class="gh" style="width:30px;color:var(--bd)" data-a="ld" data-l="'+l+'" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'+(xf?xf(x):'')+insLine(l,x)+'</div>'}).join('')+'<button class="btn" data-a="la" data-l="'+l+'" style="margin-top:8px">'+ic('plus',18)+'<span>הוספה</span></button>'+(l==='ln'?' <button class="btn sec" data-a="la" data-l="ln" data-y="משכנתא" data-nm="משכנתא דירה" style="margin-top:8px">+ משכנתא דירה</button>':'')+'</div>'}
+function ordL(l){var L=S.L[l]||[],ix=L.map(function(x,i){return i});if(l==='ln')ix.sort(function(a,b){return (isMg(L[a])?1:0)-(isMg(L[b])?1:0)||a-b});return ix}
+function itEd(l,x,i,xf){return '<div class="it"><div class="fl">'+FD[l].filter(function(f){return !f.w||x.y===f.w}).map(function(f){return fld(l,i,f,x[f.k])}).join('')+'<button class="gh" style="width:30px;color:var(--bd)" data-a="ld" data-l="'+l+'" data-i="'+i+'" aria-label="מחיקה">✕</button></div>'+(xf?xf(x):'')+insLine(l,x)+'</div>'}
+function lst(l,title,hint,xf){return '<div class="c"><b>'+title+'</b>'+(hint?'<p class="hint">'+hint+'</p>':'')+ordL(l).map(function(i){return itEd(l,S.L[l][i],i,xf)}).join('')+'<button class="btn" data-a="la" data-l="'+l+'" style="margin-top:8px">'+ic('plus',18)+'<span>הוספה</span></button>'+(l==='ln'?' <button class="btn sec" data-a="la" data-l="ln" data-y="משכנתא" data-nm="משכנתא דירה" style="margin-top:8px">+ משכנתא דירה</button>':'')+'</div>'}
 function gm(d){if(!d)return null;var p=d.split('-'),t=new Date();return (+p[0]-t.getFullYear())*12+(+p[1]-(t.getMonth()+1))}
 function fv(p,m,r,y){var i=Math.pow(1+r/100,1/12)-1,k=Math.round(y*12),v=p;for(var j=0;j<k;j++)v=v*(1+i)+m;return v}
 function fcalc(){var f=S.fc||{},p=n(f.p),m=n(f.m),r=n(f.r),y=Math.min(60,Math.max(0,n(f.y))),sp=n(f.s)||2;
@@ -165,8 +167,8 @@ function tvs(){
   if(!isEd('sv'))return tvsRO();
   var dep=sm('sv','m'),val=tot('sv'),liq=tot('sv',function(x){return x.q==='נזיל מיידית'}),e=ex('bal'),lb=sm('ln','b'),lp=sm('ln','p'),inc=ts('bal','i');
   return '<div class="g">'+tile('כ-'+fm(val),'שווי חסכונות (משוער)')+tile(fm(dep),'הפקדה חודשית')+tile(e?(liq/e).toFixed(1):'—','כרית ביטחון (חודשי הוצאות)')+'</div>'+(svt()!=null?'<div class="c"><b>צפי כולל לחסכונות: '+fm(svt())+'</b><div class="hint" style="margin:0">סכום הצפי של החסכונות שהוגדרו להם תשואה ושנים.</div></div>':'')+
-  lst('pn','פנסיה','',function(x){return n(x.v)?'<small>שווי נוכחי '+fm(n(x.v))+(n(x.m)?' · הפקדה שנתית '+fm(n(x.m)*12):'')+'</small>':''})+
   lst('sv','חסכונות','',svf)+
+  lst('pn','פנסיה','',function(x){return n(x.v)?'<small>שווי נוכחי '+fm(n(x.v))+(n(x.m)?' · הפקדה שנתית '+fm(n(x.m)*12):'')+'</small>':''})+rulesUI()+
   fcUI()}
 function tln(){var L=S.L.ln||[],ed=isEd('ln'),inc=ts('bal','i')||ts('bud','i'),tb=0,tp=0,mp=0,rest=0,first=null;
   L.forEach(function(x){var b=estB(x),p=n(x.p),c=n(x.c)?estC(x):(p>0&&b>0?Math.ceil(b/p):0);tb+=b;tp+=p;if(isMg(x))mp+=p;var left=p*c;rest+=left;if(c>0&&(!first||c<first.c))first={n:x.n||x.y||'הלוואה',c:c,p:p}});
@@ -563,12 +565,19 @@ function cdUI(){if(STAGE<2)return '';var P=perNow(S.sd),sd=Math.min(28,Math.max(
 var EDT={};
 function isEd(t){return (typeof ADM!=='undefined'&&ADM)||!!EDT[t]}
 function edBtn(t){if(typeof ADM!=='undefined'&&ADM)return '';return EDT[t]?'<button class="lkb on" data-a="edt" data-id="'+t+'" title="סיום עריכה">'+ic('check',18)+'<span>סיום</span></button>':'<button class="lkb" data-a="edt" data-id="'+t+'" title="מצב עריכה">'+ic('edit',18)+'<span>עריכה</span></button>'}
-function roList(l,title,cols,tip){var L=S.L[l]||[];
-  var hd='<div class="rol rolh" style="grid-template-columns:1.4fr repeat('+cols.length+',1fr)"><span></span>'+cols.map(function(c){return '<small>'+c[0]+'</small>'}).join('')+'</div>';
-  var rows=L.map(function(x){var it=insTxt(l,x);return '<div class="rol" style="grid-template-columns:1.4fr repeat('+cols.length+',1fr)"><span>'+esc(x.n||x.y||'—')+(it.length?' '+qTip(it.join('. ')):'')+'</span>'+cols.map(function(c){return '<b>'+c[1](x)+'</b>'}).join('')+'</div>'}).join('');
+var EDI={};
+function roList(l,title,cols,tip,xf){var L=S.L[l]||[],g='grid-template-columns:1.4fr repeat('+cols.length+',1fr) 30px';
+  var hd='<div class="rol rolh" style="'+g+'"><span></span>'+cols.map(function(c){return '<small>'+c[0]+'</small>'}).join('')+'<span></span></div>';
+  var rows=ordL(l).map(function(i){var x=L[i],k=l+i;if(EDI[k]&&!(typeof ADM!=='undefined'&&ADM))return itEd(l,x,i,xf)+'<div style="text-align:left"><button class="btn sec" data-a="edi" data-k="'+k+'">'+ic('check',18)+'<span>סיום</span></button></div>';
+   var it=insTxt(l,x);return '<div class="rol" style="'+g+'"><span>'+esc(x.n||x.y||'—')+(it.length?' '+qTip(it.join('. ')):'')+'</span>'+cols.map(function(c){return '<b>'+c[1](x)+'</b>'}).join('')+'<button class="gh" data-a="edi" data-k="'+k+'" title="עריכה" aria-label="עריכה">'+ic('edit',16)+'</button></div>'}).join('');
   return '<div class="c lkg"><div class="lkh"><b>'+title+'</b>'+(tip?qTip(tip):'')+'</div>'+(L.length?hd+rows:'<p class="hint" style="margin:0">אין עדיין. לחצו "עריכה" כדי להוסיף.</p>')+'</div>'}
+function svx(x){var f=S.fc||{},r=x.r!==undefined&&x.r!==''&&x.r!==null?n(x.r):(f.r!==undefined&&f.r!==''?n(f.r):null),y=n(x.y)||n(f.y);if(r==null||!y)return null;return{a:fv(n(x.v),n(x.m),r,y),y:y}}
+function rulesUI(){return '<div class="c"><b>כללי אצבע להשקעה</b> <span class="est">כללי</span>'+
+ '<div class="rul"><b>טווח קצר (עד כ-3 שנים)</b><ul><li>שומרים על הקרן ועל נזילות, לא על רווח מקסימלי</li><li>כסף שצריך בקרוב לא מושקע במניות</li><li>קרן חירום: כ-3 עד 6 חודשי הוצאות, נזילה ונגישה</li><li>אפיקים מקובלים: פיקדון, קרן כספית, אג"ח קצר</li></ul></div>'+
+ '<div class="rul"><b>טווח ארוך (5 שנים ומעלה)</b><ul><li>פיזור רחב בין אפיקים ובין חברות</li><li>הפקדה קבועה כל חודש, בלי לנסות לתזמן את השוק</li><li>דמי ניהול נמוכים משפיעים מאוד לאורך שנים</li><li>ירידות זמניות הן חלק מהדרך, לא סיבה למכור בבהלה</li><li>ככל שהיעד קרוב יותר, מעבירים בהדרגה לאפיק סולידי</li></ul></div>'+
+ '<small class="hint">מידע כללי בלבד, לא ייעוץ השקעות. להתאמה אישית פנו ליועץ מוסמך.</small></div>'}
 function fmS(v){return v?fm(v).replace(' ₪',''):'—'}
 function tvsRO(){var dep=sm('sv','m'),val=tot('sv'),liq=tot('sv',function(x){return x.q==='נזיל מיידית'}),e=ex('bal');
   return '<div class="s3"><div><span>שווי (משוער)</span><b>'+fmS(val)+'</b></div><div><span>הפקדה חודשית</span><b>'+fmS(dep)+'</b></div><div><span>כרית ביטחון</span><b>'+(e?(liq/e).toFixed(1):'—')+'</b><small>חודשי הוצאות</small></div></div>'+
-   roList('pn','פנסיה',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['עמלות',function(x){return n(x.c)?n(x.c)+'%':'—'}]],'השווי משוער. לסכום המדויק היכנסו לאזור האישי בגוף המנהל.')+
-   roList('sv','חסכונות',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['תשואה',function(x){return n(x.r)?n(x.r)+'%':'—'}]],'השווי משוער. כרית הביטחון מחושבת מחסכונות נזילים מול ההוצאות החודשיות.')+fcUI()}
+   roList('sv','חסכונות',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['תשואה משוערת',function(x){return n(x.r)?n(x.r)+'%':'—'}],['צפי במשיכה',function(x){var q=svx(x);return q?fmS(q.a)+'<small class="hint" style="display:block">בעוד '+q.y+' ש׳</small>':'—'}]],'השווי והצפי משוערים. הצפי לפי השנים שהוזנו לכל חיסכון. כרית הביטחון מחושבת מחסכונות נזילים מול ההוצאות החודשיות.',svf)+
+   roList('pn','פנסיה',[['שווי',function(x){return fmS(estV(x))}],['הפקדה',function(x){return fmS(n(x.m))}],['עמלות',function(x){return n(x.c)?n(x.c)+'%':'—'}]],'השווי משוער. לסכום המדויק היכנסו לאזור האישי בגוף המנהל.',function(x){return ''})+rulesUI()+fcUI()}
