@@ -387,3 +387,5 @@ input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
 .kcd.ed .kgs{gap:5px}.kcd.ed .kgs .kgc{width:28px;height:28px}.kcd.ed .kgs .kgc svg{width:16px;height:16px}.kcd.ed small{font-size:11px}.kcd.ed input[type=text]{padding:6px 8px;font-size:14px;height:36px}.kcd.ed .dpt{height:36px}.kcd.ed .dpb{width:36px!important;height:36px!important}
 .kadd{border-style:dashed;color:#1F3A5F;background:none;cursor:pointer;justify-content:center;font:inherit;min-height:120px;align-items:center}.kadd span{font-size:13px;font-weight:700}
 .kcd.ed .dpt{font-size:12.5px!important;padding-inline:3px!important;letter-spacing:0!important}.kcd.ed .dpk{gap:4px}
+.lnb .bcm.lnm{font-size:13px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}.lnb .bcs{font-size:11px;color:var(--mu);white-space:nowrap}
+.lnb .bcb{background:#1F3A5F}
