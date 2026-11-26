@@ -207,11 +207,22 @@ function gauUI(){var k=S.L.kd||[];if(!k.length)return '';var bad=k.filter(functi
     return h}).join('')+
   (bad.length?'<div class="hint" style="margin-top:8px">חסרים מין או תאריך לידה אצל: '+bad.map(function(x){return esc(x.n||'ילד')}).join(', ')+'</div>':'')+'</div>'}
 function pAge(f,key){var d=f[key+'d'];if(d)return kAge({b:d});var a=f[key];return a?n(a):null}
+function kFig(g,h,w){var m=g!=='בת',sk='#F5C4B3',hr=m?'#5C3A21':'#8B4A2B',bd=g==='בת'?'#D4537E':g==='בן'?'#378ADD':'#9aa7ba';
+var o='<svg viewBox="0 0 60 96" width="'+w+'" height="'+h+'" aria-hidden="true"><rect x="19" y="62" width="9" height="30" rx="4" fill="'+sk+'"/><rect x="32" y="62" width="9" height="30" rx="4" fill="'+sk+'"/>';
+if(m)o+='<rect x="12" y="38" width="36" height="34" rx="8" fill="'+bd+'"/><rect x="4" y="40" width="9" height="26" rx="4" fill="'+bd+'"/><rect x="47" y="40" width="9" height="26" rx="4" fill="'+bd+'"/>';
+else o+='<polygon points="30,36 52,76 8,76" fill="'+bd+'"/><rect x="6" y="42" width="9" height="22" rx="4" fill="'+sk+'"/><rect x="45" y="42" width="9" height="22" rx="4" fill="'+sk+'"/><circle cx="12" cy="22" r="7" fill="'+hr+'"/><circle cx="48" cy="22" r="7" fill="'+hr+'"/>';
+return o+'<circle cx="30" cy="22" r="15" fill="'+sk+'"/><ellipse cx="30" cy="12" rx="15.5" ry="8" fill="'+hr+'"/><circle cx="25" cy="24" r="1.6" fill="#412402"/><circle cx="35" cy="24" r="1.6" fill="#412402"/><rect x="26" y="29" width="8" height="2" rx="1" fill="#993C1D"/></svg>'}
+function kdUI(){var L=S.L.kd||[],LK=lkL('kd'),adm=typeof ADM!=='undefined'&&ADM,FDk=FD.kd;
+  var cards=L.map(function(x,i){var g=x.g,ag=kAge(x),cl=g==='בת'?['#FBEAF0','#D4537E','kp2']:g==='בן'?['#E6F1FB','#378ADD','kp1']:['#F1EFE8','#9aa7ba','kp0'];
+    var pill=ag!=null?'<span class="kpill '+cl[2]+'">'+(g==='בת'?'בת ':g==='בן'?'בן ':'גיל ')+ag+'</span>':'<span class="kpill kp0">חסר תאריך</span>',av='<div class="kav" style="background:'+cl[0]+';border-color:'+cl[1]+'">'+kFig(g,92,57)+'</div>';
+    if(LK)return '<div class="kcd"><div class="nm">'+esc(x.n||'ילד/ה')+'</div><div class="kdt">'+(dpIso2Txt(x.b)||'—')+'</div>'+av+pill+'</div>';
+    return '<div class="kcd ed"><button class="gh kx" data-a="ld" data-l="kd" data-i="'+i+'" aria-label="מחיקה" title="מחיקה">✕</button>'+fld('kd',i,FDk[0],x.n)+fld('kd',i,FDk[2],x.b)+av+fld('kd',i,FDk[1],x.g)+pill+'</div>'}).join('');
+  return '<div class="c lkg">'+lkTop('kd','הילדים')+'<p class="hint">שם, מין ותאריך לידה של כל ילד. לפי זה אפשר ליצור יעדים אוטומטיים.</p>'+(L.length?'<div class="kgrid">'+cards+'</div>':'<p class="hint" style="margin:0">אין עדיין ילדים.</p>')+(LK?'':'<button class="btn" data-a="la" data-l="kd" style="margin-top:10px">'+ic('plus',18)+'<span>הוספת ילד/ה</span></button>')+'</div>'}
 function fmUI(){var f=S.fm||{},k=S.L.kd||[],ag=k.filter(function(x){return kAge(x)!=null}).map(function(x){return kAge(x)}).sort(function(a,b){return b-a});
   var Y=new Date().getFullYear(),LKF=lkL('fm'),inp=function(key,l){var v=f[key+'d']||'',a=pAge(f,key);return '<span class="dpw"><small>'+l+(a!=null&&v?' · גיל '+a:'')+'</small>'+(LKF?'<b>'+(dpIso2Txt(v)||'—')+'</b>':dPick('data-s="fm" data-k="'+key+'d"','fm.'+key+'d',v,Y-90,Y-15,l))+'</span>'};
   return '<div class="c lkg">'+lkTop('fm','הסיפור המשפחתי שלנו')+'<p class="hint">תאריכי הלידה של ההורים והילדים עוזרים לתכנן יעדים לאורך השנים, כמו בר מצווה, חתונה ופרישה.</p><div class="dt">'+inp('a','תאריך לידה בן הזוג')+inp('b','תאריך לידה בת הזוג')+'</div>'+
   (k.length?'<div class="hint" style="margin:8px 0 0">'+(k.length===1?'ילד אחד':k.length+' ילדים')+(ag.length>1?' · הגדול בן '+ag[0]+', הקטן בן '+ag[ag.length-1]:ag.length?' · בן '+ag[0]:'')+' · '+(2+k.length)+' נפשות בבית</div>':'')+'</div>'+
-  lst('kd','הילדים','שם, מין ותאריך לידה של כל ילד. לפי זה אפשר ליצור יעדים אוטומטיים.')}
+  kdUI()}
 function rtTxt(k){if(!n(S.dn))return '';var r=S.rt[k]||{},a=n(r.a),b=n(r.b);if(!a&&!b)return '';return ' · דירוג'+(a?' בן '+a:'')+(b?' בת '+b:'')+(a&&b?' · ממוצע '+((a+b)/2).toFixed(1):'')}
 function ctxUI(){if(!n(S.dn))return '<div class="c"><b>תמונת מצב לבניית התקציב</b><div class="hint" style="margin:6px 0 0">הסיפור המשפחתי, היעדים, הביטוחים ודירוגי בני הזוג יופיעו כאן ברגע שהזוג יסמן "הושלם".</div></div>';var f=S.fm||{},k=S.L.kd||[],ins=S.L.ins.reduce(function(a,x){return a+(x.f==='שנתי'?n(x.p)/12:n(x.p))},0);
   var ag=k.map(function(x){return esc(x.n||'ילד')+(kAge(x)!=null?' ('+kAge(x)+')':'')}).join(', ');
