@@ -363,3 +363,8 @@ input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
 .fl span:has(.dpk){flex:1 0 190px}
 .gaur .lkst{margin:0}
 .lkt2{flex-wrap:wrap}.lkt2 .lkr{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px}.it.ro .fl{display:flex;flex-wrap:wrap;gap:6px 18px}.it.ro .fl span{display:flex;flex-direction:column}.dpw>b{display:block;padding:6px 0}
+.kgs{display:inline-flex;gap:8px;padding:4px 0}.kgl{position:relative;cursor:pointer;display:inline-flex}.kgl input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.kgc{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:2px solid #d5dce6;color:#9aa7ba;background:#fff;transition:.15s}
+.kgc.on.m{background:#2f6fb3;border-color:#2f6fb3;color:#fff}.kgc.on.f{background:#c2557f;border-color:#c2557f;color:#fff}
+.kgl input:focus-visible+.kgc{outline:2px solid #1F3A5F;outline-offset:2px}.it.ro .kgc{width:34px;height:34px}
+.kgl input:checked+.kgc.m{background:#2f6fb3;border-color:#2f6fb3;color:#fff}.kgl input:checked+.kgc.f{background:#c2557f;border-color:#c2557f;color:#fff}

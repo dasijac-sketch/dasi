@@ -89,7 +89,7 @@ document.addEventListener('change',function(e){
   else if(d.s==='yc'){S.yc=S.yc||{};S.yc[d.k]=n(t.value)}
   else if(d.s==='ppl')S.ppl=n(t.value);
   else if(d.s==='act'){var k=ym();S.act[k]=S.act[k]||{};S.act[k][d.k]=n(t.value)}
-  else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value;touchU(p[0],S.L[p[0]][+p[1]],p[2]);if(p[2]==='y'){save();render();return}}
+  else if(d.s==='L'){var p=d.k.split('.');S.L[p[0]][+p[1]][p[2]]=d.ty==='n'?n(t.value):t.value;touchU(p[0],S.L[p[0]][+p[1]],p[2]);if(p[2]==='y'||(p[0]==='kd'&&p[2]==='g')){save();render();return}}
   else if(d.s==='mo'){var ar=S.mo[d.k]=S.mo[d.k]||[];for(var q=0;q<+d.j;q++)if(ar[q]===undefined)ar[q]='';ar[+d.j]=t.value===''?'':n(t.value);rc(d.k)}
   else if(d.s==='bud'){S.bud[d.k]=n(t.value)}
   else if(d.s==='fm'){S.fm=S.fm||{};S.fm[d.k]=(t.type==='date'||d.str)?t.value:n(t.value);save();render();return}
