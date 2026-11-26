@@ -170,6 +170,8 @@ document.addEventListener('click',function(e){
   else if(a==='gaue'){GAUE[b.dataset.t]=1}
   else if(a==='gauc'){delete GAUE[b.dataset.t]}
   else if(a==='gaut'){var gt=GAU.filter(function(g){return g[0]===b.dataset.t})[0],ai=document.getElementById('ga_'+gt[0]),amt=ai&&ai.value!==''?n(ai.value):'',ad=0,sk=0,up=0,tn=new Date();S.L.gl=S.L.gl||[];(S.L.kd||[]).forEach(function(x){if(x.g!==gt[2])return;var nm=gt[1]+' - '+(x.n||'ילד'),ex=S.L.gl.filter(function(y){return y.n===nm})[0];if(ex){if(amt!==''&&n(ex.t)!==amt){ex.t=amt;up++}return}if(kAge(x)==null)return;var dt=gauDate(x,gt[3]),p=dt.split('-');if((+p[0]*12+ +p[1])<(tn.getFullYear()*12+tn.getMonth()+1)){sk++;return}S.L.gl.push({n:nm,t:amt,s:'',d:dt});ad++});delete GAUE[gt[0]];status(ad||up?(up?'עודכנו '+up+' יעדים':'')+(up&&ad?', ':'')+(ad?'נוספו '+ad+' יעדים':'')+(sk?' ('+sk+' דולגו)':''):'לא בוצע שינוי'+(sk?' ('+sk+' מועד שעבר)':''));save()}
+  else if(a==='llk'){var lk=b.dataset.l;S.L.lk=S.L.lk||{};S.L.lk[lk]=Date.now();Object.keys(EDI).forEach(function(k){if(k.indexOf(lk)===0)delete EDI[k]});save()}
+  else if(a==='lul'){if(S.L.lk)delete S.L.lk[b.dataset.l];save()}
   else if(a==='la'){var ll=S.L[b.dataset.l];ll.push(b.dataset.y?{y:b.dataset.y,n:b.dataset.nm||''}:{});if(b.dataset.ed)EDI[b.dataset.l+(ll.length-1)]=1;save()}
   else if(a==='ld'){var li=S.L[b.dataset.l][+b.dataset.i],nm=(li&&(li.n||li.y))||'';if(!confirm('האם למחוק'+(nm?' את "'+nm+'"':' את הפריט')+'? לאחר המחיקה לא ניתן לשחזר את הנתונים.'))return;S.L[b.dataset.l].splice(+b.dataset.i,1);EDI={};save()}
   else if(a==='mo'){var ma=S.mo[b.dataset.id]=S.mo[b.dataset.id]||[];while(ma.length<2)ma.push('');ma.push('');save()}

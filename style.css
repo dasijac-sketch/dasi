@@ -362,3 +362,4 @@ input[type=date]{min-width:150px}.fl span:has(input[type=date]){flex:1 0 150px}
 .dpw{flex:0 1 270px;min-width:230px}
 .fl span:has(.dpk){flex:1 0 190px}
 .gaur .lkst{margin:0}
+.lkt2{flex-wrap:wrap}.lkt2 .lkr{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px}.it.ro .fl{display:flex;flex-wrap:wrap;gap:6px 18px}.it.ro .fl span{display:flex;flex-direction:column}.dpw>b{display:block;padding:6px 0}
